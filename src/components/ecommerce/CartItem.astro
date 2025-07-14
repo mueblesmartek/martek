@@ -1,0 +1,309 @@
+---
+// src/components/ecommerce/CartItem.astro
+export interface Props {
+  item: {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image: string;
+    color?: string;
+    size?: string;
+    originalPrice?: number;
+    inStock?: boolean;
+  };
+  showQuantityControls?: boolean;
+  showRemove?: boolean;
+  compact?: boolean;
+}
+
+const { 
+  item, 
+  showQuantityControls = true, 
+  showRemove = true,
+  compact = false 
+} = Astro.props;
+
+const totalPrice = item.price * item.quantity;
+const discount = item.originalPrice ? Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100) : 0;
+---
+
+<div class={`bg-white ${compact ? 'p-3' : 'p-4'} border border-gray-200 rounded-lg hover:shadow-md transition-shadow`}>
+  <div class="flex space-x-4">
+    
+    <!-- Product Image -->
+    <div class="flex-shrink-0">
+      <a href={`/productos/${item.id}`}>
+        <img 
+          src={item.image} 
+          alt={item.name}
+          class={`${compact ? 'w-16 h-16' : 'w-20 h-20'} object-cover rounded-md hover:opacity-90 transition-opacity`}
+        />
+      </a>
+    </div>
+
+    <!-- Product Details -->
+    <div class="flex-1 min-w-0">
+      
+      <!-- Product Name -->
+      <h4 class={`${compact ? 'text-sm' : 'text-base'} font-medium text-gray-900 mb-1`}>
+        <a 
+          href={`/productos/${item.id}`}
+          class="hover:text-primary-500 transition-colors"
+        >
+          {item.name}
+        </a>
+      </h4>
+
+      <!-- Product Variants -->
+      {(item.color || item.size) && (
+        <div class="flex items-center space-x-4 mb-2">
+          {item.color && (
+            <div class="flex items-center text-xs text-gray-600">
+              <span class="mr-1">Color:</span>
+              <div class="w-4 h-4 rounded-full border border-gray-300 bg-gray-800"></div>
+              <span class="ml-1">{item.color}</span>
+            </div>
+          )}
+          {item.size && (
+            <div class="text-xs text-gray-600">
+              Talla: <span class="font-medium">{item.size}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <!-- Price and Discount -->
+      <div class="flex items-center space-x-2 mb-3">
+        <span class={`${compact ? 'text-sm' : 'text-base'} font-semibold text-gray-900`}>
+          ${item.price.toLocaleString('es-CO')}
+        </span>
+        {item.originalPrice && (
+          <>
+            <span class="text-sm text-gray-500 line-through">
+              ${item.originalPrice.toLocaleString('es-CO')}
+            </span>
+            <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">
+              -{discount}%
+            </span>
+          </>
+        )}
+      </div>
+
+      <!-- Stock Status -->
+      {item.inStock === false && (
+        <div class="flex items-center text-sm text-red-600 mb-2">
+          <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+          Agotado
+        </div>
+      )}
+
+      <!-- Quantity and Actions -->
+      <div class="flex items-center justify-between">
+        
+        <!-- Quantity Controls -->
+        {showQuantityControls && (
+          <div class="flex items-center space-x-3">
+            <label class="text-sm text-gray-600">Cantidad:</label>
+            <div class="flex items-center border border-gray-300 rounded-md">
+              <button 
+                class="quantity-btn p-1 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                data-action="decrease"
+                data-item-id={item.id}
+                disabled={item.quantity <= 1}
+                aria-label="Disminuir cantidad"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                </svg>
+              </button>
+              
+              <input 
+                type="number"
+                min="1"
+                max="10"
+                value={item.quantity}
+                class="w-12 px-2 py-1 text-center border-0 focus:outline-none focus:ring-0"
+                data-item-id={item.id}
+                id={`quantity-${item.id}`}
+              />
+              
+              <button 
+                class="quantity-btn p-1 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                data-action="increase" 
+                data-item-id={item.id}
+                disabled={item.quantity >= 10}
+                aria-label="Aumentar cantidad"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
+        <!-- Total Price -->
+        <div class="text-right">
+          <div class={`${compact ? 'text-sm' : 'text-base'} font-bold text-gray-900`}>
+            ${totalPrice.toLocaleString('es-CO')}
+          </div>
+          {!compact && item.quantity > 1 && (
+            <div class="text-xs text-gray-500">
+              ${item.price.toLocaleString('es-CO')} c/u
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <!-- Remove Button -->
+    {showRemove && (
+      <div class="flex-shrink-0">
+        <button 
+          class="remove-item p-2 text-gray-400 hover:text-red-500 transition-colors"
+          data-item-id={item.id}
+          aria-label="Eliminar producto"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    )}
+  </div>
+
+  <!-- Save for Later / Move to Wishlist -->
+  {!compact && (
+    <div class="mt-3 pt-3 border-t border-gray-100 flex items-center space-x-4 text-sm">
+      <button class="text-primary-500 hover:text-primary-600 transition-colors save-for-later" data-item-id={item.id}>
+        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        Guardar para después
+      </button>
+      
+      <button class="text-gray-600 hover:text-gray-800 transition-colors" data-item-id={item.id}>
+        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+        </svg>
+        Compartir
+      </button>
+    </div>
+  )}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Quantity control functionality
+    document.querySelectorAll('.quantity-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const button = e.currentTarget as HTMLButtonElement;
+        const action = button.getAttribute('data-action') || '';
+        const itemId = button.getAttribute('data-item-id') || '';
+        const quantityInput = document.getElementById(`quantity-${itemId}`) as HTMLInputElement;
+        
+        if (quantityInput) {
+          let currentQuantity = parseInt(quantityInput.value);
+          
+          if (action === 'increase' && currentQuantity < 10) {
+            currentQuantity++;
+          } else if (action === 'decrease' && currentQuantity > 1) {
+            currentQuantity--;
+          }
+          
+          quantityInput.value = currentQuantity.toString();
+          
+          // Update button states
+          const decreaseBtn = document.querySelector(`[data-action="decrease"][data-item-id="${itemId}"]`) as HTMLButtonElement;
+          const increaseBtn = document.querySelector(`[data-action="increase"][data-item-id="${itemId}"]`) as HTMLButtonElement;
+          
+          if (decreaseBtn) decreaseBtn.disabled = currentQuantity <= 1;
+          if (increaseBtn) increaseBtn.disabled = currentQuantity >= 10;
+          
+          // Trigger update cart event
+          updateCartItem(itemId, currentQuantity);
+        }
+      });
+    });
+
+    // Direct quantity input change
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.addEventListener('change', function(e) {
+        const inputElement = e.currentTarget as HTMLInputElement;
+        const itemId = inputElement.getAttribute('data-item-id') || '';
+        const quantity = Math.max(1, Math.min(10, parseInt(inputElement.value) || 1));
+        inputElement.value = quantity.toString();
+        
+        updateCartItem(itemId, quantity);
+      });
+    });
+
+    // Remove item functionality
+    document.querySelectorAll('.remove-item').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const button = e.currentTarget as HTMLButtonElement;
+        const itemId = button.getAttribute('data-item-id') || '';
+        
+        if (confirm('¿Estás seguro de que quieres eliminar este producto del carrito?')) {
+          removeCartItem(itemId);
+        }
+      });
+    });
+
+    // Save for later functionality
+    document.querySelectorAll('.save-for-later').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const button = e.currentTarget as HTMLButtonElement;
+        const itemId = button.getAttribute('data-item-id') || '';
+        saveForLater(itemId);
+      });
+    });
+
+    // Cart update functions (these would connect to your cart store)
+    function updateCartItem(itemId: string, quantity: number) {
+      console.log(`Updating item ${itemId} to quantity ${quantity}`);
+      // Here you would update your cart store/state
+      
+      // Show toast notification
+      showToast(`Cantidad actualizada`);
+    }
+
+    function removeCartItem(itemId: string) {
+      console.log(`Removing item ${itemId} from cart`);
+      // Here you would remove from cart store/state
+      
+      // Animate removal
+      const cartItem = document.querySelector(`[data-item-id="${itemId}"]`)?.closest('.bg-white') as HTMLElement;
+      if (cartItem) {
+        cartItem.style.opacity = '0';
+        cartItem.style.transform = 'translateX(-100%)';
+        setTimeout(() => cartItem.remove(), 300);
+      }
+      
+      showToast(`Producto eliminado del carrito`);
+    }
+
+    function saveForLater(itemId: string) {
+      console.log(`Saving item ${itemId} for later`);
+      // Here you would move to wishlist/saved items
+      
+      showToast(`Guardado para después`);
+    }
+
+    function showToast(message: string) {
+      // Simple toast notification
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-gray-900 text-white px-4 py-2 rounded-md z-50 transition-opacity';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 2000);
+    }
+  });
+</script>

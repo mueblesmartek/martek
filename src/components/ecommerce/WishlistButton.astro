@@ -1,0 +1,379 @@
+---
+// src/components/ecommerce/WishlistButton.astro
+export interface Props {
+  productId: string;
+  isWishlisted?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'icon' | 'text' | 'full';
+  className?: string;
+}
+
+const { 
+  productId, 
+  isWishlisted = false, 
+  size = 'md',
+  variant = 'icon',
+  className = ''
+} = Astro.props;
+
+// Size mappings
+const sizeClasses = {
+  sm: 'w-8 h-8 p-1.5',
+  md: 'w-10 h-10 p-2',
+  lg: 'w-12 h-12 p-2.5'
+};
+
+const iconSizes = {
+  sm: 'w-4 h-4',
+  md: 'w-5 h-5', 
+  lg: 'w-6 h-6'
+};
+
+// Base classes
+const baseClasses = "relative transition-all duration-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2";
+
+// Variant-specific classes
+const variantClasses = {
+  icon: `${baseClasses} ${sizeClasses[size]} bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md`,
+  text: `${baseClasses} px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 text-sm font-medium`,
+  full: `${baseClasses} px-6 py-3 bg-transparent hover:bg-primary-50 border border-primary-200 hover:border-primary-300 text-primary-600 hover:text-primary-700 font-medium`
+};
+
+const iconClass = isWishlisted ? 'text-red-500' : 'text-gray-400 hover:text-red-500';
+---
+
+<button 
+  class={`wishlist-btn ${variantClasses[variant]} ${iconClass} ${className}`}
+  data-product-id={productId}
+  data-wishlisted={isWishlisted}
+  aria-label={isWishlisted ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+  title={isWishlisted ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+>
+  <!-- Loading Spinner (hidden by default) -->
+  <div class="loading-spinner absolute inset-0 items-center justify-center hidden">
+    <svg class={`animate-spin ${iconSizes[size]} text-primary-500`} fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  </div>
+
+  <!-- Heart Icon -->
+  <div class="heart-icon transition-transform duration-200">
+    {variant === 'icon' ? (
+      <!-- Icon Only -->
+      <svg 
+        class={`${iconSizes[size]} transition-colors duration-200`}
+        fill={isWishlisted ? 'currentColor' : 'none'} 
+        stroke="currentColor" 
+        viewBox="0 0 24 24"
+      >
+        <path 
+          stroke-linecap="round" 
+          stroke-linejoin="round" 
+          stroke-width="2" 
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+        />
+      </svg>
+    ) : variant === 'text' ? (
+      <!-- Icon + Text -->
+      <div class="flex items-center space-x-2">
+        <svg 
+          class={`${iconSizes.sm} transition-colors duration-200`}
+          fill={isWishlisted ? 'currentColor' : 'none'} 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+          />
+        </svg>
+        <span class="wishlist-text">
+          {isWishlisted ? 'En favoritos' : 'Agregar a favoritos'}
+        </span>
+      </div>
+    ) : (
+      <!-- Full Button -->
+      <div class="flex items-center justify-center space-x-2">
+        <svg 
+          class={`${iconSizes.sm} transition-colors duration-200`}
+          fill={isWishlisted ? 'currentColor' : 'none'} 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2" 
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+          />
+        </svg>
+        <span class="wishlist-text text-sm">
+          {isWishlisted ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+        </span>
+      </div>
+    )}
+  </div>
+
+  <!-- Success Checkmark (hidden by default) -->
+  <div class="success-check absolute inset-0 items-center justify-center hidden">
+    <svg class={`${iconSizes[size]} text-green-500`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+
+  <!-- Wishlist Count Badge (for icon variant) -->
+  {variant === 'icon' && (
+    <span class="wishlist-count absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 items-center justify-center font-bold hidden">
+      
+    </span>
+  )}
+</button>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize wishlist functionality
+    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+    
+    wishlistButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const btn = e.currentTarget as HTMLButtonElement;
+        const productId = btn.getAttribute('data-product-id') || '';
+        const isCurrentlyWishlisted = btn.getAttribute('data-wishlisted') === 'true';
+        
+        toggleWishlist(btn, productId, !isCurrentlyWishlisted);
+      });
+    });
+
+    async function toggleWishlist(button: HTMLButtonElement, productId: string, addToWishlist: boolean) {
+      // Show loading state
+      showLoadingState(button, true);
+      
+      try {
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Here you would make actual API call to your backend
+        // const response = await fetch('/api/wishlist', {
+        //   method: addToWishlist ? 'POST' : 'DELETE',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ productId })
+        // });
+        
+        // Update button state
+        updateButtonState(button, addToWishlist);
+        
+        // Show success animation
+        showSuccessAnimation(button);
+        
+        // Update local storage
+        updateLocalWishlist(productId, addToWishlist);
+        
+        // Show toast notification
+        showToast(addToWishlist ? 'Agregado a favoritos' : 'Quitado de favoritos');
+        
+        // Update wishlist counter in header
+        updateWishlistCounter();
+        
+      } catch (error) {
+        console.error('Error updating wishlist:', error);
+        showToast('Error al actualizar favoritos', 'error');
+      } finally {
+        showLoadingState(button, false);
+      }
+    }
+
+    function showLoadingState(button: HTMLButtonElement, isLoading: boolean) {
+      const heartIcon = button.querySelector('.heart-icon') as HTMLElement;
+      const loadingSpinner = button.querySelector('.loading-spinner') as HTMLElement;
+      
+      if (heartIcon && loadingSpinner) {
+        if (isLoading) {
+          heartIcon.classList.add('hidden');
+          loadingSpinner.classList.remove('hidden');
+          loadingSpinner.classList.add('flex', 'items-center', 'justify-center');
+          button.disabled = true;
+        } else {
+          heartIcon.classList.remove('hidden');
+          loadingSpinner.classList.add('hidden');
+          loadingSpinner.classList.remove('flex', 'items-center', 'justify-center');
+          button.disabled = false;
+        }
+      }
+    }
+
+    function updateButtonState(button: HTMLButtonElement, isWishlisted: boolean) {
+      const heartSvg = button.querySelector('.heart-icon svg') as SVGElement;
+      const wishlistText = button.querySelector('.wishlist-text') as HTMLElement;
+      
+      // Update data attribute
+      button.setAttribute('data-wishlisted', isWishlisted.toString());
+      
+      // Update aria-label
+      button.setAttribute('aria-label', isWishlisted ? 'Quitar de favoritos' : 'Agregar a favoritos');
+      button.setAttribute('title', isWishlisted ? 'Quitar de favoritos' : 'Agregar a favoritos');
+      
+      // Update heart icon
+      if (heartSvg) {
+        heartSvg.setAttribute('fill', isWishlisted ? 'currentColor' : 'none');
+        
+        // Update color classes
+        if (isWishlisted) {
+          button.classList.remove('text-gray-400', 'hover:text-red-500');
+          button.classList.add('text-red-500');
+        } else {
+          button.classList.remove('text-red-500');
+          button.classList.add('text-gray-400', 'hover:text-red-500');
+        }
+      }
+      
+      // Update text
+      if (wishlistText) {
+        const buttonVariant = button.classList.contains('px-6') ? 'full' : 'text';
+        if (buttonVariant === 'full') {
+          wishlistText.textContent = isWishlisted ? 'Quitar de favoritos' : 'Agregar a favoritos';
+        } else {
+          wishlistText.textContent = isWishlisted ? 'En favoritos' : 'Agregar a favoritos';
+        }
+      }
+    }
+
+    function showSuccessAnimation(button: HTMLButtonElement) {
+      const heartIcon = button.querySelector('.heart-icon') as HTMLElement;
+      const successCheck = button.querySelector('.success-check') as HTMLElement;
+      
+      if (heartIcon && successCheck) {
+        // Show checkmark briefly
+        heartIcon.classList.add('hidden');
+        successCheck.classList.remove('hidden');
+        successCheck.classList.add('flex', 'items-center', 'justify-center');
+        
+        // Add scale animation to button
+        const buttonElement = button as HTMLElement;
+        buttonElement.style.transform = 'scale(1.1)';
+        
+        setTimeout(() => {
+          successCheck.classList.add('hidden');
+          successCheck.classList.remove('flex', 'items-center', 'justify-center');
+          heartIcon.classList.remove('hidden');
+          buttonElement.style.transform = 'scale(1)';
+        }, 800);
+      }
+    }
+
+    function updateLocalWishlist(productId: string, addToWishlist: boolean) {
+      try {
+        const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+        
+        if (addToWishlist) {
+          if (!wishlist.includes(productId)) {
+            wishlist.push(productId);
+          }
+        } else {
+          const index = wishlist.indexOf(productId);
+          if (index > -1) {
+            wishlist.splice(index, 1);
+          }
+        }
+        
+        localStorage.setItem('wishlist', JSON.stringify(wishlist));
+      } catch (error) {
+        console.error('Error updating local wishlist:', error);
+      }
+    }
+
+    function updateWishlistCounter() {
+      try {
+        const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+        const counter = document.querySelector('.wishlist-counter') as HTMLElement;
+        
+        if (counter) {
+          counter.textContent = wishlist.length.toString();
+          if (wishlist.length > 0) {
+            counter.style.display = 'flex';
+            counter.classList.add('flex', 'items-center', 'justify-center');
+            counter.classList.remove('hidden');
+          } else {
+            counter.style.display = 'none';
+            counter.classList.add('hidden');
+            counter.classList.remove('flex', 'items-center', 'justify-center');
+          }
+        }
+      } catch (error) {
+        console.error('Error updating wishlist counter:', error);
+      }
+    }
+
+    function showToast(message: string, type: string = 'success') {
+      const toast = document.createElement('div');
+      const bgColor = type === 'error' ? 'bg-red-500' : 'bg-green-500';
+      
+      toast.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-md z-50 transform transition-all duration-300 translate-x-full`;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      
+      // Slide in
+      setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+      }, 100);
+      
+      // Slide out and remove
+      setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // Initialize wishlist state from localStorage on page load
+    function initializeWishlistState() {
+      try {
+        const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+        
+        wishlistButtons.forEach(button => {
+          const btn = button as HTMLButtonElement;
+          const productId = btn.getAttribute('data-product-id') || '';
+          const isWishlisted = wishlist.includes(productId);
+          
+          if (isWishlisted !== (btn.getAttribute('data-wishlisted') === 'true')) {
+            updateButtonState(btn, isWishlisted);
+          }
+        });
+        
+        updateWishlistCounter();
+      } catch (error) {
+        console.error('Error initializing wishlist state:', error);
+      }
+    }
+
+    // Initialize on load
+    initializeWishlistState();
+  });
+</script>
+
+<style>
+  .wishlist-btn:hover .heart-icon {
+    transform: scale(1.1);
+  }
+  
+  .wishlist-btn:active .heart-icon {
+    transform: scale(0.95);
+  }
+  
+  .wishlist-btn.text-red-500:hover .heart-icon {
+    animation: heartbeat 0.6s ease-in-out;
+  }
+  
+  @keyframes heartbeat {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.1); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+</style>

@@ -1,0 +1,210 @@
+---
+// src/components/layout/Header.astro
+import { NAVIGATION_ITEMS } from '../../utils/constants';
+import SearchBar from '../ecommerce/SearchBar.astro';
+---
+
+<!-- Top Banner (opcional para promociones) -->
+<div class="bg-gray-900 text-white text-center py-2 text-sm">
+  <p>🚚 Envío discreto gratis en pedidos superiores a $150.000 COP</p>
+</div>
+
+<!-- Main Header -->
+<header class="sticky top-0 z-40 bg-white border-b border-gray-200">
+  <!-- Top Bar -->
+  <div class="bg-gray-50 border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-10 text-sm">
+        <!-- Left Links -->
+        <div class="hidden md:flex space-x-6">
+          <a href="/ayuda" class="text-gray-600 hover:text-gray-900 transition-colors">
+            Ayuda
+          </a>
+          <a href="/seguimiento" class="text-gray-600 hover:text-gray-900 transition-colors">
+            Seguimiento
+          </a>
+          <a href="/contacto" class="text-gray-600 hover:text-gray-900 transition-colors">
+            Contacto
+          </a>
+        </div>
+        
+        <!-- Right Links -->
+        <div class="flex items-center space-x-6 text-sm">
+          <span class="text-gray-600">Colombia</span>
+          <div class="flex items-center space-x-4">
+            <a href="/login" class="text-gray-600 hover:text-gray-900 transition-colors">
+              Iniciar sesión
+            </a>
+            <a href="/registro" class="text-gray-600 hover:text-gray-900 transition-colors">
+              Registro
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      
+      <!-- Mobile menu button -->
+      <div class="md:hidden">
+        <button 
+          type="button" 
+          class="mobile-menu-button p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          aria-expanded="false"
+          aria-label="Abrir menú principal"
+        >
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Logo -->
+      <div class="flex-shrink-0 py-4">
+        <a href="/" class="flex items-center ">
+          <div class="text-2xl  font-bold ">
+        <img src="/images/logo-kama.svg" alt="Kama sexshop" class="h-20 " />
+          </div>
+        </a>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex space-x-8">
+        {NAVIGATION_ITEMS.map((item) => (
+          <a 
+            href={item.href}
+            class="text-gray-700 hover:text-primary-500 px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
+          >
+            {item.name}
+            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-200 group-hover:w-full"></span>
+          </a>
+        ))}
+      </nav>
+
+      <!-- Right Icons -->
+      <div class="flex items-center space-x-4">
+        
+        <!-- Search (Desktop) -->
+        <div class="hidden lg:block">
+          <SearchBar />
+        </div>
+        
+        <!-- Search Icon (Mobile) -->
+        <button class="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
+
+        <!-- Wishlist -->
+        <a 
+          href="/favoritos" 
+          class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors relative"
+          aria-label="Lista de favoritos"
+        >
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          <!-- Wishlist counter -->
+          <span class="absolute -top-2 -right-2 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+            3
+          </span>
+        </a>
+
+        <!-- Account -->
+        <a 
+          href="/cuenta" 
+          class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+          aria-label="Mi cuenta"
+        >
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </a>
+
+        <!-- Shopping Cart -->
+        <a 
+          href="/carrito" 
+          class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors relative"
+          aria-label="Carrito de compras"
+        >
+          
+ 
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+            <path d="M528.1 301.3l47.3-208C578.8 78.3 567.4 64 552 64H159.2l-9.2-44.8C147.8 8 137.9 0 126.5 0H24C10.7 0 0 10.7 0 24v16c0 13.3 10.7 24 24 24h69.9l70.2 343.4C147.3 417.1 136 435.2 136 456c0 30.9 25.1 56 56 56s56-25.1 56-56c0-15.7-6.4-29.8-16.8-40h209.6C430.4 426.2 424 440.3 424 456c0 30.9 25.1 56 56 56s56-25.1 56-56c0-22.2-12.9-41.3-31.6-50.4l5.5-24.3c3.4-15-8-29.3-23.4-29.3H218.1l-6.5-32h293.1c11.2 0 20.9-7.8 23.4-18.7z"/>
+          </svg>
+          <!-- Cart counter -->
+          <span class="absolute -top-2 -right-2 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+            2
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Menu -->
+  <div class="mobile-menu hidden md:hidden bg-white border-t border-gray-200">
+    <div class="px-4 py-4 space-y-4">
+      
+      <!-- Mobile Search -->
+      <div class="mb-4">
+        <SearchBar />
+      </div>
+      
+      <!-- Mobile Navigation Links -->
+      <nav class="space-y-2">
+        {NAVIGATION_ITEMS.map((item) => (
+          <a 
+            href={item.href}
+            class="block px-3 py-2 text-gray-700 hover:text-primary-500 hover:bg-gray-50 rounded-md transition-colors"
+          >
+            {item.name}
+          </a>
+        ))}
+      </nav>
+      
+      <!-- Mobile Account Links -->
+      <div class="pt-4 border-t border-gray-200 space-y-2">
+        <a href="/cuenta" class="block px-3 py-2 text-gray-700 hover:text-primary-500 hover:bg-gray-50 rounded-md">
+          Mi Cuenta
+        </a>
+        <a href="/favoritos" class="block px-3 py-2 text-gray-700 hover:text-primary-500 hover:bg-gray-50 rounded-md">
+          Favoritos
+        </a>
+        <a href="/ayuda" class="block px-3 py-2 text-gray-700 hover:text-primary-500 hover:bg-gray-50 rounded-md">
+          Ayuda
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Mobile menu toggle
+  document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuButton = document.querySelector('.mobile-menu-button');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    
+    if (mobileMenuButton && mobileMenu) {
+      mobileMenuButton.addEventListener('click', function() {
+        const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+        
+        mobileMenuButton.setAttribute('aria-expanded', (!isExpanded).toString());
+        mobileMenu.classList.toggle('hidden');
+        
+        // Toggle icon
+        const icon = mobileMenuButton.querySelector('svg');
+        if (icon) {
+          if (!isExpanded) {
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+          } else {
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />';
+          }
+        }
+      });
+    }
+  });
+</script>
