@@ -1,14 +1,31 @@
-// astro.config.mjs
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 
-// https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind()],
+  site: 'https://kamasex.shop',
+  integrations: [
+    tailwind({
+      applyBaseStyles: false,
+    })
+  ],
   output: 'static',
+  
+  // 🚫 IGNORAR ARCHIVOS TEMPORALMENTE PARA BUILD
   vite: {
-    define: {
-      'process.env': process.env
+    build: {
+      rollupOptions: {
+        external: [
+          'nanostores',
+          '@nanostores/persistent', 
+          'airtable',
+          'firebase',
+          'firebase-admin'
+        ]
+      }
+    },
+    // Excluir archivos problemáticos del build
+    optimizeDeps: {
+      exclude: ['nanostores', 'airtable', 'firebase']
     }
   }
 });
