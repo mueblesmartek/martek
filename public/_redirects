@@ -1,0 +1,16 @@
+# SPA fallbacks
+/productos/*  /productos/:splat  200
+/categoria/*  /categoria/:splat  200
+/cuenta/*     /cuenta/:splat     200
+
+# API routes
+/api/*        /.netlify/functions/:splat  200
+
+# Redirect old URLs (if any)
+/products/*   /productos/:splat   301
+/category/*   /categoria/:splat   301
+
+# Security redirects
+/admin        /                   301
+/wp-admin     /                   301
+/.env         /                   404
