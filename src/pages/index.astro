@@ -22,7 +22,7 @@
     <style>
         /* 🎯 VARIABLES PARA CONTROL DE TAMAÑO */
         :root {
-            --logo-scale: 6;
+            --logo-scale: 7;
         }
         
         /* Ubuntu font */
@@ -112,10 +112,10 @@
         <!-- Contenido principal -->
         <div class="content-wrapper">
             <!-- ✨ CAMBIO CLAVE: De grid a flex flex-col para flujo natural -->
-            <div class="w-full p-8 flex flex-col items-center justify-center gap-2 min-h-screen">
+            <div class="w-full p-8 flex flex-col items-center justify-center gap-8 min-h-screen">
                 
-                <!-- 🚀 LOGO CENTRADO (SIN LÍMITES DE TAMAÑO) -->
-                <div class="logo-scaled flex items-center justify-center fade-in">
+                <!-- 🚀 LOGO CENTRADO (RESPONSIVE SEGURO) -->
+                <div class="logo-scaled max-w-[95vw] max-h-[60vh] flex items-center justify-center fade-in">
                     <img 
                         src="/images/logo-kama.svg" 
                         alt="Kamasex Logo" 
