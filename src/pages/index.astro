@@ -45,81 +45,127 @@ import SplashCursor from '../components/SplashCursorApp';
         overflow-x: hidden;
       }
 
-      /* Contenedor principal con altura extendida para scroll */
-      .scroll-container {
-        height: 300vh; /* Altura triple para permitir scroll */
-        position: relative;
-      }
-
-      /* Sección fija que se queda en viewport */
-      .fixed-section {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100vh;
-        z-index: 5;
-      }
-
-      /* Fondo blanco que aparece con scroll */
-      .white-background {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #bbbbbb;
-        opacity: var(--bg-opacity);
-        transition: opacity 0.1s ease-out;
-        z-index: 1;
-      }
-
-      /* Contenedor de imagen con parallax */
-      .background-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 120%; /* Más alto para el efecto parallax */
-        background-image: url("/images/tacones2.webp");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        transform: translateY(var(--bg-position));
-        transition: transform 0.1s ease-out;
-        will-change: transform; /* Optimización GPU */
-        z-index: 2;
-      }
-
-      /* Desactivar parallax en móviles para evitar temblores */
-      @media (max-width: 768px) {
-        .background-container {
-          position: fixed;
-          height: 100vh;
-          transform: none !important;
-          background-attachment: scroll;
-          transition: none;
-          will-change: auto;
+      /* ===== DESKTOP STYLES (con scroll effects) ===== */
+      @media (min-width: 769px) {
+        /* Contenedor principal con altura extendida para scroll */
+        .scroll-container {
+          height: 300vh; /* Altura triple para permitir scroll */
+          position: relative;
         }
-        
-        /* Prevenir scroll bounce en iOS */
+
+        /* Sección fija que se queda en viewport */
+        .fixed-section {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh;
+          z-index: 5;
+        }
+
+        /* Fondo blanco que aparece con scroll */
+        .white-background {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: #bbbbbb;
+          opacity: var(--bg-opacity);
+          transition: opacity 0.1s ease-out;
+          z-index: 1;
+        }
+
+        /* Contenedor de imagen con parallax */
+        .background-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 120%; /* Más alto para el efecto parallax */
+          background-image: url("/images/tacones2.webp");
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          transform: translateY(var(--bg-position));
+          transition: transform 0.1s ease-out;
+          will-change: transform; /* Optimización GPU */
+          z-index: 2;
+        }
+
+        /* Scroll indicator solo en desktop */
+        .scroll-indicator {
+          position: absolute;
+          bottom: 2rem;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 15;
+          color: rgb(55, 55, 55);
+          font-size: 0.875rem;
+          opacity: 0.7;
+          animation: bounce 2s infinite;
+        }
+      }
+
+      /* ===== MOBILE STYLES (completamente estático) ===== */
+      @media (max-width: 768px) {
+        :root {
+          --logo-scale: 5 !important; /* Logo fijo en móvil */
+        }
+
+        /* Contenedor simple sin scroll effects */
+        .scroll-container {
+          height: 100vh; /* Altura normal */
+          position: relative;
+        }
+
+        .fixed-section {
+          position: relative; /* No fixed en móvil */
+          width: 100%;
+          height: 100vh;
+          z-index: 5;
+        }
+
+        /* Fondo gris fijo en móvil */
+        .white-background {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: #bbbbbb;
+          opacity: 0.95; /* Opacidad fija */
+          z-index: 1;
+        }
+
+        /* Imagen de fondo fija en móvil */
+        .background-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh;
+          background-image: url("/images/tacones2.webp");
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          transform: none !important; /* Sin parallax */
+          transition: none;
+          z-index: 2;
+        }
+
+        /* Ocultar scroll indicator en móvil */
+        .scroll-indicator {
+          display: none;
+        }
+
+        /* Prevenir cualquier scroll bounce */
         body {
           -webkit-overflow-scrolling: touch;
           overscroll-behavior: none;
+          overflow: hidden; /* Sin scroll en móvil */
         }
       }
-
-      /* Específico para Safari iOS */
-      @supports (-webkit-touch-callout: none) {
-        @media (max-width: 768px) {
-          .background-container {
-            position: fixed !important;
-            background-attachment: scroll !important;
-          }
-        }
-      }
-
-      
 
       .content-wrapper {
         position: relative;
@@ -187,10 +233,6 @@ import SplashCursor from '../components/SplashCursorApp';
 
       /* Responsive adjustments */
       @media (max-width: 768px) {
-        :root {
-          --logo-scale-max: 5; /* Más pequeño en móvil */
-        }
-
         .logo-container {
           width: calc(175px * var(--logo-scale));
           height: calc(70px * var(--logo-scale));
@@ -242,19 +284,6 @@ import SplashCursor from '../components/SplashCursorApp';
           opacity: 1;
           transform: translateY(0);
         }
-      }
-
-      /* Scroll indicator (opcional) */
-      .scroll-indicator {
-        position: absolute;
-        bottom: 2rem;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 15;
-        color: rgb(55, 55, 55);
-        font-size: 0.875rem;
-        opacity: 0.7;
-        animation: bounce 2s infinite;
       }
 
       @keyframes bounce {
@@ -336,7 +365,7 @@ import SplashCursor from '../components/SplashCursorApp';
             </a>
           </div>
 
-          <!-- Indicador de scroll (opcional) -->
+          <!-- Indicador de scroll (solo desktop) -->
           <div class="scroll-indicator">
             <div style="text-align: center;">
               <div>Desliza para más</div>
@@ -348,94 +377,91 @@ import SplashCursor from '../components/SplashCursorApp';
     </div>
 
     <script>
-      // Scroll Trigger Logic
-      function initScrollTrigger() {
-        const logoScaleStart = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--logo-scale-min'));
-        const logoScaleEnd = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--logo-scale-max'));
-        
-        function updateScrollEffects() {
-          const scrollProgress = Math.min(window.scrollY / (window.innerHeight * 1.5), 1);
-          const isMobile = window.innerWidth <= 768;
+      // Solo ejecutar scroll effects en desktop
+      if (window.innerWidth > 768) {
+        // Scroll Trigger Logic - SOLO DESKTOP
+        function initScrollTrigger() {
+          const logoScaleStart = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--logo-scale-min'));
+          const logoScaleEnd = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--logo-scale-max'));
           
-          // 1. Actualizar escala del logo (de pequeño a grande)
-          const currentScale = logoScaleStart + (logoScaleEnd - logoScaleStart) * scrollProgress;
-          document.documentElement.style.setProperty('--logo-scale', currentScale.toString());
-          
-          // 2. Parallax de la imagen de fondo (solo en desktop)
-          if (!isMobile) {
+          function updateScrollEffects() {
+            const scrollProgress = Math.min(window.scrollY / (window.innerHeight * 1.5), 1);
+            
+            // 1. Actualizar escala del logo (de pequeño a grande)
+            const currentScale = logoScaleStart + (logoScaleEnd - logoScaleStart) * scrollProgress;
+            document.documentElement.style.setProperty('--logo-scale', currentScale.toString());
+            
+            // 2. Parallax de la imagen de fondo
             const bgPosition = 100 - (scrollProgress * 100); // Se mueve de 100% (abajo) a 0% (normal/center)
             document.documentElement.style.setProperty('--bg-position', bgPosition.toString() + '%');
+            
+            // 3. Fade in del fondo blanco
+            const bgOpacity = Math.min(scrollProgress * 1.5, 0.95); // Máximo 95% opacity
+            document.documentElement.style.setProperty('--bg-opacity', bgOpacity.toString());
+            
+            // 4. Ocultar indicador de scroll
+            const scrollIndicator = document.querySelector('.scroll-indicator') as HTMLElement;
+            if (scrollIndicator) {
+              scrollIndicator.style.opacity = (Math.max(1 - scrollProgress * 2, 0)).toString();
+            }
           }
+
+          // Throttle scroll events para mejor performance
+          let ticking = false;
+          function requestTick() {
+            if (!ticking) {
+              requestAnimationFrame(updateScrollEffects);
+              ticking = true;
+            }
+          }
+
+          function handleScroll() {
+            ticking = false;
+            requestTick();
+          }
+
+          // Event listeners optimizados
+          const scrollOptions = { 
+            passive: true, 
+            capture: false 
+          };
           
-          // 3. Fade in del fondo blanco
-          const bgOpacity = Math.min(scrollProgress * 1.5, 0.95); // Máximo 95% opacity
-          document.documentElement.style.setProperty('--bg-opacity', bgOpacity.toString());
+          window.addEventListener('scroll', handleScroll, scrollOptions);
+          window.addEventListener('resize', () => {
+            // Reinicializar en resize para detectar cambios mobile/desktop
+            setTimeout(updateScrollEffects, 100);
+          });
           
-          // 4. Ocultar indicador de scroll
-          const scrollIndicator = document.querySelector('.scroll-indicator') as HTMLElement;
-          if (scrollIndicator) {
-            scrollIndicator.style.opacity = (Math.max(1 - scrollProgress * 2, 0)).toString();
-          }
+          // Initial call
+          updateScrollEffects();
         }
 
-        // Throttle scroll events para mejor performance
-        let ticking = false;
-        function requestTick() {
-          if (!ticking) {
-            requestAnimationFrame(updateScrollEffects);
-            ticking = true;
-          }
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initScrollTrigger);
+        } else {
+          initScrollTrigger();
         }
-
-        function handleScroll() {
-          ticking = false;
-          requestTick();
-        }
-
-        // Event listeners optimizados
-        const isMobile = window.innerWidth <= 768;
-        const scrollOptions = { 
-          passive: true, 
-          capture: false 
-        };
-        
-        window.addEventListener('scroll', handleScroll, scrollOptions);
-        window.addEventListener('resize', () => {
-          // Reinicializar en resize para detectar cambios mobile/desktop
-          setTimeout(updateScrollEffects, 100);
-        });
-        
-        // Initial call
-        updateScrollEffects();
-      }
-
-      // Initialize when DOM is ready
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initScrollTrigger);
-      } else {
-        initScrollTrigger();
       }
     </script>
 
     <!-- 
     DOCUMENTACIÓN:
 
-    🎨 Personalización fácil:
-    :root {
-      --logo-scale-min: 3;    Escala inicial (pequeña)
-      --logo-scale-max: 7;    Escala final (grande)
-    }
+    📱 MÓVIL (≤ 768px):
+    - Página completamente estática
+    - Sin scroll effects
+    - Sin parallax
+    - Sin JavaScript de scroll
+    - Solo efecto de cursor
+    - Logo fijo tamaño medio
 
-    📊 Progreso del scroll:
-    - 0%: Logo pequeño, imagen desde abajo, fondo oscuro
-    - 50%: Transición intermedia  
-    - 100%: Logo grande, imagen en posición normal, fondo blanco
-
-    📱 Optimizaciones móviles:
-    - Parallax desactivado en pantallas < 768px
-    - Imagen fija para evitar temblores
-    - Eventos de scroll optimizados
-    - Soporte específico para iOS Safari
+    💻 DESKTOP (> 768px):
+    - Todos los efectos de scroll
+    - Parallax de imagen
+    - Logo que crece con scroll
+    - Fondo que cambia
+    - JavaScript completo
     -->
   </body>
 </html>
