@@ -14,9 +14,10 @@ function SplashCursor({
   SPLAT_FORCE = 6000,
   SHADING = true,
   COLOR_UPDATE_SPEED = 10,
-  BACK_COLOR = { r: 0.1, g: 0.1, b: 0.1 }, // ← GRIS OSCURO
+  BACK_COLOR = { r: 0.05, g: 0.05, b: 0.05 }, // ← GRIS MUY OSCURO
   TRANSPARENT = true
 }) {
+
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -37,22 +38,23 @@ function SplashCursor({
     }
 
     let config = {
-      SIM_RESOLUTION,
-      DYE_RESOLUTION,
-      CAPTURE_RESOLUTION,
-      DENSITY_DISSIPATION,
-      VELOCITY_DISSIPATION,
-      PRESSURE,
-      PRESSURE_ITERATIONS,
-      CURL,
-      SPLAT_RADIUS,
-      SPLAT_FORCE,
-      SHADING,
-      COLOR_UPDATE_SPEED,
-      PAUSED: false,
-  BACK_COLOR: { r: 0.1, g: 0.1, b: 0.1 }, // ← GRIS OSCURO
-      TRANSPARENT,
-    };
+  SIM_RESOLUTION,
+  DYE_RESOLUTION,
+  CAPTURE_RESOLUTION,
+  DENSITY_DISSIPATION,
+  VELOCITY_DISSIPATION,
+  PRESSURE,
+  PRESSURE_ITERATIONS,
+  CURL,
+  SPLAT_RADIUS,
+  SPLAT_FORCE,
+  SHADING,
+  COLOR_UPDATE_SPEED,
+  PAUSED: false,
+  BACK_COLOR: { r: 0.05, g: 0.05, b: 0.05 }, // ← GRIS MUY OSCURO
+  TRANSPARENT,
+};
+
 
     let pointers = [new pointerPrototype()];
 
@@ -931,19 +933,20 @@ function SplashCursor({
     }
 
     function clickSplat(pointer) {
-       const baseColor = generateColor();
+  // Generar gris más intenso para clicks
+  const grayLevel = 0.2 + Math.random() * 0.6; // Grises más claros en clicks
   
-  // Intensificar el color para clicks
   const color = {
-    r: baseColor.r * 15.0, // Multiplicador más alto para más visibilidad
-    g: baseColor.g * 15.0,
-    b: baseColor.b * 15.0
+    r: grayLevel * 12.0, // Multiplicador para visibilidad
+    g: grayLevel * 12.0,
+    b: grayLevel * 12.0
   };
   
   let dx = 10 * (Math.random() - 0.5);
   let dy = 30 * (Math.random() - 0.5);
   splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color);
 }
+
 
 
     function splat(x, y, dx, dy, color) {
@@ -1015,26 +1018,16 @@ function SplashCursor({
     }
 
     function generateColor() {
-      const useRed = Math.random() > 0.3; // 70% rojo, 30% gris
+  // Solo tonos grises - desde gris oscuro hasta gris claro
+  const grayIntensity = 0.1 + Math.random() * 0.4; // Rango: 10% a 50% gris
   
-  if (useRed) {
-    // Tonos rojos
-    const intensity = 0.3 + Math.random() * 0.4; // Variación de intensidad
-    return {
-      r: intensity,
-      g: intensity * 0.1, // Muy poco verde
-      b: intensity * 0.1  // Muy poco azul
-    };
-  } else {
-    // Tonos grises
-    const grayLevel = 0.1 + Math.random() * 0.3; // Grises del 10% al 40%
-    return {
-      r: grayLevel,
-      g: grayLevel,
-      b: grayLevel
-    };
-  }
+  return {
+    r: grayIntensity,
+    g: grayIntensity,
+    b: grayIntensity
+  };
 }
+
 
     function HSVtoRGB(h, s, v) {
       let r, g, b, i, f, p, q, t;
