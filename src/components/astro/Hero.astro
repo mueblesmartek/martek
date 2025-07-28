@@ -1,0 +1,64 @@
+---
+// src/components/astro/Hero.astro - MARTEK HERO
+---
+
+<!-- Hero Section Martek -->
+<section class="min-h-screen flex items-center justify-center bg-gray-100">
+  <div class="text-center space-y-8 max-w-2xl mx-auto px-4">
+    
+    <!-- Logo Martek -->
+    <div class="space-y-6">
+      <div class="flex justify-center">
+        <div class="text-6xl md:text-8xl font-bold">
+          <span class="text-gray-700">MAR</span><span class="text-red-600">TEK</span>
+        </div>
+      </div>
+      
+      <div class="w-24 h-px bg-red-600 mx-auto"></div>
+      
+      <!-- Subtítulo -->
+      <p class="text-xl md:text-2xl font-light text-gray-600 leading-relaxed">
+        Bases de cama de alta calidad
+      </p>
+      
+      <!-- Descripción -->
+      <p class="text-gray-500 max-w-lg mx-auto leading-relaxed">
+        Más de 60 años de experiencia en muebles. Calidad y durabilidad garantizada.
+      </p>
+
+      <!-- CTA Button -->
+      <div class="pt-6">
+        <a 
+          href="/productos"
+          class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg"
+        >
+          <span>Ver Bases</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Features Simples -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-md mx-auto pt-8">
+        
+        <!-- Calidad -->
+        <div class="flex items-center space-x-2 text-gray-600">
+          <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg>
+          <span>Calidad Premium</span>
+        </div>
+        
+        <!-- Envío -->
+        <div class="flex items-center space-x-2 text-gray-600">
+          <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+            <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707L16 7.586A1 1 0 0015.414 7H14z"></path>
+          </svg>
+          <span>Envío Incluido</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

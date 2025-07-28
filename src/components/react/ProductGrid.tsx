@@ -132,7 +132,7 @@ export function ProductGrid({
       {(title || subtitle) && (
         <div className="text-center">
           {title && (
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
               {title}
             </h2>
           )}
@@ -158,7 +158,7 @@ export function ProductGrid({
                   placeholder="Buscar productos..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,7 +198,7 @@ export function ProductGrid({
                     type="checkbox"
                     checked={showOutOfStock}
                     onChange={(e) => setShowOutOfStock(e.target.checked)}
-                    className="rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                    className="rounded border-gray-300 text-gray-800 focus:ring-red-500"
                   />
                   <span>Mostrar agotados</span>
                 </label>
@@ -242,7 +242,7 @@ export function ProductGrid({
                 setCategoryFilter('');
                 setCurrentPage(1);
               }}
-              className="text-gray-800 hover:text-gray-900 font-medium"
+              className="text-gray-800 hover:text-red-600 font-medium"
             >
               Limpiar filtros
             </button>
@@ -270,7 +270,7 @@ export function ProductGrid({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4m16 0l-2-3m2 3l-2 3M4 13l2-3m-2 3l2 3" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
                 No se encontraron productos
               </h3>
               <p className="text-gray-600">
@@ -304,7 +304,7 @@ export function ProductGrid({
                   onClick={() => setCurrentPage(page)}
                   className={`px-3 py-2 border rounded-lg ${
                     currentPage === page
-                      ? 'bg-gray-900 text-white border-gray-900'
+                      ? 'bg-gray-900 text-white border-red-600'
                       : 'border-gray-300 hover:bg-gray-50'
                   }`}
                 >

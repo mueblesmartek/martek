@@ -329,7 +329,7 @@ export function AdminProductsTable({
                         <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-4v.01M6 9v.01" />
                         </svg>
-                        <p className="text-lg font-medium text-gray-900 mb-2">No hay productos</p>
+                        <p className="text-lg font-medium text-gray-800 mb-2">No hay productos</p>
                         <p>Agrega tu primer producto para comenzar</p>
                       </div>
                     ) : (
@@ -337,7 +337,7 @@ export function AdminProductsTable({
                         <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <p className="text-lg font-medium text-gray-900 mb-2">No se encontraron productos</p>
+                        <p className="text-lg font-medium text-gray-800 mb-2">No se encontraron productos</p>
                         <p>Intenta ajustar los filtros de búsqueda</p>
                       </div>
                     )}

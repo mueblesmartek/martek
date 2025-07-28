@@ -181,7 +181,7 @@ export function ProductMultiImageUploader({
       
       {/* ✅ HEADER */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">
+        <h3 className="text-lg font-medium text-gray-800">
           🖼️ Imágenes del Producto ({images.length}/{maxImages})
         </h3>
         
@@ -387,7 +387,7 @@ export function ProductMultiImageUploader({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <h4 className="text-sm font-medium text-gray-900 mb-2">Sin imágenes</h4>
+          <h4 className="text-sm font-medium text-gray-800 mb-2">Sin imágenes</h4>
           <p className="text-sm text-gray-600">
             Agrega imágenes para mostrar tu producto desde diferentes ángulos
           </p>

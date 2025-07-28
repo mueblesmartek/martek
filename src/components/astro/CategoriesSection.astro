@@ -1,0 +1,104 @@
+---
+// src/components/astro/CategoriesSection.astro
+import type { Category } from '../../lib/types';
+
+export interface Props {
+  categories: Category[];
+}
+
+const { categories } = Astro.props;
+---
+
+<!-- Categorías Section -->
+{categories.length > 0 && (
+  <section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          Explora por Categorías
+        </h2>
+        <p class="text-xl text-gray-600">
+          Encuentra exactamente lo que necesitas
+        </p>
+        <div class="w-24 h-px bg-gray-400 mx-auto mt-6"></div>
+      </div>
+
+      <!-- Categories Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 ">
+        {categories.slice(0, 8).map(category => (
+          <a 
+            href={`/productos?categoria=${encodeURIComponent(category.name)}`}
+            class="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300 hover:border-gray-300"
+          >
+            <!-- Imagen de la Categoría -->
+            <div class="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+              {category.image ? (
+                <img 
+                  src={category.image} 
+                  alt={category.name}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div class="text-4xl text-gray-400">
+                  {category.name.toLowerCase().includes('juguete') ? '🎯' : 
+                   category.name.toLowerCase().includes('lubricante') ? '💧' :
+                   category.name.toLowerCase().includes('ropa') ? '👙' :
+                   category.name.toLowerCase().includes('wellness') ? '🌸' :
+                   category.name.toLowerCase().includes('cuidado') ? '🌿' : '📦'}
+                </div>
+              )}
+            </div>
+            
+            <!-- Info de la Categoría -->
+            <div class="p-6">
+              <h3 class="text-xl font-semibold text-gray-800 group-hover:text-gray-700 transition-colors mb-2">
+                {category.name}
+              </h3>
+              
+              {category.description && (
+                <p class="text-gray-600 text-sm leading-relaxed line-clamp-2">
+                  {category.description}
+                </p>
+              )}
+
+              <!-- Arrow Icon -->
+              <div class="mt-4 flex items-center text-gray-400 group-hover:text-gray-600 transition-colors">
+                <span class="text-sm font-medium">Explorar</span>
+                <svg class="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <!-- Ver Todas las Categorías -->
+      {categories.length > 8 && (
+        <div class="text-center mt-12">
+          <a 
+            href="/productos" 
+            class="inline-flex items-center space-x-2 border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-red-600 px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            <span>Ver Todas las Categorías</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+
+<style>
+  /* Utilidad para limitar líneas de texto */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

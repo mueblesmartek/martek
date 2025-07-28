@@ -1,12 +1,48 @@
 ---
-// src/pages/producto/[slug].astro - ACTUALIZADO SIN ERRORES
 import Layout from '../../components/layout/Layout.astro';
 import { supabase } from '../../lib/supabase';
 import { getPrimaryImageUrl, getAllImages, hasMultipleImages } from '../../lib/types';
 import type { Product } from '../../lib/types';
 
-// ✅ Obtener slug de la URL
+// ✅ FUNCIÓN REQUERIDA PARA OUTPUT STATIC
+export async function getStaticPaths() {
+  if (!supabase) {
+    console.warn('Supabase no configurado - generando paths vacíos');
+    return [];
+  }
+
+  try {
+    // Obtener todos los productos activos para pre-generar páginas
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('slug, id, name')
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Error obteniendo productos para getStaticPaths:', error);
+      return [];
+    }
+
+    // Generar paths para cada producto
+    const paths = products
+      .filter(product => product.slug) // Solo productos con slug
+      .map(product => ({
+        params: { slug: product.slug },
+        props: { productId: product.id } // Opcional: pasar ID para optimización
+      }));
+
+    console.log(`🏗️ Generando ${paths.length} páginas de productos estáticas`);
+    return paths;
+
+  } catch (err) {
+    console.error('Error en getStaticPaths:', err);
+    return [];
+  }
+}
+
+// ✅ Obtener slug de la URL y props opcionales
 const { slug } = Astro.params;
+const { productId } = Astro.props; // Si lo pasaste desde getStaticPaths
 
 // ✅ Variables del producto
 let product: Product | null = null;
@@ -22,7 +58,7 @@ try {
     throw new Error('Supabase no configurado');
   }
 
-  // ✅ Obtener producto por slug
+  // ✅ Obtener producto por slug (o por ID si lo tienes)
   const { data: productData, error: productError } = await supabase
     .from('products')
     .select('*')
@@ -56,7 +92,7 @@ try {
   error = err instanceof Error ? err.message : 'Error desconocido';
 }
 
-// ✅ Si no hay producto y no hay error, es 404
+// ✅ Si no hay producto, 404 (Astro maneja esto automáticamente en static)
 if (!product && !error) {
   return new Response(null, {
     status: 404,
@@ -85,7 +121,7 @@ const pageDescription = product?.description || 'Producto no disponible';
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h1 class="text-3xl font-bold text-gray-900 mb-4">Error al cargar producto</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Error al cargar producto</h1>
         <p class="text-gray-600 mb-8">No pudimos conectar con la base de datos.</p>
         <div class="space-y-4">
           <a href="/productos" class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors inline-block">
@@ -106,11 +142,11 @@ const pageDescription = product?.description || 'Producto no disponible';
       <div class="bg-gray-50 border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <nav class="flex items-center space-x-2 text-sm">
-            <a href="/" class="text-gray-500 hover:text-gray-900 transition-colors">Inicio</a>
+            <a href="/" class="text-gray-500 hover:text-red-600 transition-colors">Inicio</a>
             <span class="text-gray-400">/</span>
-            <a href="/productos" class="text-gray-500 hover:text-gray-900 transition-colors">Productos</a>
+            <a href="/productos" class="text-gray-500 hover:text-red-600 transition-colors">Productos</a>
             <span class="text-gray-400">/</span>
-            <span class="text-gray-900 font-medium">{product.name}</span>
+            <span class="text-gray-800 font-medium">{product.name}</span>
           </nav>
         </div>
       </div>
@@ -163,7 +199,7 @@ const pageDescription = product?.description || 'Producto no disponible';
                 )}
               </div>
               
-              <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              <h1 class="text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
                 {product.name}
               </h1>
               
@@ -178,7 +214,7 @@ const pageDescription = product?.description || 'Producto no disponible';
             <div class="bg-gray-50 rounded-lg p-6">
               <div class="flex items-center justify-between mb-4">
                 <div>
-                  <span class="text-3xl font-bold text-gray-900">
+                  <span class="text-3xl font-bold text-gray-800">
                     ${product.price.toLocaleString('es-CO')}
                   </span>
                   <p class="text-sm text-gray-500">IVA incluido</p>
@@ -227,7 +263,7 @@ const pageDescription = product?.description || 'Producto no disponible';
 
             <!-- Especificaciones -->
             <div class="bg-gray-50 rounded-lg p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Especificaciones</h3>
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">📋 Especificaciones</h3>
               <div class="space-y-3">
                 <div class="flex justify-between">
                   <span class="text-gray-600">Categoría:</span>
@@ -259,7 +295,7 @@ const pageDescription = product?.description || 'Producto no disponible';
                   <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span class="font-medium text-gray-900">Garantía</span>
+                  <span class="font-medium text-gray-800">Garantía</span>
                 </div>
                 <p class="text-sm text-gray-600">30 días de garantía en todos nuestros productos</p>
               </div>
@@ -269,7 +305,7 @@ const pageDescription = product?.description || 'Producto no disponible';
                   <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
-                  <span class="font-medium text-gray-900">Envío</span>
+                  <span class="font-medium text-gray-800">Envío</span>
                 </div>
                 <p class="text-sm text-gray-600">Envío discreto en embalaje neutro</p>
               </div>
@@ -280,7 +316,7 @@ const pageDescription = product?.description || 'Producto no disponible';
         <!-- ✅ PRODUCTOS RELACIONADOS -->
         {relatedProducts.length > 0 && (
           <div class="mt-16">
-            <h2 class="text-2xl font-bold text-gray-900 mb-8">🔗 Productos Relacionados</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-8">🔗 Productos Relacionados</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => {
                 const relatedPrimaryImage = getPrimaryImageUrl(relatedProduct);
@@ -313,14 +349,14 @@ const pageDescription = product?.description || 'Producto no disponible';
                         {relatedProduct.category}
                       </p>
 
-                      <h3 class="font-medium text-gray-900 line-clamp-2 leading-tight">
+                      <h3 class="font-medium text-gray-800 line-clamp-2 leading-tight">
                         <a href={`/producto/${relatedProduct.slug || relatedProduct.id}`} class="hover:text-gray-700 transition-colors">
                           {relatedProduct.name}
                         </a>
                       </h3>
 
                       <div class="flex items-center justify-between">
-                        <p class="text-lg font-bold text-gray-900">
+                        <p class="text-lg font-bold text-gray-800">
                           ${relatedProduct.price.toLocaleString()}
                         </p>
                         
@@ -381,7 +417,7 @@ const pageDescription = product?.description || 'Producto no disponible';
         ${!isOutOfStock ? `
           <div class="flex items-center space-x-4">
             <div class="flex items-center border border-gray-300 rounded-lg">
-              <button id="qty-minus" class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors">
+              <button id="qty-minus" class="px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-gray-100 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                 </svg>
@@ -394,7 +430,7 @@ const pageDescription = product?.description || 'Producto no disponible';
                 max="${product.stock}" 
                 class="w-16 px-2 py-2 text-center border-0 focus:outline-none focus:ring-0"
               />
-              <button id="qty-plus" class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors">
+              <button id="qty-plus" class="px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-gray-100 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -418,7 +454,7 @@ const pageDescription = product?.description || 'Producto no disponible';
         ${!isOutOfStock ? `
           <button 
             id="buy-now-btn"
-            class="w-full border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white py-4 px-6 rounded-lg font-medium transition-colors"
+            class="w-full border-2 border-red-600 text-gray-800 hover:bg-gray-900 hover:text-white py-4 px-6 rounded-lg font-medium transition-colors"
           >
             ⚡ Comprar Ahora
           </button>
@@ -518,7 +554,7 @@ const pageDescription = product?.description || 'Producto no disponible';
             return `
               <button 
                 class="aspect-square bg-gray-100 rounded border-2 overflow-hidden transition-all ${
-                  img.isPrimary ? 'border-gray-900 ring-2 ring-gray-200' : 'border-gray-200 hover:border-gray-400'
+                  img.isPrimary ? 'border-red-600 ring-2 ring-gray-200' : 'border-gray-200 hover:border-gray-400'
                 }"
                 onclick="selectImage('${img.url}', '${img.alt || product.name}', ${index})"
               >
@@ -548,9 +584,9 @@ const pageDescription = product?.description || 'Producto no disponible';
     const thumbnails = document.querySelectorAll('#product-gallery button');
     thumbnails.forEach(function(thumb, i) {
       if (i === index) {
-        thumb.className = thumb.className.replace('border-gray-200 hover:border-gray-400', 'border-gray-900 ring-2 ring-gray-200');
+        thumb.className = thumb.className.replace('border-gray-200 hover:border-gray-400', 'border-red-600 ring-2 ring-gray-200');
       } else {
-        thumb.className = thumb.className.replace('border-gray-900 ring-2 ring-gray-200', 'border-gray-200 hover:border-gray-400');
+        thumb.className = thumb.className.replace('border-red-600 ring-2 ring-gray-200', 'border-gray-200 hover:border-gray-400');
       }
     });
   }

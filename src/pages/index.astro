@@ -1,8 +1,10 @@
 ---
-// src/pages/index.astro - HERO CON LOGO SVG
+// src/pages/index.astro - HOMEPAGE MARTEK
 import Layout from '../components/layout/Layout.astro';
+import Hero from '../components/astro/Hero.astro';
+import FeaturedProductsSection from '../components/astro/FeaturedProductsSection.astro';
+import CategoriesSection from '../components/astro/CategoriesSection.astro';
 import { getFeaturedProducts, getCategories } from '../lib/supabase';
-import { FeaturedProductsGrid } from '../components/react/ProductGrid';
 import type { Product, Category } from '../lib/types';
 
 // Obtener datos reales
@@ -12,11 +14,11 @@ let categories: Category[] = [];
 try {
   // Obtener productos destacados y categorías en paralelo
   [featuredProducts, categories] = await Promise.all([
-    getFeaturedProducts(6), // Máximo 6 productos destacados
+    getFeaturedProducts(2), // Solo 2 productos
     getCategories()
   ]);
   
-  console.log('🏠 Homepage cargada:');
+  console.log('🏠 Martek Homepage cargada:');
   console.log(`   - Productos destacados: ${featuredProducts.length}`);
   console.log(`   - Categorías: ${categories.length}`);
   
@@ -27,189 +29,43 @@ try {
 ---
 
 <Layout 
-  title="Kamasex.shop - Bienestar Íntimo Femenino"
-  description="Productos premium para el bienestar íntimo de la mujer moderna. Calidad, discreción y confianza garantizada."
+  title="Martek - Bases para Camas"
+  description="Bases de cama de alta calidad. Más de 60 años de experiencia en muebles."
 >
   
-  <!-- Hero Section con Logo SVG -->
-  <section class="min-h-screen flex items-center justify-center bg-gray-50">
-    <div class="text-center space-y-8 max-w-2xl mx-auto px-4">
-      
-      <!-- Logo SVG Principal -->
-      <div class="space-y-6">
-        <div class="flex justify-center">
-          <img 
-            src="/images/logo-kama.svg" 
-            alt="Kamasex.shop" 
-            class="h-16 md:h-60 w-auto"
-            width="200"
-            height="80"
-          />
-        </div>
-        
-        <!-- Título con Logo -->
-        <div class="space-y-4">
-          <div class="w-24 h-px bg-gray-400 mx-auto"></div>
-        </div>
-        
-        <!-- Subtítulo -->
-        <p class="text-xl md:text-2xl font-light text-gray-600 leading-relaxed">
-          Bienestar íntimo para la mujer moderna
-        </p>
-        
-        <!-- Descripción -->
-        <p class="text-gray-500 max-w-lg mx-auto leading-relaxed">
-          Productos cuidadosamente seleccionados para tu bienestar, confianza y privacidad. 
-          Calidad premium con envío discreto.
-        </p>
-      </div>
+  <!-- Hero Section -->
+  <Hero />
 
-      <!-- Call to Action -->
-      <div class="space-y-4">
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <a 
-            href="/productos" 
-            class="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold transition-colors inline-flex items-center justify-center space-x-2"
-          >
-            <span>Explorar Productos</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </a>
-          
-          <a 
-            href="/contacto" 
-            class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-8 py-3 rounded-lg font-semibold transition-colors inline-flex items-center justify-center space-x-2"
-          >
-            <span>Contactar</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-          </a>
-        </div>
-      </div>
+  <!-- Productos Destacados Section -->
+  <FeaturedProductsSection products={featuredProducts} />
 
-      <!-- Trust Indicators -->
-      <div class="pt-8">
-        <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-8 text-sm text-gray-500">
-          
-          <!-- Secure -->
-          <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+  <!-- Trust Section Simplificada -->
+  <section class="py-12 bg-white border-t border-gray-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-center">
+        
+        <!-- Envío -->
+        <div class="space-y-3">
+          <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
             </svg>
-            <span>Conexión 100% Segura</span>
           </div>
-          
-          <!-- Discrete Shipping -->
-          <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
-              <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707L16 7.586A1 1 0 0015.414 7H14z"></path>
+          <h3 class="font-semibold text-gray-800">Envío Incluido</h3>
+          <p class="text-sm text-gray-600">Entrega en toda Colombia</p>
+        </div>
+
+        <!-- Experiencia -->
+        <div class="space-y-3">
+          <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <span>Envío Discreto</span>
           </div>
-          
-          <!-- Privacy -->
-          <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-            </svg>
-            <span>Máxima Privacidad</span>
-          </div>
+          <h3 class="font-semibold text-gray-800">60+ Años</h3>
+          <p class="text-sm text-gray-600">Experiencia en muebles</p>
         </div>
       </div>
     </div>
   </section>
-
-  <!-- Productos Destacados Section -->
-  {featuredProducts.length > 0 && (
-    <section class="py-16 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <!-- Header -->
-        <div class="text-center mb-12">
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Productos Destacados
-          </h2>
-          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-            Descubre nuestra selección premium de productos más populares para tu bienestar íntimo
-          </p>
-        </div>
-
-        <!-- Products Grid -->
-        <FeaturedProductsGrid 
-          products={featuredProducts}
-          client:load
-        />
-
-        <!-- View All Link -->
-        <div class="text-center mt-12">
-          <a 
-            href="/productos" 
-            class="inline-flex items-center space-x-2 bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
-          >
-            <span>Ver Todos los Productos</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </a>
-        </div>
-      </div>
-    </section>
-  )}
-
-  <!-- Categorías Section -->
-  {categories.length > 0 && (
-    <section class="py-16 bg-gray-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <!-- Header -->
-        <div class="text-center mb-12">
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Explora por Categorías
-          </h2>
-          <p class="text-xl text-gray-600">
-            Encuentra exactamente lo que necesitas
-          </p>
-        </div>
-
-        <!-- Categories Grid -->
-        <div class="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-5 ">
-          {categories.slice(0, 6).map(category => (
-            <a 
-              href={`/productos?categoria=${encodeURIComponent(category.name)}`}
-              class="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300"
-            >
-              <div class="aspect-video bg-gray-100 flex items-center justify-center">
-                {category.image ? (
-                  <img 
-                    src={category.image} 
-                    alt={category.name}
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div class="text-4xl text-gray-400">📦</div>
-                )}
-              </div>
-              
-              <div class="p-6">
-                <h3 class="text-xl font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
-                  {category.name}
-                </h3>
-                {category.description && (
-                  <p class="text-gray-600 mt-2">
-                    {category.description}
-                  </p>
-                )}
-              </div>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  )}
-
-  <!-- Newsletter Section -->
- 
 </Layout>

@@ -150,7 +150,7 @@ export function ProductsPage({ products, initialSearchQuery }: ProductsPageProps
                 </div>
                 
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-light text-gray-900">
+                  <h2 className="text-2xl font-light text-gray-800">
                     {searchQuery ? 'Sin resultados' : 'Sin productos'}
                   </h2>
                   <p className="text-gray-500">
@@ -169,14 +169,14 @@ export function ProductsPage({ products, initialSearchQuery }: ProductsPageProps
                         setSearchQuery('');
                         window.history.replaceState({}, '', '/productos');
                       }}
-                      className="block mx-auto border border-gray-300 px-6 py-2 text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-all"
+                      className="block mx-auto border border-gray-300 px-6 py-2 text-gray-600 hover:border-red-600 hover:text-red-600 transition-all"
                     >
                       Ver todos los productos
                     </button>
                   )}
                   <a 
                     href="/" 
-                    className="block mx-auto border border-gray-300 px-6 py-2 text-gray-600 hover:border-gray-900 hover:text-gray-900 transition-all"
+                    className="block mx-auto border border-gray-300 px-6 py-2 text-gray-600 hover:border-red-600 hover:text-red-600 transition-all"
                   >
                     Volver al inicio
                   </a>
@@ -240,11 +240,11 @@ function ProductCard({ product }: { product: Product }) {
         
         {/* Info del producto */}
         <div className="space-y-2">
-          <h3 className="font-light text-gray-900 group-hover:text-gray-600 transition-colors line-clamp-2">
+          <h3 className="font-light text-gray-800 group-hover:text-gray-600 transition-colors line-clamp-2">
             {product.name}
           </h3>
           
-          <p className="text-lg font-semibold text-gray-900">
+          <p className="text-lg font-semibold text-gray-800">
             ${product.price.toLocaleString('es-CO')}
           </p>
           

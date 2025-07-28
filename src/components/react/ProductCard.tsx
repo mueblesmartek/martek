@@ -97,7 +97,7 @@ export function ProductCard({
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-sm text-gray-900 truncate">
+          <h3 className="font-medium text-sm text-gray-800 truncate">
             <a 
               href={`/producto/${product.slug || product.id}`}
               className="hover:text-gray-700 transition-colors"
@@ -105,7 +105,7 @@ export function ProductCard({
               {product.name}
             </a>
           </h3>
-          <p className="text-lg font-bold text-gray-900">
+          <p className="text-lg font-bold text-gray-800">
             ${product.price.toLocaleString()}
           </p>
         </div>
@@ -145,7 +145,7 @@ export function ProductCard({
             <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">
               {product.category}
             </p>
-            <h3 className="font-medium text-gray-900">
+            <h3 className="font-medium text-gray-800">
               <a 
                 href={`/producto/${product.slug || product.id}`}
                 className="hover:text-gray-700 transition-colors"
@@ -165,7 +165,7 @@ export function ProductCard({
           {/* Precio y stock */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xl font-bold text-gray-900">
+              <p className="text-xl font-bold text-gray-800">
                 ${product.price.toLocaleString()}
               </p>
               {isLowStock && (
@@ -270,7 +270,7 @@ export function ProductCard({
         </p>
 
         {/* Nombre */}
-        <h3 className="font-medium text-gray-900 line-clamp-2 leading-tight">
+        <h3 className="font-medium text-gray-800 line-clamp-2 leading-tight">
           <a 
             href={`/producto/${product.slug || product.id}`}
             className="hover:text-gray-700 transition-colors"
@@ -288,7 +288,7 @@ export function ProductCard({
 
         {/* Precio */}
         <div className="flex items-center justify-between">
-          <p className="text-lg font-bold text-gray-900">
+          <p className="text-lg font-bold text-gray-800">
             ${product.price.toLocaleString()}
           </p>
           

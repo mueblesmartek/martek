@@ -2,7 +2,7 @@
 console.log('🛒 Iniciando sistema de carrito (Astro)...');
 
 // ✅ CONSTANTES
-const CART_STORAGE_KEY = 'kamasex-cart';
+const CART_STORAGE_KEY = 'martek-cart';
 const CART_EVENTS = {
   UPDATED: 'cart-updated',
   ITEM_ADDED: 'cart-item-added',

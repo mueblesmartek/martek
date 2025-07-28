@@ -160,7 +160,7 @@ export function SearchBar({ placeholder = "Buscar productos...", className = "" 
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 text-sm line-clamp-1">
+                  <h3 className="font-medium text-gray-800 text-sm line-clamp-1">
                     {highlightMatch(product.name, query)}
                   </h3>
                   <p className="text-xs text-gray-500 capitalize">

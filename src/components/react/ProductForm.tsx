@@ -190,7 +190,7 @@ export function CheckoutForm() {
         {/* Step 1: Contact Information */}
         {currentStep === 1 && (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Información de Contacto</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">Información de Contacto</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -271,7 +271,7 @@ export function CheckoutForm() {
         {/* Step 2: Shipping Address */}
         {currentStep === 2 && (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Dirección de Envío</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">Dirección de Envío</h2>
             
             <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
@@ -414,7 +414,7 @@ export function CheckoutForm() {
         {/* Step 3: Payment & Review */}
         {currentStep === 3 && (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Método de Pago</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-6">Método de Pago</h2>
             
             <div className="space-y-4">
               <div className="border border-gray-200 rounded-lg p-4">

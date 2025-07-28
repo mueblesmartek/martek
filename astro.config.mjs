@@ -11,7 +11,6 @@ export default defineConfig({
     react()
   ],
   
-  // ✅ CAMBIO: De 'server' a 'static' para Netlify
   output: 'static',
   
   site: 'https://kamasex.shop',

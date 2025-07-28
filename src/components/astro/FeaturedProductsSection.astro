@@ -1,0 +1,243 @@
+---
+// src/components/astro/FeaturedProductsSection.astro
+import type { Product } from '../../lib/types';
+
+export interface Props {
+  products: Product[];
+}
+
+const { products } = Astro.props;
+---
+
+<!-- Productos Destacados Section -->
+{products.length > 0 && (
+  <section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          Productos Destacados
+        </h2>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Descubre nuestra selección premium de productos más populares para tu bienestar íntimo
+        </p>
+        <div class="w-24 h-px bg-gray-400 mx-auto mt-6"></div>
+      </div>
+
+      <!-- Grid de 6 Productos Destacados -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
+        {products.slice(0, 6).map(product => (
+          <div class="group relative bg-white rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-500">
+            
+            <!-- Imagen del Producto con Overlay -->
+            <div class="aspect-square bg-gray-50 overflow-hidden relative">
+              {product.image_url ? (
+                <img 
+                  src={product.image_url} 
+                  alt={product.name}
+                  class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
+                />
+              ) : (
+                <div class="w-full h-full flex items-center justify-center bg-gray-100">
+                  <svg class="w-20 h-20 text-gray-400 group-hover:text-gray-600 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                </div>
+              )}
+
+              <!-- Overlay Compacto que aparece en Hover -->
+              <div class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
+                <div class="w-full p-4 space-y-3">
+                  
+                  <!-- Categoría y Precio -->
+                  <div class="flex items-center justify-between">
+                    {product.category && (
+                      <span class="px-2 py-1 text-xs font-medium text-white bg-white bg-opacity-20 rounded backdrop-blur-sm">
+                        {product.category}
+                      </span>
+                    )}
+                    <span class="text-xl font-bold text-white">
+                      ${new Intl.NumberFormat('es-CO').format(product.price)}
+                    </span>
+                  </div>
+
+                  <!-- Nombre del Producto -->
+                  <h3 class="text-lg font-semibold text-white leading-tight line-clamp-2">
+                    {product.name}
+                  </h3>
+
+                  <!-- Botones de Acción Compactos -->
+                  <div class="flex space-x-2">
+                    <!-- Ver Detalles -->
+                    <a 
+                      href={`/productos/${product.slug || product.id}`}
+                      class="flex-1 text-center bg-white text-gray-800 py-2 px-4 rounded-lg font-medium hover:bg-gray-100 transition-colors text-sm"
+                    >
+                      Ver
+                    </a>
+
+                    <!-- Agregar al Carrito -->
+                    {product.stock > 0 ? (
+                      <button 
+                        class="add-to-cart-btn flex-1 bg-gray-900 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors text-sm"
+                        data-product-id={product.id}
+                        data-product-name={product.name}
+                        data-product-price={product.price}
+                        data-product-image={product.image_url}
+                        data-product-category={product.category}
+                      >
+                        Agregar
+                      </button>
+                    ) : (
+                      <div class="flex-1 text-center bg-gray-500 text-white py-2 px-4 rounded-lg text-sm opacity-50 cursor-not-allowed">
+                        Agotado
+                      </div>
+                    )}
+                  </div>
+
+                  <!-- Stock Info -->
+                  {product.stock <= 5 && product.stock > 0 && (
+                    <p class="text-xs text-yellow-300 text-center">
+                      Solo quedan {product.stock}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <!-- Badge Solo en Esquina -->
+              {product.featured && (
+                <div class="absolute top-3 right-3 bg-gray-900 text-white text-xs font-medium px-2 py-1 rounded-full opacity-80">
+                  ⭐
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Ver Todos Link -->
+      <div class="text-center mt-12">
+        <a 
+          href="/productos" 
+          class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+        >
+          <span>Ver Todos los Productos</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  // Funcionalidad del carrito usando localStorage directamente
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    // Función para agregar al carrito
+    function addToCart(productData) {
+      try {
+        // Obtener carrito actual del localStorage
+        const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
+        
+        // Buscar si el producto ya existe
+        const existingItemIndex = currentCart.findIndex(item => item.id === productData.id);
+        
+        if (existingItemIndex !== -1) {
+          // Si existe, incrementar cantidad
+          currentCart[existingItemIndex].quantity += 1;
+        } else {
+          // Si no existe, agregarlo
+          currentCart.push({
+            id: productData.id,
+            name: productData.name,
+            price: productData.price,
+            image: productData.image,
+            category: productData.category,
+            quantity: 1
+          });
+        }
+        
+        // Guardar en localStorage
+        localStorage.setItem('cart', JSON.stringify(currentCart));
+        
+        // Dispatchar evento para actualizar otros componentes
+        window.dispatchEvent(new CustomEvent('cartUpdated', { 
+          detail: { cart: currentCart }
+        }));
+        
+        // Log para debug
+        console.log(`✅ ${productData.name} agregado al carrito`);
+        
+      } catch (error) {
+        console.error('Error agregando al carrito:', error);
+      }
+    }
+    
+    // Agregar event listeners a todos los botones de agregar al carrito
+    document.querySelectorAll('.add-to-cart-btn').forEach(function(button) {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // ✅ CASTING EXPLÍCITO SIGUIENDO EL PATRÓN DEL PROYECTO
+        const buttonElement = e.target as HTMLElement;
+        
+        // Verificar que el botón existe y tiene los datos necesarios
+        if (!buttonElement || !buttonElement.dataset) return;
+        
+        const productData = {
+          id: buttonElement.dataset.productId || '',
+          name: buttonElement.dataset.productName || '',
+          price: parseFloat(buttonElement.dataset.productPrice || '0'),
+          image: buttonElement.dataset.productImage || '',
+          category: buttonElement.dataset.productCategory || ''
+        };
+        
+        addToCart(productData);
+        
+        // ✅ FEEDBACK VISUAL EN BOTÓN USANDO EL PATRÓN ESTABLECIDO
+        const originalText = buttonElement.innerHTML;
+        buttonElement.innerHTML = '✅ Agregado';
+        buttonElement.classList.add('bg-green-600', 'text-white');
+        buttonElement.classList.remove('bg-gray-900');
+        
+        setTimeout(function() {
+          buttonElement.innerHTML = originalText;
+          buttonElement.classList.remove('bg-green-600', 'text-white');
+          buttonElement.classList.add('bg-gray-900');
+        }, 2000);
+      });
+    });
+  });
+</script>
+
+<style>
+  /* Utilidad para limitar líneas de texto */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Asegurar que el filtro grayscale funcione correctamente */
+  .group:not(:hover) img {
+    filter: grayscale(100%);
+  }
+  
+  .group:hover img {
+    filter: grayscale(0%);
+  }
+
+  /* Mejora en las transiciones */
+  .group {
+    cursor: pointer;
+  }
+
+  /* Asegurar que el overlay esté bien posicionado */
+  .group .absolute.inset-0 {
+    backdrop-filter: blur(1px);
+  }
+</style>

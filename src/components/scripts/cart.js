@@ -2,7 +2,7 @@
 console.log('🛒 Iniciando sistema de carrito...');
 
 // ✅ CONSTANTES (mismas que useCartStorage.ts)
-const CART_STORAGE_KEY = 'kamasex-cart';
+const CART_STORAGE_KEY = 'martek-cart';
 
 const CART_EVENTS = {
   UPDATED: 'cart-updated',
@@ -463,7 +463,7 @@ class CartManager {
               `}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate">${item.product_name}</p>
+              <p class="text-sm font-medium text-gray-800 truncate">${item.product_name}</p>
               <p class="text-xs text-gray-500">${item.quantity}x ${CartStorage.formatPrice(item.product_price)}</p>
             </div>
           </div>
@@ -540,7 +540,7 @@ class CartManager {
             </div>
             
             <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-medium text-gray-900 truncate">${item.product_name}</h4>
+              <h4 class="text-sm font-medium text-gray-800 truncate">${item.product_name}</h4>
               <p class="text-sm text-gray-500">${CartStorage.formatPrice(item.product_price)}</p>
               ${item.product_category ? `
                 <p class="text-xs text-gray-400">${item.product_category}</p>
@@ -567,7 +567,7 @@ class CartManager {
             </div>
             
             <div class="text-right">
-              <p class="text-sm font-medium text-gray-900">
+              <p class="text-sm font-medium text-gray-800">
                 ${CartStorage.formatPrice(item.product_price * item.quantity)}
               </p>
               <button onclick="cartManager.removeItem('${item.id}')"
@@ -593,7 +593,7 @@ class CartManager {
 
     summaryContainer.innerHTML = `
       <div class="bg-white rounded-lg border p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Resumen del pedido</h3>
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Resumen del pedido</h3>
         
         <div class="space-y-3 mb-6">
           <div class="flex justify-between text-sm">

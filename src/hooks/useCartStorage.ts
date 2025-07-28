@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Product, CartItem } from '../lib/types';
 
 // ✅ CLAVE CONSISTENTE CON TODOS LOS SCRIPTS DEL PROYECTO
-const CART_STORAGE_KEY = 'kamasex-cart';
+const CART_STORAGE_KEY = 'martek-cart';
 
 interface CartState {
   items: CartItem[];

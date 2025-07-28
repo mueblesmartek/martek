@@ -1,5 +1,5 @@
 ---
-// src/components/layout/Layout.astro - LAYOUT CON TYPESCRIPT CORREGIDO
+// src/components/layout/Layout.astro - LAYOUT MARTEK
 import Header from './Header.astro';
 import Footer from './Footer.astro';
 
@@ -12,7 +12,7 @@ export interface Props {
 
 const { 
   title, 
-  description = "Kamasex.shop - Productos premium para el bienestar íntimo femenino", 
+  description = "Martek - Bases para camas de alta calidad. Más de 60 años de experiencia en muebles.", 
   image = "/images/og-default.jpg",
   noIndex = false 
 } = Astro.props;
@@ -60,10 +60,19 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     .loading{opacity:0.5;pointer-events:none;}
     .fade-in{animation:fadeIn 0.3s ease-in-out;}
     @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+    
+    /* Colores Martek: Gris, Rojo, Blanco */
+    :root {
+  --martek-red: #DC2626;
+  --martek-red-hover: #B91C1C;
+  --martek-gray: #6B7280;
+  --martek-dark-gray: #374151;
+  --martek-light-gray: #F3F4F6;
+}
   </style>
 </head>
 
-<body class="bg-white text-gray-900 antialiased">
+<body class="bg-white text-gray-800 antialiased">
   
   <!-- Header -->
   <Header />
@@ -78,77 +87,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 <script src="/js/cart.js" is:inline></script>
 
   <script>
-
 document.addEventListener('DOMContentLoaded', function() {
-  
-  declare global {
-    interface Window {
-      gtag?: (...args: any[]) => void;
-    }
-  }
-
-  // ✅ SCROLL SUAVE (TYPESCRIPT CORREGIDO)
-  const anchorLinks = document.querySelectorAll('a[href^="#"]');
-  anchorLinks.forEach(function(anchor) {
-    anchor.addEventListener('click', function(e) {
-      e.preventDefault();
-      const href = (anchor as HTMLAnchorElement).getAttribute('href');
-      if (href) {
-        const target = document.querySelector(href);
-        if (target) {
-          target.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
-      }
-    });
-  });
-  
-  // ✅ MANEJO DE ERRORES DE IMÁGENES (TYPESCRIPT CORREGIDO)
-  const images = document.querySelectorAll('img');
-  images.forEach(function(img) {
-    img.addEventListener('error', function(event) {
-      const target = event.target as HTMLImageElement;
-      if (target && target.dataset && !target.dataset.fallbackAttempted) {
-        target.dataset.fallbackAttempted = 'true';
-        target.src = '/images/placeholder-product.jpg';
-      }
-    });
-  });
-  
-  // ✅ LAZY LOADING (TYPESCRIPT CORREGIDO)
-  if ('IntersectionObserver' in window) {
-    const imageObserver = new IntersectionObserver(function(entries, observer) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          const img = entry.target as HTMLImageElement;
-          const src = img.dataset && img.dataset.src;
-          if (src) {
-            img.src = src;
-            img.classList.remove('loading');
-            img.classList.add('fade-in');
-            observer.unobserve(img);
-          }
-        }
-      });
-    });
-
-    const lazyImages = document.querySelectorAll('img[data-src]');
-    lazyImages.forEach(function(img) {
-      imageObserver.observe(img);
-    });
-  }
-
-  // ✅ ANALYTICS (TYPESCRIPT CORREGIDO)
-  if (typeof window !== 'undefined') {
-    // Configurar Google Analytics si está disponible
-    if (window.gtag) {
-      window.gtag('config', 'GA_MEASUREMENT_ID');
-    }
-  }
-
-  console.log('✅ Layout inicializado correctamente');
+  console.log('🛏️ Martek - Bases para camas cargado');
 });
   </script>
 </body>

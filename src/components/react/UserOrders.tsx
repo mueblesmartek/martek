@@ -99,7 +99,7 @@ export function UserOrders() {
       case 'delivered':
         return { 
           label: 'Entregado', 
-          className: 'bg-gray-900 text-white border-gray-800' 
+          className: 'bg-gray-900 text-white border-gray-600' 
         };
       case 'cancelled':
         return { 
@@ -180,7 +180,7 @@ export function UserOrders() {
       
       {/* ✅ FORMULARIO DE BÚSQUEDA */}
       <div className="bg-white rounded-lg border p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Buscar mis pedidos
         </h2>
         
@@ -194,7 +194,7 @@ export function UserOrders() {
                 type="email"
                 value={searchData.email}
                 onChange={(e) => setSearchData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="tu@email.com"
                 disabled={isLoading}
               />
@@ -208,7 +208,7 @@ export function UserOrders() {
                 type="text"
                 value={searchData.orderNumber}
                 onChange={(e) => setSearchData(prev => ({ ...prev, orderNumber: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="KS-123456AB"
                 disabled={isLoading}
               />
@@ -249,7 +249,7 @@ export function UserOrders() {
           {orders.length > 0 ? (
             <>
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-800">
                   Tus pedidos ({orders.length})
                 </h3>
               </div>
@@ -262,7 +262,7 @@ export function UserOrders() {
                   <div key={order.id} className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                       <div>
-                        <h4 className="text-lg font-semibold text-gray-900">
+                        <h4 className="text-lg font-semibold text-gray-800">
                           Pedido #{order.order_number}
                         </h4>
                         <p className="text-sm text-gray-600">
@@ -283,7 +283,7 @@ export function UserOrders() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div>
                         <p className="text-sm font-medium text-gray-700">Total</p>
-                        <p className="text-lg font-semibold text-gray-900">
+                        <p className="text-lg font-semibold text-gray-800">
                           {formatPrice(order.total)}
                         </p>
                       </div>
@@ -322,7 +322,7 @@ export function UserOrders() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
                 No encontramos pedidos
               </h3>
               <p className="text-gray-600">
@@ -337,7 +337,7 @@ export function UserOrders() {
       {selectedOrder && (
         <div className="bg-white rounded-lg border p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-900">
+            <h3 className="text-xl font-semibold text-gray-800">
               Detalles del Pedido #{selectedOrder.order_number}
             </h3>
             <button
@@ -355,11 +355,11 @@ export function UserOrders() {
             {/* Información de la orden */}
             <div className="space-y-6">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Información del pedido</h4>
+                <h4 className="font-semibold text-gray-800 mb-3">Información del pedido</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Fecha:</span>
-                    <span className="text-gray-900">{formatDate(selectedOrder.created_at)}</span>
+                    <span className="text-gray-800">{formatDate(selectedOrder.created_at)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Estado:</span>
@@ -376,7 +376,7 @@ export function UserOrders() {
                   {selectedOrder.payment_method && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Método de pago:</span>
-                      <span className="text-gray-900 capitalize">{selectedOrder.payment_method}</span>
+                      <span className="text-gray-800 capitalize">{selectedOrder.payment_method}</span>
                     </div>
                   )}
                 </div>
@@ -385,9 +385,9 @@ export function UserOrders() {
               {/* Dirección de envío */}
               {selectedOrder.shipping_address && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Dirección de envío</h4>
+                  <h4 className="font-semibold text-gray-800 mb-3">Dirección de envío</h4>
                   <div className="text-sm text-gray-600 space-y-1">
-                    <p className="font-medium text-gray-900">{selectedOrder.shipping_address.full_name}</p>
+                    <p className="font-medium text-gray-800">{selectedOrder.shipping_address.full_name}</p>
                     <p>{selectedOrder.shipping_address.address}</p>
                     {selectedOrder.shipping_address.address_line2 && (
                       <p>{selectedOrder.shipping_address.address_line2}</p>
@@ -406,17 +406,17 @@ export function UserOrders() {
               {/* Productos */}
               {selectedOrder.items && Array.isArray(selectedOrder.items) && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Productos</h4>
+                  <h4 className="font-semibold text-gray-800 mb-3">Productos</h4>
                   <div className="space-y-3">
                     {selectedOrder.items.map((item: OrderItem, index: number) => (
                       <div key={index} className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900">{item.product_name}</p>
+                          <p className="font-medium text-gray-800">{item.product_name}</p>
                           <p className="text-sm text-gray-600">Cantidad: {item.quantity}</p>
                           <p className="text-sm text-gray-600">{formatPrice(item.product_price)} c/u</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-800">
                             {formatPrice(item.subtotal || (item.product_price * item.quantity))}
                           </p>
                         </div>
@@ -428,27 +428,27 @@ export function UserOrders() {
 
               {/* Totales */}
               <div className="border-t pt-4">
-                <h4 className="font-semibold text-gray-900 mb-3">Resumen</h4>
+                <h4 className="font-semibold text-gray-800 mb-3">Resumen</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Subtotal:</span>
-                    <span className="text-gray-900">{formatPrice(selectedOrder.subtotal)}</span>
+                    <span className="text-gray-800">{formatPrice(selectedOrder.subtotal)}</span>
                   </div>
                   {selectedOrder.shipping_cost > 0 && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Envío:</span>
-                      <span className="text-gray-900">{formatPrice(selectedOrder.shipping_cost)}</span>
+                      <span className="text-gray-800">{formatPrice(selectedOrder.shipping_cost)}</span>
                     </div>
                   )}
                   {selectedOrder.tax > 0 && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">IVA:</span>
-                      <span className="text-gray-900">{formatPrice(selectedOrder.tax)}</span>
+                      <span className="text-gray-800">{formatPrice(selectedOrder.tax)}</span>
                     </div>
                   )}
                   <div className="flex justify-between border-t pt-2 font-semibold">
-                    <span className="text-gray-900">Total:</span>
-                    <span className="text-gray-900">{formatPrice(selectedOrder.total)}</span>
+                    <span className="text-gray-800">Total:</span>
+                    <span className="text-gray-800">{formatPrice(selectedOrder.total)}</span>
                   </div>
                 </div>
               </div>
@@ -456,7 +456,7 @@ export function UserOrders() {
               {/* Notas */}
               {selectedOrder.customer_notes && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Notas del pedido</h4>
+                  <h4 className="font-semibold text-gray-800 mb-2">Notas del pedido</h4>
                   <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                     {selectedOrder.customer_notes}
                   </p>

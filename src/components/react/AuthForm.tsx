@@ -237,7 +237,7 @@ export function AuthForm({ mode, redirectTo = '/' }: AuthFormProps) {
           {mode === 'login' && (
             <a
               href="/recuperar-password"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-sm text-gray-600 hover:text-red-600 transition-colors"
             >
               ¿Olvidaste tu contraseña?
             </a>
@@ -247,14 +247,14 @@ export function AuthForm({ mode, redirectTo = '/' }: AuthFormProps) {
             {mode === 'login' ? (
               <>
                 ¿No tienes cuenta?{' '}
-                <a href="/registro" className="text-gray-900 hover:text-gray-700 font-medium">
+                <a href="/registro" className="text-gray-800 hover:text-gray-700 font-medium">
                   Regístrate aquí
                 </a>
               </>
             ) : (
               <>
                 ¿Ya tienes cuenta?{' '}
-                <a href="/login" className="text-gray-900 hover:text-gray-700 font-medium">
+                <a href="/login" className="text-gray-800 hover:text-gray-700 font-medium">
                   Inicia sesión
                 </a>
               </>
@@ -267,11 +267,11 @@ export function AuthForm({ mode, redirectTo = '/' }: AuthFormProps) {
       {mode === 'register' && (
         <div className="mt-6 text-xs text-gray-500 text-center">
           Al crear una cuenta, aceptas nuestros{' '}
-          <a href="/terminos" className="text-gray-700 hover:text-gray-900">
+          <a href="/terminos" className="text-gray-700 hover:text-red-600">
             Términos y Condiciones
           </a>{' '}
           y{' '}
-          <a href="/privacidad" className="text-gray-700 hover:text-gray-900">
+          <a href="/privacidad" className="text-gray-700 hover:text-red-600">
             Política de Privacidad
           </a>
         </div>

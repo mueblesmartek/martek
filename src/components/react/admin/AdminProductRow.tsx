@@ -297,7 +297,7 @@ export function AdminProductRow({
               {/* Header */}
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h3 className="text-lg font-medium text-gray-800">
                     🖼️ Imágenes: {product.name || 'Producto sin nombre'}
                   </h3>
                   <button

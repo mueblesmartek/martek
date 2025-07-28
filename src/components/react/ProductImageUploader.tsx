@@ -356,7 +356,7 @@ O puedes usar el enlace directo que se genera automáticamente.
       {previewUrl && (
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-start justify-between mb-3">
-            <h4 className="text-sm font-medium text-gray-900">Vista previa:</h4>
+            <h4 className="text-sm font-medium text-gray-800">Vista previa:</h4>
             <button
               type="button"
               onClick={removeImage}
@@ -393,7 +393,7 @@ O puedes usar el enlace directo que se genera automáticamente.
       {/* Tips cuando no hay imagen */}
       {!previewUrl && (
         <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-2">💡 Tips para mejores imágenes:</h4>
+          <h4 className="text-sm font-medium text-gray-800 mb-2">💡 Tips para mejores imágenes:</h4>
           <ul className="text-xs text-gray-600 space-y-1">
             <li>• 📐 Usa imágenes cuadradas o rectangulares (1:1 o 4:3)</li>
             <li>• 🔍 Mínimo 800x800 pixeles para buena calidad</li>

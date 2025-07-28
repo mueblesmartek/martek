@@ -25,12 +25,19 @@ type SupabaseClient = {
 // ✅ DECLARACIONES GLOBALES PARA WINDOW
 declare global {
   interface Window {
-    // Funciones del carrito
+    // ✅ FUNCIONES BÁSICAS DEL CARRITO (de cart.js)
     addToCart: (id: string, name: string, price: number, quantity?: number) => void;
     addProductToCart: (id: string, name: string, price: number, image: string, category: string, buttonElement?: HTMLElement) => void;
     updateItemQuantity: (itemId: string, quantity: number) => void;
     removeItem: (itemId: string) => void;
     clearCart: () => void;
+    
+    // ✅ FUNCIONES DE CARRITO AVANZADAS (para compatibilidad con React)
+    openCart?: () => void;
+    closeCart?: () => void; 
+    toggleCart?: () => void;
+    
+    // ✅ OTRAS FUNCIONES
     selectImage?: (url: string, alt: string, index: number) => void;
     
     // File System API para artifacts
@@ -38,7 +45,7 @@ declare global {
       readFile: (filename: string, options?: { encoding?: string }) => Promise<string | Uint8Array>;
     };
     
-    // Utilidades del carrito
+    // ✅ UTILIDADES DEL CARRITO
     CartUtils: {
       getItems: () => any[];
       setItems: (items: any[]) => void;
@@ -47,7 +54,7 @@ declare global {
       formatPrice: (price: number) => string;
     };
     
-    // Eventos del carrito
+    // ✅ EVENTOS DEL CARRITO
     CART_EVENTS: {
       UPDATED: string;
       ITEM_ADDED: string;
@@ -93,9 +100,7 @@ declare global {
     dataset: DOMStringMap;
   }
   
-  // ✅ HACER SupabaseUser DISPONIBLE GLOBALMENTE
-  var SupabaseUser: SupabaseUser;
-}
+
 
 // ✅ ASTRO LOCALS - CORREGIDO PARA MIDDLEWARE.TS
 declare namespace App {
@@ -186,6 +191,47 @@ declare module '*.svg' {
 declare module '*.module.css' {
   const classes: { [key: string]: string };
   export default classes;
+}
+
+// ✅ DECLARACIONES PARA EVENTOS CUSTOM
+  interface WindowEventMap {
+    'cart-updated': CustomEvent<{ items: any[] }>;
+    'cart-item-added': CustomEvent<{ product: any; quantity: number }>;
+    'cart-item-removed': CustomEvent<{ itemId: string }>;
+    'cart-cleared': CustomEvent;
+    'cartUpdated': CustomEvent<import('../lib/types').CartItem[]>;
+    'productUpdated': CustomEvent<import('../lib/types').Product>;
+    // ✅ EVENTOS DE CARRITO UI
+    'cart-open': CustomEvent;
+    'cart-close': CustomEvent;
+    'cart-toggle': CustomEvent;
+  }
+// ✅ DECLARACIONES PARA ELEMENTOS HTML
+  interface HTMLElement {
+    dataset: DOMStringMap;
+  }
+
+  interface HTMLImageElement {
+    dataset: DOMStringMap;
+  }
+
+  interface HTMLButtonElement {
+    dataset: DOMStringMap;
+  }
+
+  interface HTMLAnchorElement {
+    dataset: DOMStringMap;
+  }
+  
+  // ✅ HACER SupabaseUser DISPONIBLE GLOBALMENTE
+  var SupabaseUser: SupabaseUser;
+}
+
+// ✅ ASTRO LOCALS
+declare namespace App {
+  interface Locals {
+    user?: SupabaseUser | null;
+  }
 }
 
 // ✅ EXPORT VACÍO PARA HACER ESTE ARCHIVO UN MÓDULO

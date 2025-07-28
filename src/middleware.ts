@@ -1,4 +1,5 @@
-// ✅ src/middleware.ts - MIDDLEWARE CORREGIDO CON TIPOS APROPIADOS
+
+/*// ✅ src/middleware.ts - MIDDLEWARE CORREGIDO CON TIPOS APROPIADOS
 import { defineMiddleware } from 'astro:middleware';
 import { supabase } from './lib/supabase';
 
@@ -46,4 +47,4 @@ declare global {
   }
 }
 
-export {};
+export {};*/

@@ -110,14 +110,14 @@ function AdminDashboardContent() {
           <div className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Panel de Administración</h1>
+                <h1 className="text-3xl font-bold text-gray-800">Panel de Administración</h1>
                 <p className="text-gray-600 mt-1">Kamasex.shop</p>
               </div>
               
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Bienvenido</p>
-                  <p className="font-medium text-gray-900">{user.full_name}</p>
+                  <p className="font-medium text-gray-800">{user.full_name}</p>
                 </div>
                 <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center">
                   <span className="text-white font-medium">
@@ -139,7 +139,7 @@ function AdminDashboardContent() {
               className={`
                 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                 ${activeTab === 'overview'
-                  ? 'border-gray-900 text-gray-900'
+                  ? 'border-red-600 text-gray-800'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }
               `}
@@ -152,7 +152,7 @@ function AdminDashboardContent() {
               className={`
                 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                 ${activeTab === 'products'
-                  ? 'border-gray-900 text-gray-900'
+                  ? 'border-red-600 text-gray-800'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }
               `}
@@ -165,7 +165,7 @@ function AdminDashboardContent() {
               className={`
                 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                 ${activeTab === 'orders'
-                  ? 'border-gray-900 text-gray-900'
+                  ? 'border-red-600 text-gray-800'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }
               `}
@@ -198,7 +198,7 @@ function AdminDashboardContent() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Productos</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-gray-800">
                       {loading ? '...' : stats.totalProducts}
                     </p>
                   </div>
@@ -217,7 +217,7 @@ function AdminDashboardContent() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Productos Activos</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-gray-800">
                       {loading ? '...' : stats.activeProducts}
                     </p>
                   </div>
@@ -236,7 +236,7 @@ function AdminDashboardContent() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Stock Bajo</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-gray-800">
                       {loading ? '...' : stats.lowStockProducts}
                     </p>
                   </div>
@@ -255,7 +255,7 @@ function AdminDashboardContent() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Pedidos</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-gray-800">
                       {loading ? '...' : stats.totalOrders}
                     </p>
                   </div>
@@ -274,7 +274,7 @@ function AdminDashboardContent() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Ingresos Totales</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-gray-800">
                       {loading ? '...' : formatCurrency(stats.totalRevenue)}
                     </p>
                   </div>
@@ -284,13 +284,13 @@ function AdminDashboardContent() {
 
             {/* Quick Actions */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Acciones Rápidas</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
                   onClick={() => setActiveTab('products')}
                   className="text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="font-medium text-gray-900">Gestionar Productos</div>
+                  <div className="font-medium text-gray-800">Gestionar Productos</div>
                   <div className="text-sm text-gray-600 mt-1">
                     Ver y editar productos del catálogo
                   </div>
@@ -300,7 +300,7 @@ function AdminDashboardContent() {
                   onClick={() => setActiveTab('orders')}
                   className="text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="font-medium text-gray-900">Ver Pedidos</div>
+                  <div className="font-medium text-gray-800">Ver Pedidos</div>
                   <div className="text-sm text-gray-600 mt-1">
                     Procesar y gestionar pedidos
                   </div>
@@ -310,7 +310,7 @@ function AdminDashboardContent() {
                   onClick={loadStats}
                   className="text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="font-medium text-gray-900">Actualizar Datos</div>
+                  <div className="font-medium text-gray-800">Actualizar Datos</div>
                   <div className="text-sm text-gray-600 mt-1">
                     Refrescar estadísticas
                   </div>
@@ -328,12 +328,12 @@ function AdminDashboardContent() {
         {/* Orders Tab */}
         {activeTab === 'orders' && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Gestión de Pedidos</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Gestión de Pedidos</h3>
             <div className="text-center py-12">
               <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
-              <h4 className="text-lg font-medium text-gray-900 mb-2">Gestión de Pedidos</h4>
+              <h4 className="text-lg font-medium text-gray-800 mb-2">Gestión de Pedidos</h4>
               <p className="text-gray-600">
                 Próximamente: Interface para gestionar pedidos, estados de envío y pagos.
               </p>

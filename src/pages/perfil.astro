@@ -36,7 +36,7 @@ if (!isAuthenticated) {
       
       <!-- Header -->
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Mi Perfil</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Mi Perfil</h1>
         <p class="text-gray-600">
           Gestiona tu información personal y configuración de cuenta
         </p>
@@ -53,7 +53,7 @@ if (!isAuthenticated) {
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
             </svg>
           </li>
-          <li class="text-gray-900">Mi Perfil</li>
+          <li class="text-gray-800">Mi Perfil</li>
         </ol>
       </nav>
 
@@ -68,7 +68,7 @@ if (!isAuthenticated) {
                   {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                 </span>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900">
+              <h3 class="text-lg font-semibold text-gray-800">
                 {user?.user_metadata?.full_name || 'Usuario'}
               </h3>
               <p class="text-sm text-gray-600">{user?.email}</p>
@@ -78,25 +78,25 @@ if (!isAuthenticated) {
             <nav class="space-y-2">
               <a 
                 href="#informacion" 
-                class="block px-3 py-2 text-sm font-medium text-gray-900 bg-gray-100 rounded-lg"
+                class="block px-3 py-2 text-sm font-medium text-gray-800 bg-gray-100 rounded-lg"
               >
                 👤 Información Personal
               </a>
               <a 
                 href="/mis-pedidos" 
-                class="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                class="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 📦 Mis Pedidos
               </a>
               <a 
                 href="#configuracion" 
-                class="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                class="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 ⚙️ Configuración
               </a>
               <button 
                 id="profile-logout"
-                class="block w-full text-left px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                class="block w-full text-left px-3 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 🚪 Cerrar Sesión
               </button>
@@ -109,7 +109,7 @@ if (!isAuthenticated) {
           
           <!-- Información personal -->
           <div id="informacion" class="bg-white rounded-lg border p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-6">Información Personal</h2>
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Información Personal</h2>
             
             <div class="space-y-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -117,7 +117,7 @@ if (!isAuthenticated) {
                   <label class="block text-sm font-medium text-gray-700 mb-1">
                     Nombre completo
                   </label>
-                  <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                  <p class="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
                     {user?.user_metadata?.full_name || 'No especificado'}
                   </p>
                 </div>
@@ -126,7 +126,7 @@ if (!isAuthenticated) {
                   <label class="block text-sm font-medium text-gray-700 mb-1">
                     Email
                   </label>
-                  <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                  <p class="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
                     {user?.email}
                   </p>
                 </div>
@@ -137,7 +137,7 @@ if (!isAuthenticated) {
                   <label class="block text-sm font-medium text-gray-700 mb-1">
                     Cuenta creada
                   </label>
-                  <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                  <p class="text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">
                     {new Date(user?.created_at || '').toLocaleDateString('es-CO', {
                       year: 'numeric',
                       month: 'long', 
@@ -170,21 +170,21 @@ if (!isAuthenticated) {
 
           <!-- Resumen de actividad -->
           <div class="bg-white rounded-lg border p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-6">Resumen de Actividad</h2>
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Resumen de Actividad</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div class="bg-gray-50 p-4 rounded-lg text-center">
-                <div class="text-2xl font-bold text-gray-900 mb-1">-</div>
+                <div class="text-2xl font-bold text-gray-800 mb-1">-</div>
                 <div class="text-sm text-gray-600">Pedidos realizados</div>
               </div>
               
               <div class="bg-gray-50 p-4 rounded-lg text-center">
-                <div class="text-2xl font-bold text-gray-900 mb-1">-</div>
+                <div class="text-2xl font-bold text-gray-800 mb-1">-</div>
                 <div class="text-sm text-gray-600">Total gastado</div>
               </div>
               
               <div class="bg-gray-50 p-4 rounded-lg text-center">
-                <div class="text-2xl font-bold text-gray-900 mb-1">-</div>
+                <div class="text-2xl font-bold text-gray-800 mb-1">-</div>
                 <div class="text-sm text-gray-600">Productos favoritos</div>
               </div>
             </div>
@@ -201,12 +201,12 @@ if (!isAuthenticated) {
 
           <!-- Configuración de cuenta -->
           <div id="configuracion" class="bg-white rounded-lg border p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-6">Configuración de Cuenta</h2>
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Configuración de Cuenta</h2>
             
             <div class="space-y-4">
               <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <h4 class="font-medium text-gray-900">Notificaciones por email</h4>
+                  <h4 class="font-medium text-gray-800">Notificaciones por email</h4>
                   <p class="text-sm text-gray-600">Recibir actualizaciones sobre pedidos y ofertas</p>
                 </div>
                 <button class="bg-gray-200 relative inline-flex h-6 w-11 items-center rounded-full">
@@ -216,7 +216,7 @@ if (!isAuthenticated) {
 
               <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <h4 class="font-medium text-gray-900">Marketing</h4>
+                  <h4 class="font-medium text-gray-800">Marketing</h4>
                   <p class="text-sm text-gray-600">Recibir promociones y descuentos especiales</p>
                 </div>
                 <button class="bg-gray-200 relative inline-flex h-6 w-11 items-center rounded-full">
@@ -226,7 +226,7 @@ if (!isAuthenticated) {
             </div>
 
             <div class="mt-6 pt-6 border-t border-gray-200">
-              <h4 class="font-medium text-gray-900 mb-3">Acciones de cuenta</h4>
+              <h4 class="font-medium text-gray-800 mb-3">Acciones de cuenta</h4>
               <div class="space-y-3">
                 <button 
                   disabled

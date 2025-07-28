@@ -112,7 +112,7 @@ export function ProductsFilter({ products, onFilterChange, currentCategory }: Pr
           onClick={() => setIsOpen(!isOpen)}
           className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-300 rounded-lg"
         >
-          <span className="font-medium text-gray-900">Filtros</span>
+          <span className="font-medium text-gray-800">Filtros</span>
           <svg 
             className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
             fill="none" 
@@ -129,7 +129,7 @@ export function ProductsFilter({ products, onFilterChange, currentCategory }: Pr
         
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Filtros</h3>
           <button 
             onClick={resetFilters}
             className="text-sm text-primary-600 hover:text-primary-700 font-medium"

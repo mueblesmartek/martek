@@ -1,5 +1,5 @@
 ---
-// src/pages/productos.astro - TYPESCRIPT CORREGIDO
+// src/pages/productos.astro - PRODUCTOS MARTEK
 import Layout from '../components/layout/Layout.astro';
 import { getProducts } from '../lib/supabase';
 import type { Product } from '../lib/types';
@@ -9,35 +9,35 @@ let products: Product[] = [];
 
 try {
   products = await getProducts();
-  console.log(`📦 ${products.length} productos cargados`);
+  console.log(`🛏️ ${products.length} bases cargadas`);
 } catch (error) {
   console.error('❌ Error cargando productos:', error);
 }
 ---
 
 <Layout 
-  title="Productos - Kamasex.shop" 
-  description="Explora nuestra colección de productos premium para el bienestar íntimo femenino"
+  title="Bases para Camas - Martek" 
+  description="Bases de cama de alta calidad con más de 60 años de experiencia"
 >
   <div class="min-h-screen bg-gray-50 py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <!-- Header -->
       <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">Nuestros Productos</h1>
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">Nuestras Bases</h1>
         <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Descubre nuestra cuidadosa selección de productos premium para tu bienestar y confianza
+          Bases de cama diseñadas para brindar soporte y durabilidad excepcional
         </p>
       </div>
 
-      <!-- Productos Grid -->
+      <!-- Productos Grid - 2 COLUMNAS -->
       {products.length > 0 ? (
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {products.map(product => (
-            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group hover:border-red-200">
               
               <!-- Imagen del producto -->
-              <div class="relative aspect-square bg-gray-100 overflow-hidden">
+              <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                 <a href={`/producto/${product.slug || product.id}`}>
                   {product.image_url ? (
                     <img
@@ -61,74 +61,42 @@ try {
                     Agotado
                   </div>
                 ) : product.featured ? (
-                  <div class="absolute top-3 right-3 bg-gray-900 text-white text-xs font-medium px-2 py-1 rounded">
+                  <div class="absolute top-3 left-3 bg-red-600 text-white text-xs font-medium px-2 py-1 rounded">
                     Destacado
                   </div>
                 ) : null}
               </div>
 
               <!-- Información del producto -->
-              <div class="p-4 space-y-3">
-                
-                <!-- Categoría -->
-                {product.category && (
-                  <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">
-                    {product.category}
-                  </p>
-                )}
-
-                <!-- Nombre -->
-                <h3 class="font-medium text-gray-900 line-clamp-2 leading-tight">
-                  <a href={`/producto/${product.slug || product.id}`} class="hover:text-gray-700 transition-colors">
+              <div class="p-6">
+                <a href={`/producto/${product.slug || product.id}`}>
+                  <h3 class="text-xl font-semibold text-gray-800 mb-2 group-hover:text-red-600 transition-colors">
                     {product.name}
-                  </a>
-                </h3>
-
-                <!-- Precio y stock -->
-                <div class="flex items-center justify-between">
-                  <p class="text-lg font-bold text-gray-900">
-                    ${product.price.toLocaleString()}
-                  </p>
-                  
-                  {product.stock > 0 && product.stock <= 5 && (
-                    <span class="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded">
-                      Solo {product.stock}
-                    </span>
-                  )}
-                </div>
-
-                <!-- Descripción -->
+                  </h3>
+                </a>
+                
                 {product.description && (
-                  <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                  <p class="text-gray-600 text-sm mb-4 line-clamp-2">
                     {product.description}
                   </p>
                 )}
 
-                <!-- Acciones -->
-                <div class="space-y-2">
-                  {product.is_active && product.stock > 0 ? (
-                    <button
-                      class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors add-to-cart-btn"
-                      data-product-id={product.id}
-                      data-product-name={product.name}
-                      data-product-price={product.price}
-                      data-product-image={product.image_url || ''}
-                      data-product-category={product.category || ''}
-                    >
-                      Agregar al carrito
-                    </button>
-                  ) : (
-                    <div class="w-full bg-gray-100 text-gray-400 py-2.5 px-4 rounded-md text-sm font-medium text-center cursor-not-allowed">
-                      Producto agotado
-                    </div>
-                  )}
+                <!-- Precio y acción -->
+                <div class="flex items-center justify-between">
+                  <div class="space-y-1">
+                    <p class="text-2xl font-bold text-gray-800">
+                      ${product.price.toLocaleString('es-CO')}
+                    </p>
+                    <p class="text-sm text-gray-500">Envío incluido</p>
+                  </div>
                   
-                  <a
-                    href={`/producto/${product.slug || product.id}`}
-                    class="block w-full text-center border border-gray-300 text-gray-700 py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
+                  <button 
+                    onclick={`addProductToCart('${product.id}', '${product.name}', ${product.price}, '${product.image_url || ''}', '${product.category || 'Base'}', this)`}
+                    class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    disabled={!product.is_active || product.stock <= 0}
                   >
-                    Ver detalles
-                  </a>
+                    {!product.is_active || product.stock <= 0 ? 'Agotado' : 'Agregar'}
+                  </button>
                 </div>
               </div>
             </div>
@@ -136,32 +104,27 @@ try {
         </div>
       ) : (
         <!-- Estado vacío -->
-        <div class="text-center py-12">
-          <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4m16 0l-2-3m2 3l-2 3M4 13l2-3m-2 3l2 3" />
+        <div class="text-center py-16">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
           </div>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">
-            No hay productos disponibles
-          </h3>
-          <p class="text-gray-600">
-            Estamos trabajando para traerte los mejores productos muy pronto.
-          </p>
+          <h3 class="text-lg font-medium text-gray-800 mb-2">No hay productos disponibles</h3>
+          <p class="text-gray-600">Agrega productos desde el panel de administración</p>
         </div>
       )}
 
       <!-- Información adicional -->
-      <div class="mt-16 bg-white rounded-lg border p-8">
+      <div class="mt-16 bg-white rounded-lg border p-8 max-w-4xl mx-auto">
         <div class="text-center">
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">¿No encuentras lo que buscas?</h2>
+          <h2 class="text-2xl font-bold text-gray-800 mb-4">¿Tienes dudas?</h2>
           <p class="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Nuestro equipo está constantemente actualizando nuestro catálogo. 
-            Contáctanos si hay algo específico que te gustaría encontrar.
+            Nuestro equipo está listo para asesorarte en la elección de tu base ideal.
           </p>
           <a 
             href="/contacto" 
-            class="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors"
+            class="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
           >
             Contáctanos
           </a>
@@ -170,148 +133,74 @@ try {
     </div>
   </div>
 
-  <!-- ✅ SCRIPT CORREGIDO SIN ERRORES TYPESCRIPT -->
+  <!-- Script para carrito -->
   <script>
-    console.log('🛒 Página de productos cargada');
+    console.log('🛏️ Página de bases Martek cargada');
 
-    // ✅ DECLARACIONES GLOBALES PARA TYPESCRIPT
-    declare global {
-      interface Window {
-        addProductToCart: (id: string, name: string, price: number, image: string, category: string, buttonElement?: HTMLElement) => void;
-      }
-    }
-
-    // ✅ FUNCIÓN GLOBAL PARA AGREGAR AL CARRITO (TYPESCRIPT CORREGIDO)
-    window.addProductToCart = function(productId: string, productName: string, productPrice: number, productImage: string, productCategory: string, buttonElement?: HTMLElement): void {
-      console.log('➕ Agregando producto:', productName);
+    // Función global para agregar al carrito
+    window.addProductToCart = function(productId, productName, productPrice, productImage, productCategory, buttonElement) {
+      console.log('➕ Agregando base:', productName);
       
       // Prevenir múltiples clicks
-      if (buttonElement && (buttonElement as any).disabled) return;
+      if (buttonElement && buttonElement.disabled) return;
       
       const originalText = buttonElement ? buttonElement.textContent || '' : '';
       
       if (buttonElement) {
-        (buttonElement as any).disabled = true;
+        buttonElement.disabled = true;
         buttonElement.textContent = 'Agregando...';
-        buttonElement.className = buttonElement.className.replace('bg-gray-900', 'bg-gray-400');
+        buttonElement.className = buttonElement.className.replace('bg-red-600', 'bg-gray-400');
       }
       
       try {
-        // Validar datos para evitar NaN
         const validPrice = typeof productPrice === 'number' && !isNaN(productPrice) ? productPrice : 0;
         
         // Obtener carrito actual
-        const existingCart = localStorage.getItem('kamasex-cart');
+        const existingCart = localStorage.getItem('martek-cart');
         let cart = existingCart ? JSON.parse(existingCart) : [];
         
         // Buscar si el producto ya existe
-        const existingIndex = cart.findIndex((item: any) => item.id === productId);
+        const existingIndex = cart.findIndex(item => item.id === productId);
         
-        if (existingIndex >= 0) {
-          // Actualizar cantidad existente
+        if (existingIndex > -1) {
           cart[existingIndex].quantity += 1;
         } else {
-          // Agregar nuevo producto
           cart.push({
             id: productId,
             name: productName,
             price: validPrice,
-            image: productImage,
-            category: productCategory,
-            quantity: 1,
-            created_at: new Date().toISOString()
+            image: productImage || '/images/base-default.jpg',
+            category: productCategory || 'Base',
+            quantity: 1
           });
         }
         
-        // Guardar en localStorage
-        localStorage.setItem('kamasex-cart', JSON.stringify(cart));
+        // Guardar carrito
+        localStorage.setItem('martek-cart', JSON.stringify(cart));
         
-        // Disparar evento para actualizar contadores
-        window.dispatchEvent(new CustomEvent('cart-updated', { 
-          detail: { cart: cart }
-        }));
-        
-        console.log('✅ Producto agregado al carrito');
-        
-        // Mostrar notificación
-        showNotification(`${productName} agregado al carrito`, 'success');
-        
-        // Cambiar botón a éxito
+        // Mostrar feedback
         if (buttonElement) {
-          buttonElement.textContent = '¡Agregado!';
+          buttonElement.textContent = '✓ Agregado';
           buttonElement.className = buttonElement.className.replace('bg-gray-400', 'bg-green-600');
+          
+          setTimeout(() => {
+            buttonElement.disabled = false;
+            buttonElement.textContent = originalText;
+            buttonElement.className = buttonElement.className.replace('bg-green-600', 'bg-red-600');
+          }, 2000);
         }
+        
+        console.log('✅ Base agregada al carrito');
         
       } catch (error) {
         console.error('❌ Error agregando al carrito:', error);
-        showNotification('Error agregando producto', 'error');
-      } finally {
-        // Restaurar botón después de un delay
-        setTimeout(() => {
-          if (buttonElement) {
-            (buttonElement as any).disabled = false;
-            buttonElement.textContent = originalText;
-            buttonElement.className = buttonElement.className.replace('bg-green-600', 'bg-gray-900').replace('bg-gray-400', 'bg-gray-900');
-          }
-        }, 1500);
+        
+        if (buttonElement) {
+          buttonElement.disabled = false;
+          buttonElement.textContent = originalText;
+          buttonElement.className = buttonElement.className.replace('bg-gray-400', 'bg-red-600');
+        }
       }
     };
-
-    // ✅ FUNCIÓN PARA MOSTRAR NOTIFICACIONES
-    function showNotification(message: string, type: string = 'info'): void {
-      const notification = document.createElement('div');
-      notification.className = `
-        fixed top-4 right-4 z-50 max-w-sm p-4 rounded-lg shadow-lg transition-all duration-300
-        ${type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' : ''}
-        ${type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' : ''}
-        ${type === 'info' ? 'bg-blue-50 border border-blue-200 text-blue-800' : ''}
-      `;
-      
-      notification.innerHTML = `
-        <div class="flex items-center justify-between">
-          <p class="text-sm font-medium">${message}</p>
-          <button onclick="this.parentElement.parentElement.remove()" 
-                  class="ml-4 text-current opacity-50 hover:opacity-100">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-      `;
-      
-      document.body.appendChild(notification);
-      
-      // Auto-remover después de 3 segundos
-      setTimeout(() => {
-        notification.remove();
-      }, 3000);
-    }
-
-    // ✅ EVENT LISTENER PARA BOTONES DE AGREGAR AL CARRITO
-    document.addEventListener('DOMContentLoaded', function() {
-      const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-      
-      addToCartButtons.forEach(function(button) {
-        button.addEventListener('click', function(e) {
-          e.preventDefault();
-          
-          const buttonElement = e.target as HTMLElement;
-          const productId = buttonElement.dataset.productId || '';
-          const productName = buttonElement.dataset.productName || '';
-          const productPrice = parseFloat(buttonElement.dataset.productPrice || '0');
-          const productImage = buttonElement.dataset.productImage || '';
-          const productCategory = buttonElement.dataset.productCategory || '';
-          
-          if (productId && productName && !isNaN(productPrice)) {
-            window.addProductToCart(productId, productName, productPrice, productImage, productCategory, buttonElement);
-          } else {
-            console.error('❌ Datos de producto inválidos');
-            showNotification('Error: datos de producto inválidos', 'error');
-          }
-        });
-      });
-
-      console.log('✅ Funciones de productos inicializadas correctamente');
-    });
   </script>
 </Layout>

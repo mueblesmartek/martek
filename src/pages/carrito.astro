@@ -21,13 +21,13 @@ import Layout from '../components/layout/Layout.astro';
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
             </svg>
           </li>
-          <li class="text-gray-900">Carrito</li>
+          <li class="text-gray-800">Carrito</li>
         </ol>
       </nav>
 
       <!-- Título -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Tu carrito</h1>
+        <h1 class="text-3xl font-bold text-gray-800">Tu carrito</h1>
         <p class="mt-2 text-gray-600">Revisa tus productos antes de proceder al checkout</p>
       </div>
 
@@ -44,11 +44,11 @@ import Layout from '../components/layout/Layout.astro';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l-2.5 5M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
               </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Tu carrito está vacío</h3>
+            <h3 class="text-lg font-medium text-gray-800 mb-2">Tu carrito está vacío</h3>
             <p class="text-gray-600 mb-6">Agrega algunos productos para comenzar tu compra</p>
             <a 
               href="/productos" 
-              class="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors"
+              class="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
             >
               Explorar productos
             </a>
@@ -74,12 +74,12 @@ import Layout from '../components/layout/Layout.astro';
 
       <!-- Productos recomendados -->
       <div class="mt-16">
-        <h2 class="text-2xl font-bold text-gray-900 mb-8">También te puede interesar</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-8">También te puede interesar</h2>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="bg-white rounded-lg border p-4">
             <div class="w-full h-32 bg-gray-100 rounded-md mb-3"></div>
-            <h3 class="font-medium text-gray-900 mb-1">Producto recomendado 1</h3>
+            <h3 class="font-medium text-gray-800 mb-1">Producto recomendado 1</h3>
             <p class="text-gray-600 text-sm mb-2">$25.000</p>
             <button 
               class="w-full bg-gray-900 text-white py-2 px-4 rounded-md text-sm hover:bg-gray-800 transition-colors"
@@ -91,7 +91,7 @@ import Layout from '../components/layout/Layout.astro';
           
           <div class="bg-white rounded-lg border p-4">
             <div class="w-full h-32 bg-gray-100 rounded-md mb-3"></div>
-            <h3 class="font-medium text-gray-900 mb-1">Producto recomendado 2</h3>
+            <h3 class="font-medium text-gray-800 mb-1">Producto recomendado 2</h3>
             <p class="text-gray-600 text-sm mb-2">$35.000</p>
             <button 
               class="w-full bg-gray-900 text-white py-2 px-4 rounded-md text-sm hover:bg-gray-800 transition-colors"
@@ -103,7 +103,7 @@ import Layout from '../components/layout/Layout.astro';
 
           <div class="bg-white rounded-lg border p-4">
             <div class="w-full h-32 bg-gray-100 rounded-md mb-3"></div>
-            <h3 class="font-medium text-gray-900 mb-1">Producto recomendado 3</h3>
+            <h3 class="font-medium text-gray-800 mb-1">Producto recomendado 3</h3>
             <p class="text-gray-600 text-sm mb-2">$45.000</p>
             <button 
               class="w-full bg-gray-900 text-white py-2 px-4 rounded-md text-sm hover:bg-gray-800 transition-colors"
@@ -115,7 +115,7 @@ import Layout from '../components/layout/Layout.astro';
 
           <div class="bg-white rounded-lg border p-4">
             <div class="w-full h-32 bg-gray-100 rounded-md mb-3"></div>
-            <h3 class="font-medium text-gray-900 mb-1">Producto recomendado 4</h3>
+            <h3 class="font-medium text-gray-800 mb-1">Producto recomendado 4</h3>
             <p class="text-gray-600 text-sm mb-2">$55.000</p>
             <button 
               class="w-full bg-gray-900 text-white py-2 px-4 rounded-md text-sm hover:bg-gray-800 transition-colors"
@@ -147,7 +147,7 @@ declare global {
 }
 
 // ✅ CONSTANTES
-const CART_KEY = 'kamasex-cart';
+const CART_KEY = 'martek-cart';
 
 // ✅ FUNCIÓN GLOBAL ADDTOCART CORREGIDA
 window.addToCart = function(id: string, name: string, price: number, quantity: number = 1): void {
@@ -310,7 +310,7 @@ function renderCartPage(): void {
             </div>
             
             <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-medium text-gray-900 truncate">${name}</h4>
+              <h4 class="text-sm font-medium text-gray-800 truncate">${name}</h4>
               <p class="text-sm text-gray-500">${formatPrice(price)}</p>
               ${item.product_category ? `
                 <p class="text-xs text-gray-400">${item.product_category}</p>
@@ -337,7 +337,7 @@ function renderCartPage(): void {
             </div>
             
             <div class="text-right">
-              <p class="text-sm font-medium text-gray-900">
+              <p class="text-sm font-medium text-gray-800">
                 ${formatPrice(subtotal)}
               </p>
               <button onclick="window.removeItem('${item.id}')"
@@ -391,7 +391,7 @@ function renderCartSummary(cartItems: any[]): void {
   
   summaryContainer.innerHTML = `
     <div class="bg-white rounded-lg border p-6">
-      <h3 class="text-lg font-medium text-gray-900 mb-4">Resumen del pedido</h3>
+      <h3 class="text-lg font-medium text-gray-800 mb-4">Resumen del pedido</h3>
       
       <div class="space-y-3 mb-6">
         <div class="flex justify-between text-sm">

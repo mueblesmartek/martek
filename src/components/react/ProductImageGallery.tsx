@@ -331,7 +331,7 @@ export function ProductImageGallery({
               onClick={() => selectImage(index)}
               className={`aspect-square bg-gray-100 rounded border-2 overflow-hidden transition-all ${
                 index === selectedIndex 
-                  ? 'border-gray-900 ring-2 ring-gray-200' 
+                  ? 'border-red-600 ring-2 ring-gray-200' 
                   : 'border-gray-200 hover:border-gray-400'
               }`}
             >

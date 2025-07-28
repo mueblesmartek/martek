@@ -49,7 +49,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
       
       <!-- Header -->
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Finalizar Pago</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Finalizar Pago</h1>
         <p class="text-gray-600">Pedido #{order.order_number}</p>
       </div>
 
@@ -73,7 +73,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
 
           <!-- Métodos de Pago -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-6">Método de Pago</h2>
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Método de Pago</h2>
             
             <div class="space-y-4">
               
@@ -89,7 +89,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
                       <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      <span class="font-medium text-gray-900">Tarjeta de Crédito/Débito</span>
+                      <span class="font-medium text-gray-800">Tarjeta de Crédito/Débito</span>
                     </div>
                     <p class="text-sm text-gray-600 mt-1">Visa, Mastercard, American Express</p>
                   </div>
@@ -112,7 +112,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
                       <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
-                      <span class="font-medium text-gray-900">PSE - Pagos Seguros en Línea</span>
+                      <span class="font-medium text-gray-800">PSE - Pagos Seguros en Línea</span>
                     </div>
                     <p class="text-sm text-gray-600 mt-1">Paga directamente desde tu cuenta bancaria</p>
                   </div>
@@ -131,7 +131,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
                       <div class="w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
                         <span class="text-white text-xs font-bold">N</span>
                       </div>
-                      <span class="font-medium text-gray-900">Nequi</span>
+                      <span class="font-medium text-gray-800">Nequi</span>
                     </div>
                     <p class="text-sm text-gray-600 mt-1">Paga con tu billetera digital Nequi</p>
                   </div>
@@ -144,7 +144,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
               <button 
                 id="pay-button"
                 type="button"
-                class="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 px-6 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-3"
+                class="w-full bg-red-600 hover:bg-red-700 text-white py-4 px-6 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-3"
               >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -165,7 +165,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
           
           <!-- Resumen del Pedido -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Resumen del Pedido</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Resumen del Pedido</h3>
             
             <!-- Items -->
             <div class="space-y-3 mb-6">
@@ -177,11 +177,11 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
                     </svg>
                   </div>
                   <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-900">{item.product_name}</p>
+                    <p class="text-sm font-medium text-gray-800">{item.product_name}</p>
                     <p class="text-xs text-gray-600">Cantidad: {item.quantity}</p>
                   </div>
                   <div class="text-right">
-                    <p class="text-sm font-medium text-gray-900">${item.total.toLocaleString('es-CO')}</p>
+                    <p class="text-sm font-medium text-gray-800">${item.total.toLocaleString('es-CO')}</p>
                   </div>
                 </div>
               ))}
@@ -217,7 +217,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
 
           <!-- Información de Envío -->
           <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Envío a:</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Envío a:</h3>
             <div class="space-y-2 text-sm">
               <p class="font-medium">{order.shipping_address.full_name}</p>
               <p class="text-gray-600">{order.shipping_address.address_line_1}</p>
@@ -246,11 +246,11 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
 
           <!-- Soporte -->
           <div class="bg-gray-50 rounded-lg p-4">
-            <h4 class="font-medium text-gray-900 mb-2">¿Necesitas ayuda?</h4>
+            <h4 class="font-medium text-gray-800 mb-2">¿Necesitas ayuda?</h4>
             <p class="text-sm text-gray-600 mb-3">
               Nuestro equipo está aquí para ayudarte con cualquier pregunta sobre tu pedido.
             </p>
-            <a href="/contacto" class="text-sm text-gray-800 font-medium hover:text-gray-900 transition-colors">
+            <a href="/contacto" class="text-sm text-gray-800 font-medium hover:text-red-600 transition-colors">
               Contactar soporte →
             </a>
           </div>
@@ -293,7 +293,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
       radio.addEventListener('change', function() {
         // Reset all indicators
         indicators.forEach(indicator => {
-          indicator.classList.remove('border-gray-900');
+          indicator.classList.remove('border-red-600');
           indicator.classList.add('border-gray-300');
           const dot = indicator.querySelector('div');
           if (dot) dot.classList.add('opacity-0');
@@ -303,7 +303,7 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
         if (this.checked) {
           const indicator = indicators[index];
           indicator.classList.remove('border-gray-300');
-          indicator.classList.add('border-gray-900');
+          indicator.classList.add('border-red-600');
           const dot = indicator.querySelector('div');
           if (dot) dot.classList.remove('opacity-0');
         }

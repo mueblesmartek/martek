@@ -1,26 +1,6 @@
 ---
-// src/components/layout/Header.astro - HEADER SIN ERRORES TYPESCRIPT
-import { supabase } from '../../lib/supabase';
-
-// ✅ DETECTAR USUARIO LOGUEADO (SERVER-SIDE) CON TIPOS SIMPLES
-let user: any = null;
-let isLoggedIn = false;
-
-try {
-  // Intentar obtener el usuario desde las cookies de sesión
-  const sessionCookie = Astro.cookies.get('sb-access-token');
-  
-  if (sessionCookie?.value && supabase) {
-    const { data: { user: authUser }, error } = await supabase.auth.getUser(sessionCookie.value);
-    if (!error && authUser) {
-      user = authUser;
-      isLoggedIn = true;
-    }
-  }
-} catch (error) {
-  // Si hay error, simplemente no mostrar usuario logueado
-  console.log('Error checking auth in header:', error);
-}
+// src/components/layout/Header.astro - MIGRADO A CLIENT-SIDE AUTH
+// ✅ CAMBIO: Sin server-side auth, todo client-side para output: 'static'
 ---
 
 <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -40,52 +20,45 @@ try {
         </a>
       </div>
 
-      <!-- ✅ NAVEGACIÓN PRINCIPAL CON CONDICIONAL -->
+      <!-- ✅ NAVEGACIÓN PRINCIPAL (ESTÁTICA) -->
       <nav class="hidden md:flex items-center space-x-8">
         <a 
           href="/" 
-          class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
+          class="text-gray-600 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors"
         >
           Inicio
         </a>
         <a 
           href="/productos" 
-          class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
+          class="text-gray-600 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors"
         >
           Productos
         </a>
-        <a 
-          href="/categorias" 
-          class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
-        >
-          Categorías
-        </a>
         
-        <!-- ✅ SOLO MOSTRAR "MIS PEDIDOS" SI ESTÁ LOGUEADO -->
-        {isLoggedIn && (
-          <a 
-            href="/mis-pedidos" 
-            class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
-          >
-            Mis Pedidos
-          </a>
-        )}
+        <!-- ✅ MIS PEDIDOS - SE MOSTRARÁ/OCULTARÁ VIA JAVASCRIPT -->
+        <a 
+          id="nav-mis-pedidos"
+          href="/mis-pedidos" 
+          class="hidden text-gray-600 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors"
+        >
+          Mis Pedidos
+        </a>
         
         <a 
           href="/contacto" 
-          class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
+          class="text-gray-600 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors"
         >
           Contacto
         </a>
       </nav>
 
-      <!-- ✅ ACCIONES DEL HEADER CON AUTH CONDICIONAL -->
+      <!-- ✅ ACCIONES DEL HEADER -->
       <div class="flex items-center space-x-4">
         
         <!-- Búsqueda -->
         <button 
           id="search-toggle"
-          class="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+          class="p-2 text-gray-600 hover:text-red-600 transition-colors"
           aria-label="Buscar"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,417 +66,350 @@ try {
           </svg>
         </button>
 
-        <!-- ✅ MENÚ DE USUARIO CONDICIONAL -->
-        <div class="relative">
-          {isLoggedIn ? (
-            <!-- Usuario logueado -->
-            <div class="flex items-center space-x-3">
-              <div class="hidden md:block">
-                <span class="text-sm text-gray-600">
-                  Hola, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}
-                </span>
-              </div>
-              
-              <button 
-                id="user-menu-toggle"
-                class="flex items-center p-2 text-gray-600 hover:text-gray-900 transition-colors"
-                aria-label="Menú de usuario"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-              </button>
-
-              <!-- ✅ DROPDOWN MENÚ USUARIO LOGUEADO -->
-              <div 
-                id="user-dropdown" 
-                class="hidden absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
-              >
-                <div class="py-2">
-                  <div class="px-4 py-2 border-b border-gray-100">
-                    <p class="text-sm font-medium text-gray-900">
-                      {user?.user_metadata?.full_name || 'Usuario'}
-                    </p>
-                    <p class="text-xs text-gray-500">{user?.email}</p>
-                  </div>
-                  
-                  <a 
-                    href="/mis-pedidos" 
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    🛍️ Mis Pedidos
-                  </a>
-                  
-                  <a 
-                    href="/perfil" 
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    👤 Mi Perfil
-                  </a>
-                  
-                  <div class="border-t border-gray-100 mt-2 pt-2">
-                    <button 
-                      id="logout-btn"
-                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      🚪 Cerrar Sesión
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <!-- Usuario NO logueado -->
-            <div class="flex items-center space-x-3">
-              <a 
-                href="/login" 
-                class="hidden md:block text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium transition-colors"
-              >
-                Iniciar Sesión
-              </a>
-              
-              <a 
-                href="/registro" 
-                class="hidden md:block bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
-              >
-                Crear Cuenta
-              </a>
-              
-              <!-- Icono de usuario en móvil -->
-              <button 
-                id="user-menu-toggle"
-                class="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
-                aria-label="Cuenta de usuario"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-              </button>
-
-              <!-- ✅ DROPDOWN MENÚ USUARIO NO LOGUEADO (MÓVIL) -->
-              <div 
-                id="user-dropdown" 
-                class="hidden md:hidden absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
-              >
-                <div class="py-2">
-                  <a 
-                    href="/login" 
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    🔐 Iniciar Sesión
-                  </a>
-                  <a 
-                    href="/registro" 
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    ✨ Crear Cuenta
-                  </a>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <!-- Carrito con contador -->
-        <a 
-          href="/carrito" 
-          class="relative p-2 text-gray-600 hover:text-gray-900 transition-colors group"
-          aria-label="Ver carrito"
+        <!-- ✅ CARRITO -->
+        <button 
+          id="cart-toggle"
+          class="relative p-2 text-gray-600 hover:text-red-600 transition-colors"
+          aria-label="Carrito"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l-2.5 5M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5-6M20 13h4v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6h4"/>
           </svg>
-          
-          <!-- Contador del carrito -->
+          <!-- Badge del carrito -->
           <span 
-            data-cart-counter
-            class="absolute -top-1 -right-1 h-5 w-5 bg-gray-900 text-white text-xs font-medium rounded-full items-center justify-center hidden"
+            id="cart-badge" 
+            class="absolute -top-1 -right-1 bg-gray-900 text-white text-xs font-medium rounded-full h-5 w-5 items-center justify-center hidden"
           >
             0
           </span>
+        </button>
 
-          <!-- Tooltip simple -->
-          <div class="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-            <div class="p-3">
-              <div id="cart-preview" class="space-y-2">
-                <p class="text-sm text-gray-500 text-center">Tu carrito</p>
+        <!-- ✅ MENÚ DE USUARIO DINÁMICO -->
+        <div class="relative">
+          <!-- Estado de carga -->
+          <div id="auth-loading" class="hidden">
+            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+          </div>
+          
+          <!-- ✅ USUARIO NO LOGUEADO (Default) -->
+          <div id="auth-logged-out" class="flex items-center space-x-2">
+            <a 
+              href="/login" 
+              class="text-gray-600 hover:text-red-600 px-3 py-2 text-sm font-medium transition-colors"
+            >
+              Iniciar Sesión
+            </a>
+            <a 
+              href="/registro" 
+              class="bg-gray-900 text-white hover:bg-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Crear Cuenta
+            </a>
+          </div>
+
+          <!-- ✅ USUARIO LOGUEADO (Oculto por defecto) -->
+          <div id="auth-logged-in" class="hidden">
+            <button 
+              id="user-menu-button" 
+              class="flex items-center space-x-2 text-gray-700 hover:text-red-600 transition-colors"
+            >
+              <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </div>
+              <span id="user-name" class="text-sm font-medium">Usuario</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            <!-- Dropdown del usuario -->
+            <div 
+              id="user-dropdown" 
+              class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200"
+            >
+              <a 
+                href="/perfil" 
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                👤 Mi Perfil
+              </a>
+              <a 
+                href="/mis-pedidos" 
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                📦 Mis Pedidos
+              </a>
+              <hr class="my-1">
+              <button 
+                id="header-logout"
+                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                🚪 Cerrar Sesión
+              </button>
             </div>
           </div>
-        </a>
+        </div>
 
-        <!-- Menú móvil toggle -->
+        <!-- Menu móvil button -->
         <button 
-          id="mobile-menu-toggle"
-          class="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
-          aria-label="Abrir menú"
+          id="mobile-menu-button"
+          class="md:hidden p-2 text-gray-600 hover:text-red-600 transition-colors"
+          aria-label="Menú"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </div>
     </div>
 
-    <!-- ✅ MENÚ MÓVIL CON NAVEGACIÓN CONDICIONAL -->
+    <!-- ✅ MENÚ MÓVIL -->
     <div id="mobile-menu" class="hidden md:hidden border-t border-gray-200">
       <div class="px-2 pt-2 pb-3 space-y-1">
-        <a 
-          href="/" 
-          class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-        >
-          🏠 Inicio
+        <a href="/" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
+          Inicio
         </a>
-        <a 
-          href="/productos" 
-          class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-        >
-          🛍️ Productos
+        <a href="/productos" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
+          Productos
         </a>
-        <a 
-          href="/categorias" 
-          class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-        >
-          📂 Categorías
-        </a>
-        
-        <!-- ✅ SOLO MOSTRAR "MIS PEDIDOS" SI ESTÁ LOGUEADO -->
-        {isLoggedIn && (
-          <a 
-            href="/mis-pedidos" 
-            class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-          >
-            📦 Mis Pedidos
-          </a>
-        )}
-        
-        <a 
-          href="/contacto" 
-          class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-        >
-          📞 Contacto
+       
+        <a href="/contacto" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
+          Contacto
         </a>
 
-        <!-- ✅ SECCIÓN DE AUTH EN MÓVIL -->
-        <div class="border-t border-gray-200 pt-4 mt-4">
-          {isLoggedIn ? (
-            <!-- Usuario logueado en móvil -->
-            <div class="space-y-2">
-              <div class="px-3 py-2">
-                <p class="text-sm font-medium text-gray-900">
-                  {user?.user_metadata?.full_name || 'Usuario'}
-                </p>
-                <p class="text-xs text-gray-500">{user?.email}</p>
-              </div>
-              
-              <a 
-                href="/perfil" 
-                class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-              >
-                👤 Mi Perfil
-              </a>
-              
-              <button 
-                id="mobile-logout"
-                class="block w-full text-left px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-              >
-                🚪 Cerrar Sesión
-              </button>
-            </div>
-          ) : (
-            <!-- Usuario NO logueado en móvil -->
-            <div class="space-y-2">
-              <a 
-                href="/login" 
-                class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-              >
-                🔐 Iniciar Sesión
-              </a>
-              <a 
-                href="/registro" 
-                class="block px-3 py-2 bg-gray-900 text-white rounded-lg font-medium text-center mx-3 hover:bg-gray-800 transition-colors"
-              >
-                ✨ Crear Cuenta
-              </a>
-            </div>
-          )}
+        <div id="mobile-auth-section" class="pt-4 border-t border-gray-200">
+          <!-- Contenido dinámico se inyecta aquí -->
         </div>
       </div>
     </div>
 
-    <!-- Barra de búsqueda (oculta por defecto) -->
+    <!-- ✅ BARRA DE BÚSQUEDA (oculta por defecto) -->
     <div id="search-bar" class="hidden border-t border-gray-200 py-3">
-      <div class="relative">
-        <input
-          type="text"
-          placeholder="Buscar productos..."
-          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-        >
-        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-        </div>
+      <div class="flex items-center space-x-2">
+        <input 
+          type="text" 
+          placeholder="Buscar productos..." 
+          class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+        />
+        <button class="bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors">
+          Buscar
+        </button>
       </div>
     </div>
   </div>
 </header>
 
+<!-- ✅ JAVASCRIPT CLIENT-SIDE PARA AUTENTICACIÓN Y CARRITO -->
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('🎯 Header: Inicializando autenticación client-side...');
   
-  // ✅ TOGGLE MENÚ MÓVIL - CORREGIDO CON CASTING APROPIADO
-  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  // ✅ REFERENCIAS A ELEMENTOS
+  const authLoading = document.getElementById('auth-loading');
+  const authLoggedOut = document.getElementById('auth-logged-out');
+  const authLoggedIn = document.getElementById('auth-logged-in');
+  const userName = document.getElementById('user-name');
+  const userMenuButton = document.getElementById('user-menu-button');
+  const userDropdown = document.getElementById('user-dropdown');
+  const navMisPedidos = document.getElementById('nav-mis-pedidos');
+  const cartToggle = document.getElementById('cart-toggle');
+  const cartBadge = document.getElementById('cart-badge');
+  const mobileAuthSection = document.getElementById('mobile-auth-section');
+  const mobileMenuButton = document.getElementById('mobile-menu-button');
   const mobileMenu = document.getElementById('mobile-menu');
-  
-  if (mobileMenuToggle && mobileMenu) {
-    mobileMenuToggle.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      mobileMenu.classList.toggle('hidden');
-    });
-  }
-
-  // ✅ TOGGLE BÚSQUEDA - CORREGIDO CON CASTING APROPIADO
   const searchToggle = document.getElementById('search-toggle');
   const searchBar = document.getElementById('search-bar');
-  
-  if (searchToggle && searchBar) {
-    searchToggle.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      searchBar.classList.toggle('hidden');
-      if (!searchBar.classList.contains('hidden')) {
-        const searchInput = searchBar.querySelector('input');
-        if (searchInput instanceof HTMLInputElement) {
-          searchInput.focus();
-        }
-      }
-    });
-  }
 
-  // ✅ TOGGLE DROPDOWN USUARIO - CORREGIDO CON CASTING APROPIADO
-  const userMenuToggle = document.getElementById('user-menu-toggle');
-  const userDropdown = document.getElementById('user-dropdown');
+  // ✅ DETECTAR AUTENTICACIÓN (TIPOS CORREGIDOS)
+  let currentUser: { email: string | null; fullName: string } | null = null;
   
-  if (userMenuToggle && userDropdown) {
-    userMenuToggle.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      userDropdown.classList.toggle('hidden');
-    });
-
-    // ✅ CERRAR DROPDOWN AL HACER CLICK FUERA - CORREGIDO
-    document.addEventListener('click', function(event) {
-      const target = event.target;
-      if (target instanceof Node) {
-        // Verificar si el click fue fuera del menú
-        if (!userMenuToggle.contains(target) && !userDropdown.contains(target)) {
-          userDropdown.classList.add('hidden');
-        }
-      }
-    });
-  }
-
-  // ✅ LOGOUT FUNCTIONALITY - SIN CAMBIOS (YA ESTABA BIEN)
-  const logoutBtn = document.getElementById('logout-btn');
-  const mobileLogout = document.getElementById('mobile-logout');
-  
-  function handleLogout() {
-    // Limpiar cookies
-    document.cookie = 'sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
-    document.cookie = 'sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
-    
-    // Redirigir al inicio
-    window.location.href = '/';
-  }
-  
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      handleLogout();
-    });
-  }
-  
-  if (mobileLogout) {
-    mobileLogout.addEventListener('click', function(e) {
-      e.preventDefault();
-      handleLogout();
-    });
-  }
-
-  // ✅ ACTUALIZAR CONTADOR DEL CARRITO - SIN CAMBIOS (YA ESTABA BIEN)
-  function updateCartCounter() {
+  function checkAuthState() {
     try {
-      const stored = localStorage.getItem('kamasex-cart');
-      const items = stored ? JSON.parse(stored) : [];
+      // Verificar token en localStorage (método simple)
+      const token = localStorage.getItem('sb-access-token');
+      const userEmail = localStorage.getItem('user-email');
+      const userFullName = localStorage.getItem('user-full-name');
       
-      const totalItems = items.reduce(function(sum, item) {
-        const quantity = typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 0;
-        return sum + quantity;
-      }, 0);
-      
-      const counters = document.querySelectorAll('[data-cart-counter]');
-      counters.forEach(function(counter) {
-        counter.textContent = totalItems.toString();
-        if (totalItems > 0) {
-          counter.classList.remove('hidden');
-          counter.classList.add('flex');
-        } else {
-          counter.classList.add('hidden');
-          counter.classList.remove('flex');
-        }
-      });
+      if (token) {
+        currentUser = {
+          email: userEmail,
+          fullName: userFullName || 'Usuario'
+        };
+        showLoggedInState();
+      } else {
+        currentUser = null;
+        showLoggedOutState();
+      }
+    } catch (error) {
+      console.log('Error checking auth:', error);
+      showLoggedOutState();
+    }
+  }
 
-      // Actualizar preview si existe
-      const preview = document.getElementById('cart-preview');
-      if (preview) {
-        if (items.length === 0) {
-          preview.innerHTML = '<p class="text-sm text-gray-500 text-center">Tu carrito está vacío</p>';
+  function showLoggedInState() {
+    if (authLoading) authLoading.classList.add('hidden');
+    if (authLoggedOut) authLoggedOut.classList.add('hidden');
+    if (authLoggedIn) authLoggedIn.classList.remove('hidden');
+    if (navMisPedidos) navMisPedidos.classList.remove('hidden');
+    
+    if (userName && currentUser) {
+      userName.textContent = currentUser.fullName;
+    }
+
+    // Actualizar menú móvil
+    if (mobileAuthSection) {
+      mobileAuthSection.innerHTML = `
+        <div class="space-y-2">
+          <div class="px-3 py-2">
+            <p class="text-sm font-medium text-gray-800">${currentUser?.fullName || 'Usuario'}</p>
+            <p class="text-xs text-gray-500">${currentUser?.email || ''}</p>
+          </div>
+          <a href="/perfil" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
+            👤 Mi Perfil
+          </a>
+          <a href="/mis-pedidos" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
+            📦 Mis Pedidos
+          </a>
+          <button id="mobile-logout" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
+            🚪 Cerrar Sesión
+          </button>
+        </div>
+      `;
+      
+      // Event listener para logout móvil
+      const mobileLogout = document.getElementById('mobile-logout');
+      if (mobileLogout) {
+        mobileLogout.addEventListener('click', handleLogout);
+      }
+    }
+  }
+
+  function showLoggedOutState() {
+    if (authLoading) authLoading.classList.add('hidden');
+    if (authLoggedOut) authLoggedOut.classList.remove('hidden');
+    if (authLoggedIn) authLoggedIn.classList.add('hidden');
+    if (navMisPedidos) navMisPedidos.classList.add('hidden');
+
+    // Actualizar menú móvil
+    if (mobileAuthSection) {
+      mobileAuthSection.innerHTML = `
+        <div class="space-y-2">
+          <a href="/login" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
+            🔐 Iniciar Sesión
+          </a>
+          <a href="/registro" class="block px-3 py-2 bg-gray-900 text-white rounded-lg font-medium text-center mx-3 hover:bg-gray-800 transition-colors">
+            ✨ Crear Cuenta
+          </a>
+        </div>
+      `;
+    }
+  }
+
+  // ✅ FUNCIÓN DE LOGOUT
+  async function handleLogout() {
+    try {
+      // Limpiar localStorage
+      localStorage.removeItem('sb-access-token');
+      localStorage.removeItem('sb-refresh-token');
+      localStorage.removeItem('user-email');
+      localStorage.removeItem('user-full-name');
+      localStorage.removeItem('martek-cart');
+      
+      // Redirigir a home
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error en logout:', error);
+      window.location.href = '/';
+    }
+  }
+
+  // ✅ EVENT LISTENERS
+  
+  // Toggle dropdown usuario
+  if (userMenuButton) {
+    userMenuButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (userDropdown) {
+        userDropdown.classList.toggle('hidden');
+      }
+    });
+  }
+
+  // Cerrar dropdown al click fuera
+  document.addEventListener('click', function() {
+    if (userDropdown) {
+      userDropdown.classList.add('hidden');
+    }
+  });
+
+  // Logout desde header
+  const headerLogout = document.getElementById('header-logout');
+  if (headerLogout) {
+    headerLogout.addEventListener('click', handleLogout);
+  }
+
+  // Toggle carrito con eventos (sin funciones globales)
+  if (cartToggle) {
+    cartToggle.addEventListener('click', function() {
+      // ✅ USAR EVENTOS en lugar de funciones globales
+      window.dispatchEvent(new CustomEvent('cart-toggle'));
+    });
+  }
+
+  // Toggle menú móvil
+  if (mobileMenuButton) {
+    mobileMenuButton.addEventListener('click', function() {
+      if (mobileMenu) {
+        mobileMenu.classList.toggle('hidden');
+      }
+    });
+  }
+
+  // Toggle búsqueda
+  if (searchToggle) {
+    searchToggle.addEventListener('click', function() {
+      if (searchBar) {
+        searchBar.classList.toggle('hidden');
+      }
+    });
+  }
+
+  // ✅ ACTUALIZAR BADGE DEL CARRITO
+  function updateCartBadge() {
+    try {
+      const cartItems = JSON.parse(localStorage.getItem('martek-cart') || '[]');
+      const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+      
+      if (cartBadge) {
+        if (itemCount > 0) {
+          cartBadge.textContent = itemCount > 99 ? '99+' : itemCount.toString();
+          cartBadge.classList.remove('hidden');
+          cartBadge.classList.add('flex');
         } else {
-          const total = items.reduce(function(sum, item) {
-            const price = typeof item.product_price === 'number' && !isNaN(item.product_price) ? item.product_price : 0;
-            const quantity = typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 0;
-            return sum + (price * quantity);
-          }, 0);
-          
-          preview.innerHTML = `
-            <div class="space-y-2">
-              ${items.slice(0, 3).map(function(item) {
-                return `
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="truncate">${item.product_name}</span>
-                    <span>${item.quantity} × $${item.product_price?.toLocaleString()}</span>
-                  </div>
-                `;
-              }).join('')}
-              ${items.length > 3 ? `<p class="text-xs text-gray-500">+${items.length - 3} productos más</p>` : ''}
-              <div class="border-t pt-2 font-medium text-xs">
-                Total: $${total.toLocaleString()}
-              </div>
-            </div>
-          `;
+          cartBadge.classList.add('hidden');
+          cartBadge.classList.remove('flex');
         }
       }
     } catch (error) {
-      console.error('Error actualizando contador del carrito:', error);
+      console.error('Error updating cart badge:', error);
     }
   }
-  
-  // Escuchar eventos del carrito
-  window.addEventListener('cart-updated', updateCartCounter);
+
+  // ✅ ESCUCHAR EVENTOS DE CARRITO
+  window.addEventListener('cart-updated', updateCartBadge);
+  window.addEventListener('cartUpdated', updateCartBadge);
   window.addEventListener('storage', function(e) {
-    if (e.key === 'kamasex-cart') {
-      updateCartCounter();
+    if (e.key === 'martek-cart') {
+      updateCartBadge();
     }
   });
-  
-  // Actualizar contador al cargar
-  updateCartCounter();
 
-  console.log('✅ Header script inicializado correctamente sin errores TypeScript');
+  // ✅ INICIALIZACIÓN
+  checkAuthState();
+  updateCartBadge();
+  
+  console.log('✅ Header: Client-side auth inicializado');
 });
 </script>
