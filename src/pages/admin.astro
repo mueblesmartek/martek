@@ -1,0 +1,27 @@
+---
+// src/pages/admin.astro - PANEL DE ADMINISTRACIÓN CORREGIDO
+import Layout from '../components/layout/Layout.astro';
+import { AdminDashboard } from '../components/react/AdminDashboard';
+
+// Metadatos SEO para el admin panel
+const title = 'Panel de Administración - Kamasex.shop';
+const description = 'Panel de control para gestionar productos, pedidos y configuración de la tienda';
+---
+
+<Layout 
+  title={title} 
+  description={description}
+  noIndex={true}
+>
+  <!-- Script unificado del carrito -->
+<script src="/js/cart.js" is:inline></script>
+  
+  <AdminDashboard client:load />
+</Layout>
+
+<style>
+  /* Estilos específicos para el admin si son necesarios */
+  body {
+    background-color: #fafafa;
+  }
+</style>

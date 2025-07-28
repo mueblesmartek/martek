@@ -1,226 +1,267 @@
 ---
-import { SITE_CONFIG, CATEGORIES } from '../../utils/constants';
+// src/components/astro/Footer.astro - FOOTER CON NAVEGACIÓN CONDICIONAL
+import { supabase } from '../../lib/supabase';
 
-const currentYear = new Date().getFullYear();
+// ✅ DETECTAR USUARIO LOGUEADO (igual que Header)
+let user = null;
+let isLoggedIn = false;
+
+try {
+  const sessionCookie = Astro.cookies.get('sb-access-token');
+  
+  if (sessionCookie && supabase) {
+    const { data: { user: authUser }, error } = await supabase.auth.getUser(sessionCookie.value);
+    if (!error && authUser) {
+      user = authUser;
+      isLoggedIn = true;
+    }
+  }
+} catch (error) {
+  console.log('Error checking auth in footer:', error);
+}
 ---
 
 <footer class="bg-gray-900 text-white">
-  <!-- Newsletter Section -->
-  <div class="bg-gray-800 py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center">
-        <h3 class="text-2xl font-bold mb-4">Únete a nuestra comunidad</h3>
-        <p class="text-gray-300 mb-8 max-w-2xl mx-auto">
-          Recibe ofertas exclusivas, nuevos productos y consejos directamente en tu email.
-        </p>
-        
-        <form class="max-w-md mx-auto flex gap-4">
-          <input
-            type="email"
-            placeholder="Tu email"
-            class="flex-1 px-4 py-3 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            required
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      
+      <!-- Logo y descripción -->
+      <div class="col-span-1 md:col-span-1">
+        <div class="flex items-center space-x-2 mb-4">
+          <img 
+            src="/images/logo-kama-white.svg" 
+            alt="Kamasex.shop" 
+            class="h-8 w-auto"
+            width="120"
+            height="32"
           />
-          <button
-            type="submit"
-            class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-md font-medium transition-colors duration-200"
-          >
-            Suscribirse
-          </button>
-        </form>
-        
-        <p class="text-sm text-gray-400 mt-4">
-          Al suscribirte aceptas recibir emails promocionales. Puedes darte de baja en cualquier momento.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Footer Content -->
-  <div class="py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        
-        <!-- Company Info -->
-        <div class="lg:col-span-1">
-          <div class="mb-6">
-            <div class="text-2xl font-bold">
-        <img src="/images/logo-kama.svg" alt="Kama sexshop" class="h-20 " />
-            </div>
-          </div>
-          <p class="text-gray-300 mb-6 leading-relaxed">
-            Tu tienda de confianza para productos íntimos de alta calidad. Envío discreto y atención personalizada.
-          </p>
-          
-          <!-- Social Media -->
-          <div class="flex space-x-4">
-            <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors" aria-label="Facebook">
-              <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-            </a>
-            <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors" aria-label="Instagram">
-              <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987c6.62 0 11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.348-1.051-2.348-2.348s1.051-2.348 2.348-2.348 2.348 1.051 2.348 2.348S9.746 16.988 8.449 16.988zM12.017 7.729c-2.317 0-4.198 1.881-4.198 4.198s1.881 4.198 4.198 4.198s4.198-1.881 4.198-4.198S14.334 7.729 12.017 7.729z"/>
-              </svg>
-            </a>
-            <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors" aria-label="Twitter">
-              <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-              </svg>
-            </a>
-          </div>
         </div>
+        <p class="text-gray-400 text-sm mb-4">
+          Tu tienda de confianza para productos de bienestar íntimo. 
+          Calidad premium, envío discreto y atención personalizada.
+        </p>
+        
+        <!-- Redes sociales -->
+        <div class="flex space-x-4">
+          <a href="#" class="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.004 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.344-1.047-2.344-2.344s1.047-2.344 2.344-2.344 2.344 1.047 2.344 2.344-1.047 2.344-2.344 2.344zm7.138 0c-1.297 0-2.344-1.047-2.344-2.344s1.047-2.344 2.344-2.344 2.344 1.047 2.344 2.344-1.047 2.344-2.344 2.344z"/>
+            </svg>
+          </a>
+          <a href="#" class="text-gray-400 hover:text-white transition-colors" aria-label="WhatsApp">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.017 0C5.495 0 .102 5.395.102 12.014c0 2.115.549 4.158 1.594 5.945L0 24l6.335-1.652a11.808 11.808 0 005.683 1.448h.005c6.522 0 11.916-5.395 11.916-12.013 0-3.204-1.25-6.22-3.526-8.495"/>
+            </svg>
+          </a>
+          <a href="#" class="text-gray-400 hover:text-white transition-colors" aria-label="Facebook">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
 
-        <!-- Categories -->
-        <div>
-          <h4 class="text-lg font-semibold mb-6">Categorías</h4>
-          <ul class="space-y-3">
-            {CATEGORIES.map((category) => (
+      <!-- Enlaces de navegación -->
+      <div class="space-y-2">
+        <h3 class="text-sm font-semibold text-white">Navegación</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/" class="text-gray-400 hover:text-white transition-colors">Inicio</a></li>
+          <li><a href="/productos" class="text-gray-400 hover:text-white transition-colors">Productos</a></li>
+          <li><a href="/categorias" class="text-gray-400 hover:text-white transition-colors">Categorías</a></li>
+          <li><a href="/contacto" class="text-gray-400 hover:text-white transition-colors">Contacto</a></li>
+          <li><a href="/sobre-nosotros" class="text-gray-400 hover:text-white transition-colors">Sobre Nosotros</a></li>
+        </ul>
+      </div>
+
+      <!-- ✅ MI CUENTA CON NAVEGACIÓN CONDICIONAL -->
+      <div class="space-y-2">
+        <h3 class="text-sm font-semibold text-white">Mi Cuenta</h3>
+        <ul class="space-y-2 text-sm">
+          {isLoggedIn ? (
+            <!-- Usuario logueado -->
+            <>
               <li>
-                <a 
-                  href={`/categoria/${category.slug}`}
-                  class="text-gray-300 hover:text-primary-500 transition-colors"
-                >
-                  {category.name}
-                </a>
+                <span class="text-gray-400 text-xs">
+                  Hola, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}
+                </span>
               </li>
-            ))}
-            <li>
-              <a href="/ofertas" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Ofertas Especiales
-              </a>
-            </li>
-            <li>
-              <a href="/nuevos" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Nuevos Productos
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Customer Service -->
-        <div>
-          <h4 class="text-lg font-semibold mb-6">Atención al Cliente</h4>
-          <ul class="space-y-3">
-            <li>
-              <a href="/contacto" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Contacto
-              </a>
-            </li>
-            <li>
-              <a href="/ayuda" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Centro de Ayuda
-              </a>
-            </li>
-            <li>
-              <a href="/envios" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Información de Envíos
-              </a>
-            </li>
-            <li>
-              <a href="/devoluciones" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Devoluciones
-              </a>
-            </li>
-            <li>
-              <a href="/seguimiento" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Seguimiento de Pedido
-              </a>
-            </li>
-            <li>
-              <a href="/guia-tallas" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Guía de Tallas
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Legal & Policies -->
-        <div>
-          <h4 class="text-lg font-semibold mb-6">Información Legal</h4>
-          <ul class="space-y-3">
-            <li>
-              <a href="/terminos" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Términos y Condiciones
-              </a>
-            </li>
-            <li>
-              <a href="/privacidad" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Política de Privacidad
-              </a>
-            </li>
-            <li>
-              <a href="/cookies" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Política de Cookies
-              </a>
-            </li>
-            <li>
-              <a href="/garantia" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Garantía
-              </a>
-            </li>
-            <li>
-              <a href="/edad" class="text-gray-300 hover:text-primary-500 transition-colors">
-                Verificación de Edad
-              </a>
-            </li>
-          </ul>
-        </div>
+              <li><a href="/mis-pedidos" class="text-gray-400 hover:text-white transition-colors">Mis Pedidos</a></li>
+              <li><a href="/perfil" class="text-gray-400 hover:text-white transition-colors">Mi Perfil</a></li>
+              <li>
+                <button 
+                  id="footer-logout"
+                  class="text-gray-400 hover:text-white transition-colors text-left"
+                >
+                  Cerrar Sesión
+                </button>
+              </li>
+            </>
+          ) : (
+            <!-- Usuario NO logueado -->
+            <>
+              <li><a href="/login" class="text-gray-400 hover:text-white transition-colors">Iniciar Sesión</a></li>
+              <li><a href="/registro" class="text-gray-400 hover:text-white transition-colors">Crear Cuenta</a></li>
+              <li><a href="/mis-pedidos" class="text-gray-400 hover:text-white transition-colors">Buscar Pedido</a></li>
+            </>
+          )}
+          <li><a href="/carrito" class="text-gray-400 hover:text-white transition-colors">Carrito</a></li>
+        </ul>
       </div>
 
-      <!-- Payment Methods & Security -->
-      <div class="mt-12 pt-8 border-t border-gray-700">
-        <div class="flex flex-col lg:flex-row justify-between items-center">
-          
-          <!-- Payment Methods -->
-          <div class="mb-6 lg:mb-0">
-            <h5 class="text-sm font-semibold mb-4 text-center lg:text-left">Métodos de Pago</h5>
-            <div class="flex items-center justify-center lg:justify-start space-x-4">
-              <div class="bg-white rounded p-2">
-                <span class="text-gray-900 text-xs font-bold">VISA</span>
-              </div>
-              <div class="bg-white rounded p-2">
-                <span class="text-gray-900 text-xs font-bold">MC</span>
-              </div>
-              <div class="bg-white rounded p-2">
-                <span class="text-gray-900 text-xs font-bold">PSE</span>
-              </div>
-              
-            </div>
-          </div>
-
-          <!-- Security Badges -->
-          <div class="text-center lg:text-right">
-            <h5 class="text-sm font-semibold mb-4">Compra Segura</h5>
-            <div class="flex items-center justify-center lg:justify-end space-x-4">
-              <div class="flex items-center bg-green-600 rounded px-2 py-1">
-                <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
-                </svg>
-                <span class="text-xs font-bold">SSL</span>
-              </div>
-              <div class="text-xs text-gray-300">
-                Envío Discreto<br/>100% Confidencial
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Información -->
+      <div class="space-y-2">
+        <h3 class="text-sm font-semibold text-white">Información</h3>
+        <ul class="space-y-2 text-sm">
+          <li><a href="/envios" class="text-gray-400 hover:text-white transition-colors">Envíos</a></li>
+          <li><a href="/devoluciones" class="text-gray-400 hover:text-white transition-colors">Devoluciones</a></li>
+          <li><a href="/preguntas-frecuentes" class="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
+          <li><a href="/privacidad" class="text-gray-400 hover:text-white transition-colors">Privacidad</a></li>
+          <li><a href="/terminos" class="text-gray-400 hover:text-white transition-colors">Términos</a></li>
+        </ul>
       </div>
     </div>
-  </div>
 
-  <!-- Copyright Bar -->
-  <div class="bg-black py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
-        <p>
-          © {currentYear} {SITE_CONFIG.name}. Todos los derechos reservados.
+    <!-- Línea separadora -->
+    <div class="mt-8 pt-8 border-t border-gray-800">
+      
+      <!-- Información de contacto -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="text-center md:text-left">
+          <h4 class="text-sm font-semibold text-white mb-2">📞 Teléfono</h4>
+          <p class="text-gray-400 text-sm">
+            <a href="tel:+573001234567" class="hover:text-white transition-colors">
+              +57 300 123 4567
+            </a>
+          </p>
+          <p class="text-gray-500 text-xs">Lun - Sáb: 9:00 AM - 6:00 PM</p>
+        </div>
+        
+        <div class="text-center md:text-left">
+          <h4 class="text-sm font-semibold text-white mb-2">📧 Email</h4>
+          <p class="text-gray-400 text-sm">
+            <a href="mailto:hola@kamasex.shop" class="hover:text-white transition-colors">
+              hola@kamasex.shop
+            </a>
+          </p>
+          <p class="text-gray-500 text-xs">Respuesta en 24 horas</p>
+        </div>
+        
+        <div class="text-center md:text-left">
+          <h4 class="text-sm font-semibold text-white mb-2">🚚 Envíos</h4>
+          <p class="text-gray-400 text-sm">Todo Colombia</p>
+          <p class="text-gray-500 text-xs">Envío gratis desde $100.000</p>
+        </div>
+      </div>
+
+      <!-- Métodos de pago -->
+      <div class="mb-6">
+        <h4 class="text-sm font-semibold text-white mb-3 text-center md:text-left">
+          💳 Métodos de pago
+        </h4>
+        <div class="flex justify-center md:justify-start items-center space-x-4">
+          <div class="flex items-center space-x-2 bg-gray-800 px-3 py-2 rounded">
+            <span class="text-xs text-gray-400">Visa</span>
+          </div>
+          <div class="flex items-center space-x-2 bg-gray-800 px-3 py-2 rounded">
+            <span class="text-xs text-gray-400">Mastercard</span>
+          </div>
+          <div class="flex items-center space-x-2 bg-gray-800 px-3 py-2 rounded">
+            <span class="text-xs text-gray-400">PSE</span>
+          </div>
+          <div class="flex items-center space-x-2 bg-gray-800 px-3 py-2 rounded">
+            <span class="text-xs text-gray-400">Nequi</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between text-center md:text-left">
+        <p class="text-gray-400 text-sm">
+          © {new Date().getFullYear()} Kamasex.shop. Todos los derechos reservados.
         </p>
-        <p class="mt-2 md:mt-0">
-          Contenido exclusivo para mayores de 18 años | Colombia
-        </p>
+        <div class="space-x-6 mt-4 md:mt-0">
+          <a href="/privacidad" class="text-gray-400 hover:text-white text-sm transition-colors">Privacidad</a>
+          <a href="/terminos" class="text-gray-400 hover:text-white text-sm transition-colors">Términos</a>
+          <a href="/contacto" class="text-gray-400 hover:text-white text-sm transition-colors">Contacto</a>
+        </div>
       </div>
     </div>
   </div>
 </footer>
+
+<!-- ✅ SCRIPT PARA LOGOUT EN FOOTER -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    // ✅ LOGOUT DESDE FOOTER
+    const footerLogout = document.getElementById('footer-logout');
+    
+    if (footerLogout) {
+      footerLogout.addEventListener('click', async function() {
+        try {
+          // Logout con Supabase si está disponible
+          if (typeof window !== 'undefined' && window.supabase) {
+            await window.supabase.auth.signOut();
+          }
+          
+          // Limpiar cookies
+          document.cookie = 'sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+          
+          // Redirigir al inicio
+          window.location.href = '/';
+        } catch (error) {
+          console.error('Error durante logout:', error);
+          // Aún así redirigir
+          window.location.href = '/';
+        }
+      });
+    }
+
+    // ✅ SINCRONIZACIÓN DINÁMICA CLIENT-SIDE
+    async function updateFooterAuth() {
+      try {
+        if (typeof window !== 'undefined' && window.supabase) {
+          const { data: { user } } = await window.supabase.auth.getUser();
+          
+          // Obtener la sección de Mi Cuenta
+          const accountSection = document.querySelector('footer h3:contains("Mi Cuenta")');
+          if (accountSection) {
+            const accountList = accountSection.nextElementSibling;
+            
+            if (user && accountList) {
+              // Usuario logueado - actualizar contenido dinámicamente
+              const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario';
+              
+              accountList.innerHTML = `
+                <li><span class="text-gray-400 text-xs">Hola, ${userName}</span></li>
+                <li><a href="/mis-pedidos" class="text-gray-400 hover:text-white transition-colors">Mis Pedidos</a></li>
+                <li><a href="/perfil" class="text-gray-400 hover:text-white transition-colors">Mi Perfil</a></li>
+                <li><button id="footer-logout-dynamic" class="text-gray-400 hover:text-white transition-colors text-left">Cerrar Sesión</button></li>
+                <li><a href="/carrito" class="text-gray-400 hover:text-white transition-colors">Carrito</a></li>
+              `;
+              
+              // Re-agregar evento de logout
+              const dynamicLogout = document.getElementById('footer-logout-dynamic');
+              if (dynamicLogout) {
+                dynamicLogout.addEventListener('click', footerLogout.click);
+              }
+            } else if (!user && accountList) {
+              // Usuario NO logueado - actualizar contenido
+              accountList.innerHTML = `
+                <li><a href="/login" class="text-gray-400 hover:text-white transition-colors">Iniciar Sesión</a></li>
+                <li><a href="/registro" class="text-gray-400 hover:text-white transition-colors">Crear Cuenta</a></li>
+                <li><a href="/mis-pedidos" class="text-gray-400 hover:text-white transition-colors">Buscar Pedido</a></li>
+                <li><a href="/carrito" class="text-gray-400 hover:text-white transition-colors">Carrito</a></li>
+              `;
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Error updating footer auth:', error);
+      }
+    }
+
+    // Ejecutar después de que se cargue la página
+    setTimeout(updateFooterAuth, 1000);
+  });
+</script>

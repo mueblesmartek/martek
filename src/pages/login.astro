@@ -1,0 +1,104 @@
+---
+// src/pages/login.astro
+import Layout from '../components/layout/Layout.astro';
+import { AuthForm } from '../components/react/AuthForm';
+---
+
+<Layout 
+  title="Iniciar Sesión - Kamasex.shop" 
+  description="Inicia sesión en tu cuenta para acceder a ofertas exclusivas y gestionar tus pedidos"
+>
+  <div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <a href="/" class="inline-flex items-center space-x-3 mb-6">
+          <img 
+            src="/images/logo-kama.svg" 
+            alt="Kamasex.shop" 
+            class="h-16 md:h-16 w-auto"
+            width="200"
+            height="80"
+          />
+        </a>
+        </a>
+        
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Iniciar Sesión</h1>
+        <p class="text-gray-600">
+          Accede a tu cuenta para gestionar tus pedidos y favoritos
+        </p>
+      </div>
+
+      <!-- Auth Form -->
+      <AuthForm mode="login" client:load />
+
+      <!-- Divider -->
+      <div class="mt-8 relative">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 bg-gray-50 text-gray-500">¿No tienes cuenta?</span>
+        </div>
+      </div>
+
+      <!-- Register Link -->
+      <div class="mt-6 text-center">
+        <a 
+          href="/registro" 
+          class="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+        >
+          Crear cuenta nueva →
+        </a>
+      </div>
+
+      <!-- Guest Checkout -->
+      <div class="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-start space-x-3">
+          <svg class="w-5 h-5 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 class="text-sm font-medium text-blue-800">Compra como invitado</h3>
+            <p class="text-sm text-blue-700 mt-1">
+              También puedes realizar tu compra sin crear una cuenta
+            </p>
+            <a href="/checkout" class="text-sm font-medium text-blue-800 hover:text-blue-900 mt-2 inline-block">
+              Continuar como invitado →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Support -->
+      <div class="mt-8 text-center">
+        <p class="text-sm text-gray-600">
+          ¿Problemas para acceder? 
+          <a href="/contacto" class="text-primary-600 hover:text-primary-700 font-medium">
+            Contáctanos
+          </a>
+        </p>
+      </div>
+
+      <!-- Trust Indicators -->
+      <div class="mt-8 text-center">
+        <div class="flex items-center justify-center space-x-6 text-xs text-gray-500">
+          <div class="flex items-center space-x-1">
+            <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+            </svg>
+            <span>Conexión segura</span>
+          </div>
+          
+          <div class="flex items-center space-x-1">
+            <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+            </svg>
+            <span>Datos protegidos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

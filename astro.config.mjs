@@ -1,16 +1,28 @@
-// astro.config.mjs
+// astro.config.mjs - CONFIGURACIÓN CON SSR
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
-
 import react from '@astrojs/react';
 
-// https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), react()],
-  output: 'static',
+  integrations: [
+    tailwind({
+      applyBaseStyles: true // Usar nuestros estilos base personalizados
+    }),
+    react()
+  ],
+  
+  // ✅ CAMBIO PRINCIPAL: De 'static' a 'server'
+  output: 'server',
+  
+  site: 'https://kamasex.shop',
+  base: '/',
+  trailingSlash: 'ignore',
+  build: {
+    assets: 'assets'
+  },
   vite: {
-    define: {
-      'process.env': process.env
+    optimizeDeps: {
+      include: ['@supabase/supabase-js']
     }
   }
 });

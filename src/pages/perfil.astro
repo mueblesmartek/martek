@@ -1,0 +1,276 @@
+---
+// src/pages/perfil.astro - PÁGINA DE PERFIL SIN ERRORES TYPESCRIPT
+import Layout from '../components/layout/Layout.astro';
+import { supabase } from '../lib/supabase';
+
+// ✅ VERIFICAR AUTENTICACIÓN CON TIPOS SIMPLES
+let user: any = null;
+let isAuthenticated = false;
+
+try {
+  const sessionCookie = Astro.cookies.get('sb-access-token');
+  
+  if (sessionCookie?.value && supabase) {
+    const { data: { user: authUser }, error } = await supabase.auth.getUser(sessionCookie.value);
+    if (!error && authUser) {
+      user = authUser;
+      isAuthenticated = true;
+    }
+  }
+} catch (error) {
+  console.log('Error checking auth in perfil:', error);
+}
+
+// ✅ REDIRIGIR SI NO ESTÁ LOGUEADO
+if (!isAuthenticated) {
+  return Astro.redirect('/login?redirect=/perfil');
+}
+---
+
+<Layout 
+  title="Mi Perfil - Kamasex.shop"
+  description="Gestiona tu perfil y configuración de cuenta en Kamasex.shop"
+>
+  <div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Mi Perfil</h1>
+        <p class="text-gray-600">
+          Gestiona tu información personal y configuración de cuenta
+        </p>
+      </div>
+
+      <!-- Breadcrumb -->
+      <nav class="mb-8" aria-label="Breadcrumb">
+        <ol class="flex items-center justify-center space-x-2 text-sm text-gray-500">
+          <li>
+            <a href="/" class="hover:text-gray-700 transition-colors">Inicio</a>
+          </li>
+          <li>
+            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </li>
+          <li class="text-gray-900">Mi Perfil</li>
+        </ol>
+      </nav>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Menú lateral -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-lg border p-6">
+            <div class="text-center mb-6">
+              <div class="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span class="text-white text-2xl font-bold">
+                  {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                </span>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900">
+                {user?.user_metadata?.full_name || 'Usuario'}
+              </h3>
+              <p class="text-sm text-gray-600">{user?.email}</p>
+            </div>
+
+            <!-- Menú de navegación -->
+            <nav class="space-y-2">
+              <a 
+                href="#informacion" 
+                class="block px-3 py-2 text-sm font-medium text-gray-900 bg-gray-100 rounded-lg"
+              >
+                👤 Información Personal
+              </a>
+              <a 
+                href="/mis-pedidos" 
+                class="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                📦 Mis Pedidos
+              </a>
+              <a 
+                href="#configuracion" 
+                class="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                ⚙️ Configuración
+              </a>
+              <button 
+                id="profile-logout"
+                class="block w-full text-left px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                🚪 Cerrar Sesión
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Información personal -->
+          <div id="informacion" class="bg-white rounded-lg border p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Información Personal</h2>
+            
+            <div class="space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Nombre completo
+                  </label>
+                  <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                    {user?.user_metadata?.full_name || 'No especificado'}
+                  </p>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                    {user?.email}
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Cuenta creada
+                  </label>
+                  <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+                    {new Date(user?.created_at || '').toLocaleDateString('es-CO', {
+                      year: 'numeric',
+                      month: 'long', 
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Estado de la cuenta
+                  </label>
+                  <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-800">
+                    ✅ Activa
+                  </span>
+                </div>
+              </div>
+
+              <!-- Botón para editar (futuro) -->
+              <div class="pt-4 border-t border-gray-200">
+                <button 
+                  disabled
+                  class="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed"
+                >
+                  ✏️ Editar información (Próximamente)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen de actividad -->
+          <div class="bg-white rounded-lg border p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Resumen de Actividad</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg text-center">
+                <div class="text-2xl font-bold text-gray-900 mb-1">-</div>
+                <div class="text-sm text-gray-600">Pedidos realizados</div>
+              </div>
+              
+              <div class="bg-gray-50 p-4 rounded-lg text-center">
+                <div class="text-2xl font-bold text-gray-900 mb-1">-</div>
+                <div class="text-sm text-gray-600">Total gastado</div>
+              </div>
+              
+              <div class="bg-gray-50 p-4 rounded-lg text-center">
+                <div class="text-2xl font-bold text-gray-900 mb-1">-</div>
+                <div class="text-sm text-gray-600">Productos favoritos</div>
+              </div>
+            </div>
+
+            <div class="mt-6 text-center">
+              <a 
+                href="/mis-pedidos" 
+                class="inline-flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Ver mis pedidos →
+              </a>
+            </div>
+          </div>
+
+          <!-- Configuración de cuenta -->
+          <div id="configuracion" class="bg-white rounded-lg border p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Configuración de Cuenta</h2>
+            
+            <div class="space-y-4">
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 class="font-medium text-gray-900">Notificaciones por email</h4>
+                  <p class="text-sm text-gray-600">Recibir actualizaciones sobre pedidos y ofertas</p>
+                </div>
+                <button class="bg-gray-200 relative inline-flex h-6 w-11 items-center rounded-full">
+                  <span class="inline-block h-4 w-4 transform bg-white rounded-full transition translate-x-1"></span>
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 class="font-medium text-gray-900">Marketing</h4>
+                  <p class="text-sm text-gray-600">Recibir promociones y descuentos especiales</p>
+                </div>
+                <button class="bg-gray-200 relative inline-flex h-6 w-11 items-center rounded-full">
+                  <span class="inline-block h-4 w-4 transform bg-white rounded-full transition translate-x-1"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-gray-200">
+              <h4 class="font-medium text-gray-900 mb-3">Acciones de cuenta</h4>
+              <div class="space-y-3">
+                <button 
+                  disabled
+                  class="block w-full text-left px-4 py-2 text-sm text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                >
+                  🔑 Cambiar contraseña (Próximamente)
+                </button>
+                
+                <button 
+                  disabled
+                  class="block w-full text-left px-4 py-2 text-sm text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+                >
+                  📧 Cambiar email (Próximamente)
+                </button>
+                
+                <button 
+                  disabled
+                  class="block w-full text-left px-4 py-2 text-sm text-gray-400 bg-red-50 rounded-lg cursor-not-allowed"
+                >
+                  🗑️ Eliminar cuenta (Próximamente)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ SCRIPT JAVASCRIPT SIMPLE PARA LOGOUT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const profileLogout = document.getElementById('profile-logout');
+      
+      if (profileLogout) {
+        profileLogout.addEventListener('click', function() {
+          // Limpiar cookies
+          document.cookie = 'sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+          document.cookie = 'sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+          
+          // Redirigir al inicio
+          window.location.href = '/';
+        });
+      }
+    });
+  </script>
+</Layout>

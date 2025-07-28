@@ -1,0 +1,155 @@
+---
+// src/components/layout/Layout.astro - LAYOUT CON TYPESCRIPT CORREGIDO
+import Header from './Header.astro';
+import Footer from './Footer.astro';
+
+export interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  noIndex?: boolean;
+}
+
+const { 
+  title, 
+  description = "Kamasex.shop - Productos premium para el bienestar íntimo femenino", 
+  image = "/images/og-default.jpg",
+  noIndex = false 
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- SEO Meta Tags -->
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonicalURL} />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={new URL(image, Astro.url)} />
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content={canonicalURL} />
+  <meta property="twitter:title" content={title} />
+  <meta property="twitter:description" content={description} />
+  <meta property="twitter:image" content={new URL(image, Astro.url)} />
+  
+  <!-- Robots -->
+  {noIndex && <meta name="robots" content="noindex, nofollow" />}
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  
+  <!-- Estilos críticos inline -->
+  <style>
+    *,*::before,*::after{box-sizing:border-box;}
+    html{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;line-height:1.5;}
+    body{margin:0;line-height:inherit;}
+    .loading{opacity:0.5;pointer-events:none;}
+    .fade-in{animation:fadeIn 0.3s ease-in-out;}
+    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  </style>
+</head>
+
+<body class="bg-white text-gray-900 antialiased">
+  
+  <!-- Header -->
+  <Header />
+  
+  <!-- Main Content -->
+  <main id="main-content" class="min-h-screen">
+    <slot />
+  </main>
+  
+  <Footer />
+
+<script src="/js/cart.js" is:inline></script>
+
+  <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+  
+  declare global {
+    interface Window {
+      gtag?: (...args: any[]) => void;
+    }
+  }
+
+  // ✅ SCROLL SUAVE (TYPESCRIPT CORREGIDO)
+  const anchorLinks = document.querySelectorAll('a[href^="#"]');
+  anchorLinks.forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      const href = (anchor as HTMLAnchorElement).getAttribute('href');
+      if (href) {
+        const target = document.querySelector(href);
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }
+    });
+  });
+  
+  // ✅ MANEJO DE ERRORES DE IMÁGENES (TYPESCRIPT CORREGIDO)
+  const images = document.querySelectorAll('img');
+  images.forEach(function(img) {
+    img.addEventListener('error', function(event) {
+      const target = event.target as HTMLImageElement;
+      if (target && target.dataset && !target.dataset.fallbackAttempted) {
+        target.dataset.fallbackAttempted = 'true';
+        target.src = '/images/placeholder-product.jpg';
+      }
+    });
+  });
+  
+  // ✅ LAZY LOADING (TYPESCRIPT CORREGIDO)
+  if ('IntersectionObserver' in window) {
+    const imageObserver = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement;
+          const src = img.dataset && img.dataset.src;
+          if (src) {
+            img.src = src;
+            img.classList.remove('loading');
+            img.classList.add('fade-in');
+            observer.unobserve(img);
+          }
+        }
+      });
+    });
+
+    const lazyImages = document.querySelectorAll('img[data-src]');
+    lazyImages.forEach(function(img) {
+      imageObserver.observe(img);
+    });
+  }
+
+  // ✅ ANALYTICS (TYPESCRIPT CORREGIDO)
+  if (typeof window !== 'undefined') {
+    // Configurar Google Analytics si está disponible
+    if (window.gtag) {
+      window.gtag('config', 'GA_MEASUREMENT_ID');
+    }
+  }
+
+  console.log('✅ Layout inicializado correctamente');
+});
+  </script>
+</body>
+</html>

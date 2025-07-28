@@ -1,0 +1,138 @@
+---
+// src/pages/registro.astro
+import Layout from '../components/layout/Layout.astro';
+import { AuthForm } from '../components/react/AuthForm';
+---
+
+<Layout 
+  title="Crear Cuenta - Kamasex.shop" 
+  description="Crea tu cuenta en Kamasex.shop para acceder a ofertas exclusivas y gestionar tus pedidos fácilmente"
+>
+  <div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <a href="/" class="inline-flex items-center space-x-3 mb-6">
+          <div class="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">
+            <span class="text-white font-bold text-xl">K</span>
+          </div>
+          <div>
+            <span class="text-2xl font-bold text-gray-900">Kamasex</span>
+            <span class="text-primary-500 text-lg">.shop</span>
+          </div>
+        </a>
+        
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Crear Cuenta</h1>
+        <p class="text-gray-600">
+          Únete a miles de clientes satisfechos y disfruta de beneficios exclusivos
+        </p>
+      </div>
+
+      <!-- Benefits -->
+      <div class="mb-8 p-4 bg-primary-50 border border-primary-200 rounded-lg">
+        <h3 class="font-semibold text-primary-900 mb-3">Beneficios de tener cuenta:</h3>
+        <ul class="space-y-2 text-sm text-primary-800">
+          <li class="flex items-center">
+            <svg class="w-4 h-4 mr-2 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            Checkout más rápido y sencillo
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 mr-2 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            Historial de pedidos y seguimiento
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 mr-2 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            Ofertas y descuentos exclusivos
+          </li>
+          <li class="flex items-center">
+            <svg class="w-4 h-4 mr-2 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            Lista de productos favoritos
+          </li>
+        </ul>
+      </div>
+
+      <!-- Auth Form -->
+      <AuthForm mode="register" client:load />
+
+      <!-- Divider -->
+      <div class="mt-8 relative">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 bg-gray-50 text-gray-500">¿Ya tienes cuenta?</span>
+        </div>
+      </div>
+
+      <!-- Login Link -->
+      <div class="mt-6 text-center">
+        <a 
+          href="/login" 
+          class="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+        >
+          Iniciar sesión →
+        </a>
+      </div>
+
+      <!-- Privacy Notice -->
+      <div class="mt-8 p-4 bg-gray-100 rounded-lg">
+        <div class="flex items-start space-x-3">
+          <svg class="w-5 h-5 text-gray-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v-5a2 2 0 012-2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <div>
+            <h3 class="text-sm font-medium text-gray-900">Tu privacidad es importante</h3>
+            <p class="text-sm text-gray-600 mt-1">
+              Nunca compartiremos tu información personal. Todos los datos están protegidos con encriptación SSL y cumplimos con las regulaciones de privacidad.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Support -->
+      <div class="mt-8 text-center">
+        <p class="text-sm text-gray-600">
+          ¿Necesitas ayuda? 
+          <a href="/contacto" class="text-primary-600 hover:text-primary-700 font-medium">
+            Contáctanos
+          </a>
+        </p>
+      </div>
+
+      <!-- Trust Indicators -->
+      <div class="mt-8 text-center">
+        <div class="flex items-center justify-center space-x-6 text-xs text-gray-500">
+          <div class="flex items-center space-x-1">
+            <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+            </svg>
+            <span>Registro seguro</span>
+          </div>
+          
+          <div class="flex items-center space-x-1">
+            <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+            </svg>
+            <span>Sin spam</span>
+          </div>
+          
+          <div class="flex items-center space-x-1">
+            <svg class="w-4 h-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+            <span>Cuenta gratuita</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

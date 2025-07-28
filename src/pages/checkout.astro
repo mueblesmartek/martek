@@ -1,0 +1,213 @@
+---
+// src/pages/checkout.astro - CORREGIDO SIN CARTPROVIDER
+import Layout from '../components/layout/Layout.astro';
+import { CheckoutForm } from '../components/react/CheckoutForm';
+---
+
+<Layout 
+  title="Checkout - Kamasex.shop"
+  description="Completa tu compra de forma segura y discreta. Envío confidencial garantizado."
+>
+  <div class="min-h-screen bg-gray-50 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Checkout</h1>
+        <p class="text-gray-600">
+          Completa tu compra de forma segura y confidencial
+        </p>
+      </div>
+
+      <!-- Breadcrumb -->
+      <nav class="mb-8" aria-label="Breadcrumb">
+        <ol class="flex items-center justify-center space-x-2 text-sm text-gray-500">
+          <li>
+            <a href="/" class="hover:text-gray-700 transition-colors">Inicio</a>
+          </li>
+          <li>
+            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </li>
+          <li>
+            <a href="/carrito" class="hover:text-gray-700 transition-colors">Carrito</a>
+          </li>
+          <li>
+            <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </li>
+          <li class="text-gray-900">Checkout</li>
+        </ol>
+      </nav>
+
+      <!-- Formulario de checkout (React component) -->
+      <CheckoutForm client:load />
+
+      <!-- Información de seguridad -->
+      <div class="mt-16 bg-white rounded-lg border p-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6 text-center">
+          Compra 100% segura y confidencial
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </div>
+            <h4 class="font-medium text-gray-900 mb-2">Pago seguro</h4>
+            <p class="text-sm text-gray-600">
+              Conexión SSL 256-bit. Tus datos están protegidos.
+            </p>
+          </div>
+
+          <div class="text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+            </div>
+            <h4 class="font-medium text-gray-900 mb-2">Envío discreto</h4>
+            <p class="text-sm text-gray-600">
+              Paquete neutro sin identificación del contenido.
+            </p>
+          </div>
+
+          <div class="text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h4 class="font-medium text-gray-900 mb-2">Garantía</h4>
+            <p class="text-sm text-gray-600">
+              30 días de garantía en todos nuestros productos.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ SCRIPT INLINE PARA CHECKOUT - Sin imports externos -->
+  <script>
+    // ✅ FIX PARA checkout.astro - Corregir errores TypeScript
+
+console.log('🛒 Iniciando sistema de carrito para checkout...');
+
+// ✅ DECLARACIONES GLOBALES PARA TYPESCRIPT
+declare global {
+  interface Window {
+    CartUtils: {
+      getItems: () => any[];
+      setItems: (items: any[]) => void;
+      getTotalItems: () => number;
+      getTotalPrice: () => number;
+      formatPrice: (price: number) => string;
+    };
+    CART_EVENTS: {
+      UPDATED: string;
+      ITEM_ADDED: string;
+      ITEM_REMOVED: string;
+      CLEARED: string;
+    };
+  }
+}
+
+// ✅ CONSTANTES (compatibles con useCartStorage.ts)
+const CART_STORAGE_KEY = 'kamasex-cart';
+const CART_EVENTS = {
+  UPDATED: 'cart-updated',
+  ITEM_ADDED: 'cart-item-added',
+  ITEM_REMOVED: 'cart-item-removed',
+  CLEARED: 'cart-cleared'
+};
+
+// ✅ UTILIDADES DEL CARRITO - CORREGIDAS PARA EVITAR NaN
+const CartStorage = {
+  getItems(): any[] {
+    try {
+      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Error reading cart:', error);
+      return [];
+    }
+  },
+
+  setItems(items: any[]): void {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+      window.dispatchEvent(new CustomEvent(CART_EVENTS.UPDATED, { 
+        detail: { items } 
+      }));
+    } catch (error) {
+      console.error('Error saving cart:', error);
+    }
+  },
+
+  getTotalItems(): number {
+    return this.getItems().reduce((total: number, item: any) => {
+      const quantity = typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 0;
+      return total + quantity;
+    }, 0);
+  },
+
+  getTotalPrice(): number {
+    return this.getItems().reduce((total: number, item: any) => {
+      // ✅ FIX: usar product_price en lugar de price
+      const price = typeof item.product_price === 'number' && !isNaN(item.product_price) ? item.product_price : 0;
+      const quantity = typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 0;
+      return total + (price * quantity);
+    }, 0);
+  },
+
+  formatPrice(price: number): string {
+    try {
+      const validPrice = typeof price === 'number' && !isNaN(price) ? price : 0;
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(validPrice);
+    } catch (error) {
+      console.error('Error formatting price:', error);
+      return `$${price || 0}`;
+    }
+  }
+};
+
+// ✅ FUNCIONES GLOBALES PARA COMPATIBILIDAD CON REACT
+window.CartUtils = CartStorage;
+window.CART_EVENTS = CART_EVENTS;
+
+// ✅ INICIALIZACIÓN
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('✅ Sistema de carrito para checkout inicializado');
+  
+  // Verificar que hay items en el carrito
+  const items = CartStorage.getItems();
+  if (items.length === 0) {
+    console.log('🛒 Carrito vacío en checkout');
+  } else {
+    console.log(`🛒 ${items.length} items en carrito, total: ${CartStorage.formatPrice(CartStorage.getTotalPrice())}`);
+  }
+  
+  // Actualizar contador si existe
+  const totalItems = CartStorage.getTotalItems();
+  const counters = document.querySelectorAll('[data-cart-counter]');
+  
+  counters.forEach(counter => {
+    (counter as HTMLElement).textContent = totalItems.toString();
+    if (totalItems > 0) {
+      counter.classList.remove('hidden');
+      counter.classList.add('flex');
+    }
+  });
+});
+  </script>
+</Layout>

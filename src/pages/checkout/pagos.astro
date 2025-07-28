@@ -1,0 +1,472 @@
+---
+// src/pages/checkout/pagos.astro - PÁGINA DE PAGOS CON WOMPI
+import Layout from '../../components/layout/Layout.astro';
+import { supabase } from '../../lib/supabase';
+import type { Order, ShippingAddress } from '../../lib/types';
+
+// Obtener order ID de la URL
+const url = new URL(Astro.request.url);
+const orderId = url.searchParams.get('order');
+
+let order: Order | null = null;
+let error: string | null = null;
+
+// Cargar datos de la orden
+if (orderId) {
+  try {
+    const { data, error: fetchError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .eq('payment_status', 'pending') // Solo órdenes pendientes
+      .single();
+    
+    if (fetchError) throw fetchError;
+    order = data;
+  } catch (e: unknown) {
+    console.error('Error fetching order:', e);
+    error = e instanceof Error ? e.message : 'Orden no encontrada';
+  }
+}
+
+// Redirigir si no hay orden
+if (!order || error) {
+  return Astro.redirect('/checkout');
+}
+
+// Configuración de Wompi (usar variables de entorno)
+const WOMPI_PUBLIC_KEY = import.meta.env.PUBLIC_WOMPI_PUBLIC_KEY || 'pub_test_QGtAUdYs7u3CQWmCk44nPbGQNEkwabKD';
+const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co';
+---
+
+<Layout 
+  title={`Pagar Pedido #${order.order_number} - Kamasex.shop`}
+  description="Completa tu pago de forma segura"
+  noindex={true}
+>
+  <div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Finalizar Pago</h1>
+        <p class="text-gray-600">Pedido #{order.order_number}</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Columna Izquierda: Métodos de Pago -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Seguridad Info -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center space-x-3">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <div>
+                <h3 class="text-sm font-semibold text-blue-900">Pago Seguro</h3>
+                <p class="text-xs text-blue-700">Procesado por Wompi - Certificación PCI DSS</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Métodos de Pago -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Método de Pago</h2>
+            
+            <div class="space-y-4">
+              
+              <!-- Tarjeta de Crédito/Débito -->
+              <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input type="radio" name="payment_method" value="card" checked class="sr-only payment-radio" />
+                <div class="flex items-center space-x-4 w-full">
+                  <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center payment-indicator">
+                    <div class="w-3 h-3 bg-gray-900 rounded-full opacity-0"></div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-3">
+                      <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      <span class="font-medium text-gray-900">Tarjeta de Crédito/Débito</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Visa, Mastercard, American Express</p>
+                  </div>
+                  <div class="flex space-x-2">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/visa/visa-original.svg" alt="Visa" class="w-8 h-5" />
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mastercard/mastercard-original.svg" alt="Mastercard" class="w-8 h-5" />
+                  </div>
+                </div>
+              </label>
+
+              <!-- PSE -->
+              <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input type="radio" name="payment_method" value="pse" class="sr-only payment-radio" />
+                <div class="flex items-center space-x-4 w-full">
+                  <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center payment-indicator">
+                    <div class="w-3 h-3 bg-gray-900 rounded-full opacity-0"></div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-3">
+                      <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <span class="font-medium text-gray-900">PSE - Pagos Seguros en Línea</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Paga directamente desde tu cuenta bancaria</p>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Nequi -->
+              <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input type="radio" name="payment_method" value="nequi" class="sr-only payment-radio" />
+                <div class="flex items-center space-x-4 w-full">
+                  <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center payment-indicator">
+                    <div class="w-3 h-3 bg-gray-900 rounded-full opacity-0"></div>
+                  </div>
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
+                        <span class="text-white text-xs font-bold">N</span>
+                      </div>
+                      <span class="font-medium text-gray-900">Nequi</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Paga con tu billetera digital Nequi</p>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Botón de Pago -->
+            <div class="mt-8">
+              <button 
+                id="pay-button"
+                type="button"
+                class="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 px-6 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-3"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>Pagar ${order.total.toLocaleString('es-CO')}</span>
+              </button>
+              
+              <p class="text-xs text-gray-500 text-center mt-3">
+                Al hacer clic en "Pagar", aceptas nuestros 
+                <a href="/terminos" class="text-gray-700 underline">términos y condiciones</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Resumen del Pedido -->
+        <div class="space-y-6">
+          
+          <!-- Resumen del Pedido -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Resumen del Pedido</h3>
+            
+            <!-- Items -->
+            <div class="space-y-3 mb-6">
+              {order.items.map((item: any) => (
+                <div class="flex items-center space-x-3">
+                  <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-900">{item.product_name}</p>
+                    <p class="text-xs text-gray-600">Cantidad: {item.quantity}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-medium text-gray-900">${item.total.toLocaleString('es-CO')}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <!-- Totales -->
+            <div class="border-t border-gray-200 pt-4 space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Subtotal:</span>
+                <span class="font-medium">${order.subtotal.toLocaleString('es-CO')}</span>
+              </div>
+              
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Envío:</span>
+                <span class="font-medium">
+                  {order.shipping_cost === 0 ? 'Gratis' : `$${order.shipping_cost.toLocaleString('es-CO')}`}
+                </span>
+              </div>
+              
+              {order.tax > 0 && (
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-600">IVA (19%):</span>
+                  <span class="font-medium">${order.tax.toLocaleString('es-CO')}</span>
+                </div>
+              )}
+              
+              <div class="flex justify-between text-lg font-semibold pt-2 border-t border-gray-200">
+                <span>Total:</span>
+                <span>${order.total.toLocaleString('es-CO')}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información de Envío -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Envío a:</h3>
+            <div class="space-y-2 text-sm">
+              <p class="font-medium">{order.shipping_address.full_name}</p>
+              <p class="text-gray-600">{order.shipping_address.address_line_1}</p>
+              {order.shipping_address.address_line_2 && (
+                <p class="text-gray-600">{order.shipping_address.address_line_2}</p>
+              )}
+              <p class="text-gray-600">
+                {order.shipping_address.city}, {order.shipping_address.state}
+              </p>
+              <p class="text-gray-600">{order.shipping_address.postal_code}</p>
+              <p class="text-gray-600">{order.shipping_address.phone}</p>
+            </div>
+            
+            {order.shipping_cost === 0 && (
+              <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center space-x-2">
+                  <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="text-sm text-green-800 font-medium">¡Envío gratis!</span>
+                </div>
+                <p class="text-xs text-green-700 mt-1">Por compras superiores a $100,000</p>
+              </div>
+            )}
+          </div>
+
+          <!-- Soporte -->
+          <div class="bg-gray-50 rounded-lg p-4">
+            <h4 class="font-medium text-gray-900 mb-2">¿Necesitas ayuda?</h4>
+            <p class="text-sm text-gray-600 mb-3">
+              Nuestro equipo está aquí para ayudarte con cualquier pregunta sobre tu pedido.
+            </p>
+            <a href="/contacto" class="text-sm text-gray-800 font-medium hover:text-gray-900 transition-colors">
+              Contactar soporte →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<!-- Wompi SDK -->
+<script src="https://checkout.wompi.co/widget.js"></script>
+
+<script define:vars={{ 
+  order: order,
+  WOMPI_PUBLIC_KEY: WOMPI_PUBLIC_KEY,
+  WOMPI_URL: WOMPI_URL
+}}>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🏦 Inicializando página de pagos...');
+    
+    // ✅ CONFIGURAR RADIO BUTTONS
+    setupPaymentRadios();
+    
+    // ✅ CONFIGURAR WOMPI
+    setupWompiPayment();
+    
+    // ✅ MANEJAR BOTÓN DE PAGO
+    const payButton = document.getElementById('pay-button');
+    if (payButton) {
+      payButton.addEventListener('click', handlePayment);
+    }
+  });
+
+  // ✅ CONFIGURAR RADIO BUTTONS DE MÉTODOS DE PAGO
+  function setupPaymentRadios() {
+    const radios = document.querySelectorAll('.payment-radio');
+    const indicators = document.querySelectorAll('.payment-indicator');
+    
+    radios.forEach((radio, index) => {
+      radio.addEventListener('change', function() {
+        // Reset all indicators
+        indicators.forEach(indicator => {
+          indicator.classList.remove('border-gray-900');
+          indicator.classList.add('border-gray-300');
+          const dot = indicator.querySelector('div');
+          if (dot) dot.classList.add('opacity-0');
+        });
+        
+        // Activate current indicator
+        if (this.checked) {
+          const indicator = indicators[index];
+          indicator.classList.remove('border-gray-300');
+          indicator.classList.add('border-gray-900');
+          const dot = indicator.querySelector('div');
+          if (dot) dot.classList.remove('opacity-0');
+        }
+      });
+    });
+    
+    // Activate first radio by default
+    const firstRadio = radios[0];
+    if (firstRadio) {
+      firstRadio.checked = true;
+      firstRadio.dispatchEvent(new Event('change'));
+    }
+  }
+
+  // ✅ CONFIGURAR WOMPI PAYMENT
+  function setupWompiPayment() {
+    if (typeof WidgetCheckout === 'undefined') {
+      console.error('❌ Wompi Widget no cargado');
+      return;
+    }
+
+    console.log('✅ Wompi Widget cargado correctamente');
+  }
+
+  // ✅ MANEJAR PROCESO DE PAGO
+  function handlePayment() {
+    const payButton = document.getElementById('pay-button');
+    const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
+    
+    if (!selectedMethod) {
+      alert('Por favor selecciona un método de pago');
+      return;
+    }
+
+    // Deshabilitar botón
+    payButton.disabled = true;
+    payButton.innerHTML = `
+      <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <span>Procesando...</span>
+    `;
+
+    // Datos de la transacción
+    const transactionData = {
+      amount_in_cents: Math.round(order.total * 100), // Convertir a centavos
+      currency: 'COP',
+      reference: order.order_number,
+      public_key: WOMPI_PUBLIC_KEY,
+      redirect_url: `${window.location.origin}/checkout/confirmacion?order=${order.id}`,
+      payment_methods: {
+        installments: {
+          default: 1,
+          enabled: [1, 3, 6, 12, 24]
+        }
+      },
+      shipping_address: {
+        address_line_1: order.shipping_address.address_line_1,
+        address_line_2: order.shipping_address.address_line_2 || '',
+        country: 'CO',
+        region: order.shipping_address.state,
+        city: order.shipping_address.city,
+        name: order.shipping_address.full_name,
+        phone_number: order.shipping_address.phone,
+        postal_code: order.shipping_address.postal_code
+      },
+      customer_data: {
+        phone_number: order.shipping_address.phone,
+        full_name: order.shipping_address.full_name,
+        email: order.shipping_address.email
+      }
+    };
+
+    try {
+      // Abrir Widget de Wompi
+      const checkout = new WidgetCheckout({
+        currency: transactionData.currency,
+        amountInCents: transactionData.amount_in_cents,
+        reference: transactionData.reference,
+        publicKey: transactionData.public_key,
+        redirectUrl: transactionData.redirect_url,
+        customerData: transactionData.customer_data,
+        shippingAddress: transactionData.shipping_address,
+        paymentMethods: transactionData.payment_methods
+      });
+
+      checkout.open(function(result) {
+        // Callback cuando se complete/cierre el widget
+        console.log('Resultado del pago:', result);
+        
+        if (result.transaction && result.transaction.status === 'APPROVED') {
+          // Pago exitoso - actualizar orden en backend
+          updateOrderPaymentStatus(order.id, result.transaction.id, 'paid')
+            .then(() => {
+              window.location.href = transactionData.redirect_url;
+            })
+            .catch(error => {
+              console.error('Error actualizando orden:', error);
+              alert('Error procesando el pago. Contacta al soporte.');
+            });
+        } else if (result.transaction && result.transaction.status === 'DECLINED') {
+          // Pago rechazado
+          alert('Tu pago fue rechazado. Por favor intenta con otro método de pago.');
+          resetPayButton();
+        } else {
+          // Usuario cerró el widget sin completar
+          resetPayButton();
+        }
+      });
+
+    } catch (error) {
+      console.error('Error iniciando Wompi:', error);
+      alert('Error al inicializar el pago. Por favor intenta de nuevo.');
+      resetPayButton();
+    }
+  }
+
+  // ✅ RESETEAR BOTÓN DE PAGO
+  function resetPayButton() {
+    const payButton = document.getElementById('pay-button');
+    payButton.disabled = false;
+    payButton.innerHTML = `
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+      <span>Pagar $${order.total.toLocaleString('es-CO')}</span>
+    `;
+  }
+
+  // ✅ ACTUALIZAR ESTADO DE PAGO EN BACKEND
+  async function updateOrderPaymentStatus(orderId, transactionId, status) {
+    try {
+      const response = await fetch('/api/orders/update-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          order_id: orderId,
+          payment_reference: transactionId,
+          payment_status: status
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Error updating payment status');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error en updateOrderPaymentStatus:', error);
+      throw error;
+    }
+  }
+</script>
+
+<style>
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+</style>

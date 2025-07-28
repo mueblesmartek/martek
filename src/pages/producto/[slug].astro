@@ -1,0 +1,594 @@
+---
+// src/pages/producto/[slug].astro - ACTUALIZADO SIN ERRORES
+import Layout from '../../components/layout/Layout.astro';
+import { supabase } from '../../lib/supabase';
+import { getPrimaryImageUrl, getAllImages, hasMultipleImages } from '../../lib/types';
+import type { Product } from '../../lib/types';
+
+// ✅ Obtener slug de la URL
+const { slug } = Astro.params;
+
+// ✅ Variables del producto
+let product: Product | null = null;
+let relatedProducts: Product[] = [];
+let error: string | null = null;
+
+try {
+  if (!slug) {
+    throw new Error('Slug no proporcionado');
+  }
+
+  if (!supabase) {
+    throw new Error('Supabase no configurado');
+  }
+
+  // ✅ Obtener producto por slug
+  const { data: productData, error: productError } = await supabase
+    .from('products')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .single();
+
+  if (productError) {
+    throw new Error(productError.message);
+  }
+
+  product = productData;
+
+  // ✅ Obtener productos relacionados
+  if (product) {
+    const { data: relatedData, error: relatedError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('category', product.category)
+      .neq('id', product.id)
+      .eq('is_active', true)
+      .limit(4);
+
+    if (!relatedError && relatedData) {
+      relatedProducts = relatedData;
+    }
+  }
+
+} catch (err) {
+  console.error('Error fetching product:', err);
+  error = err instanceof Error ? err.message : 'Error desconocido';
+}
+
+// ✅ Si no hay producto y no hay error, es 404
+if (!product && !error) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Producto no encontrado'
+  });
+}
+
+// ✅ Obtener datos de imágenes si hay producto
+const productImages = product ? getAllImages(product) : [];
+const primaryImage = product ? getPrimaryImageUrl(product) : '';
+const hasMultiple = product ? hasMultipleImages(product) : false;
+
+// ✅ Metadatos SEO
+const pageTitle = product ? `${product.name} - Kamasex.shop` : 'Producto no encontrado';
+const pageDescription = product?.description || 'Producto no disponible';
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  
+  {/* ✅ Estado de error */}
+  {error && (
+    <div class="min-h-screen flex items-center justify-center bg-gray-50">
+      <div class="text-center max-w-md mx-auto px-6">
+        <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Error al cargar producto</h1>
+        <p class="text-gray-600 mb-8">No pudimos conectar con la base de datos.</p>
+        <div class="space-y-4">
+          <a href="/productos" class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors inline-block">
+            Ver todos los productos
+          </a>
+          <button onclick="window.location.reload()" class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors block w-full">
+            Intentar de nuevo
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* ✅ Producto encontrado */}
+  {product && (
+    <>
+      <!-- Breadcrumb -->
+      <div class="bg-gray-50 border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <nav class="flex items-center space-x-2 text-sm">
+            <a href="/" class="text-gray-500 hover:text-gray-900 transition-colors">Inicio</a>
+            <span class="text-gray-400">/</span>
+            <a href="/productos" class="text-gray-500 hover:text-gray-900 transition-colors">Productos</a>
+            <span class="text-gray-400">/</span>
+            <span class="text-gray-900 font-medium">{product.name}</span>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Producto principal -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          
+          <!-- ✅ GALERÍA DE IMÁGENES -->
+          <div class="space-y-4">
+            {hasMultiple ? (
+              <!-- Galería múltiple con React -->
+              <div id="product-gallery" data-product={JSON.stringify(product)}></div>
+            ) : (
+              <!-- Imagen única estática -->
+              <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                <img
+                  src={primaryImage}
+                  alt={product.name}
+                  class="w-full h-full object-cover"
+                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjlmYWZiIi8+CjxyZWN0IHg9IjE1MCIgeT0iMTUwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2U1ZTdlYiIgcng9IjgiLz4KPHR5cGU+U2luIGltYWdlbjwvdGV4dD4KPC9zdmc+'"
+                />
+              </div>
+            )}
+
+            <!-- Indicador de múltiples imágenes -->
+            {hasMultiple && (
+              <div class="flex items-center justify-center space-x-2 text-sm text-gray-500">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{productImages.length} imágenes disponibles</span>
+              </div>
+            )}
+          </div>
+
+          <!-- Info del producto -->
+          <div class="space-y-6">
+            
+            <!-- Header -->
+            <div>
+              <div class="flex items-center space-x-2 mb-2">
+                <span class="text-sm text-gray-500 uppercase tracking-wide font-medium">
+                  {product.category}
+                </span>
+                {product.featured && (
+                  <span class="bg-gray-900 text-white text-xs px-2 py-1 rounded font-medium">
+                    Destacado
+                  </span>
+                )}
+              </div>
+              
+              <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                {product.name}
+              </h1>
+              
+              {product.description && (
+                <p class="text-lg text-gray-600 leading-relaxed">
+                  {product.description}
+                </p>
+              )}
+            </div>
+
+            <!-- Precio -->
+            <div class="bg-gray-50 rounded-lg p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <span class="text-3xl font-bold text-gray-900">
+                    ${product.price.toLocaleString('es-CO')}
+                  </span>
+                  <p class="text-sm text-gray-500">IVA incluido</p>
+                </div>
+                
+                <div class="text-right">
+                  {product.stock > 0 ? (
+                    <div>
+                      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        ✅ Disponible
+                      </span>
+                      <p class="text-sm text-gray-600 mt-1">
+                        {product.stock} en stock
+                      </p>
+                    </div>
+                  ) : (
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                      ❌ Agotado
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <!-- Envío gratis -->
+              {product.price >= 100000 ? (
+                <div class="bg-green-100 border border-green-200 rounded-lg p-3 flex items-center">
+                  <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  <span class="text-green-800 font-medium">🚚 ¡Envío gratis incluido!</span>
+                </div>
+              ) : (
+                <div class="bg-blue-100 border border-blue-200 rounded-lg p-3 flex items-center">
+                  <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="text-blue-800 text-sm">
+                    Agrega ${(100000 - product.price).toLocaleString('es-CO')} más para envío gratis
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <!-- ✅ Botón de agregar al carrito - REACT COMPONENT -->
+            <div id="product-actions" data-product={JSON.stringify(product)}></div>
+
+            <!-- Especificaciones -->
+            <div class="bg-gray-50 rounded-lg p-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Especificaciones</h3>
+              <div class="space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Categoría:</span>
+                  <span class="font-medium capitalize">{product.category}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Disponibilidad:</span>
+                  <span class="font-medium">
+                    {product.stock > 0 ? `${product.stock} unidades` : 'Agotado'}
+                  </span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">SKU:</span>
+                  <span class="font-medium text-sm">{product.id.slice(0, 8).toUpperCase()}</span>
+                </div>
+                {hasMultiple && (
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Imágenes:</span>
+                    <span class="font-medium">{productImages.length} disponibles</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <!-- Garantía y envío -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center space-x-2 mb-2">
+                  <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="font-medium text-gray-900">Garantía</span>
+                </div>
+                <p class="text-sm text-gray-600">30 días de garantía en todos nuestros productos</p>
+              </div>
+
+              <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center space-x-2 mb-2">
+                  <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  <span class="font-medium text-gray-900">Envío</span>
+                </div>
+                <p class="text-sm text-gray-600">Envío discreto en embalaje neutro</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ✅ PRODUCTOS RELACIONADOS -->
+        {relatedProducts.length > 0 && (
+          <div class="mt-16">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8">🔗 Productos Relacionados</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((relatedProduct) => {
+                const relatedPrimaryImage = getPrimaryImageUrl(relatedProduct);
+                return (
+                  <div class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                    <!-- Imagen -->
+                    <div class="aspect-square bg-gray-100 relative overflow-hidden">
+                      <img
+                        src={relatedPrimaryImage}
+                        alt={relatedProduct.name}
+                        class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjlmYWZiIi8+CjxyZWN0IHg9Ijc1IiB5PSI3NSIgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjZTVlN2ViIiByeD0iNCIvPgo8L3N2Zz4='"
+                      />
+                      
+                      <!-- Badges -->
+                      {relatedProduct.stock <= 0 ? (
+                        <div class="absolute top-3 left-3 bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
+                          Agotado
+                        </div>
+                      ) : relatedProduct.featured ? (
+                        <div class="absolute top-3 right-3 bg-gray-900 text-white text-xs font-medium px-2 py-1 rounded">
+                          Destacado
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <!-- Info -->
+                    <div class="p-4 space-y-3">
+                      <p class="text-xs text-gray-500 uppercase tracking-wide font-medium">
+                        {relatedProduct.category}
+                      </p>
+
+                      <h3 class="font-medium text-gray-900 line-clamp-2 leading-tight">
+                        <a href={`/producto/${relatedProduct.slug || relatedProduct.id}`} class="hover:text-gray-700 transition-colors">
+                          {relatedProduct.name}
+                        </a>
+                      </h3>
+
+                      <div class="flex items-center justify-between">
+                        <p class="text-lg font-bold text-gray-900">
+                          ${relatedProduct.price.toLocaleString()}
+                        </p>
+                        
+                        {relatedProduct.stock > 0 && relatedProduct.stock <= 5 && (
+                          <span class="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-1 rounded">
+                            Solo {relatedProduct.stock}
+                          </span>
+                        )}
+                      </div>
+
+                      <a
+                        href={`/producto/${relatedProduct.slug || relatedProduct.id}`}
+                        class="block w-full bg-gray-900 text-white text-center px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
+                      >
+                        Ver detalles
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  )}
+
+  <!-- ✅ JSON-LD STRUCTURED DATA -->
+  {product && (
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": product.name,
+      "description": product.description,
+      "image": productImages.map(img => img.url),
+      "offers": {
+        "@type": "Offer",
+        "url": `https://kamasex.shop/producto/${product.slug}`,
+        "priceCurrency": "COP",
+        "price": product.price,
+        "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+      }
+    })} />
+  )}
+</Layout>
+<!-- REEMPLAZAR SOLO EL <script> EN [slug].astro CON ESTO: -->
+
+<script>
+  // ✅ FUNCIÓN PARA CREAR BOTÓN DE AGREGAR AL CARRITO
+  function createAddToCartButton(product) {
+    const container = document.getElementById('product-actions');
+    if (!container) return;
+
+    const isOutOfStock = product.stock <= 0;
+
+    container.innerHTML = `
+      <div class="space-y-4">
+        ${!isOutOfStock ? `
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center border border-gray-300 rounded-lg">
+              <button id="qty-minus" class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                </svg>
+              </button>
+              <input 
+                id="quantity-input" 
+                type="number" 
+                value="1" 
+                min="1" 
+                max="${product.stock}" 
+                class="w-16 px-2 py-2 text-center border-0 focus:outline-none focus:ring-0"
+              />
+              <button id="qty-plus" class="px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+            <span class="text-sm text-gray-500">máx ${product.stock}</span>
+          </div>
+        ` : ''}
+        
+        <button 
+          id="add-to-cart-btn"
+          class="${isOutOfStock 
+            ? 'w-full bg-gray-300 text-gray-500 cursor-not-allowed py-4 px-6 rounded-lg font-medium'
+            : 'w-full bg-gray-900 text-white hover:bg-gray-700 py-4 px-6 rounded-lg font-medium transition-colors'
+          }"
+          ${isOutOfStock ? 'disabled' : ''}
+        >
+          ${isOutOfStock ? '❌ Producto Agotado' : '🛒 Agregar al Carrito'}
+        </button>
+
+        ${!isOutOfStock ? `
+          <button 
+            id="buy-now-btn"
+            class="w-full border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white py-4 px-6 rounded-lg font-medium transition-colors"
+          >
+            ⚡ Comprar Ahora
+          </button>
+        ` : ''}
+      </div>
+    `;
+
+    // Event listeners para cantidad
+    if (!isOutOfStock) {
+      const qtyInput = document.getElementById('quantity-input') as HTMLInputElement;
+      const qtyMinus = document.getElementById('qty-minus');
+      const qtyPlus = document.getElementById('qty-plus');
+
+      if (qtyMinus && qtyInput) {
+        qtyMinus.addEventListener('click', function() {
+          const current = parseInt(qtyInput.value);
+          if (current > 1) qtyInput.value = (current - 1).toString();
+        });
+      }
+
+      if (qtyPlus && qtyInput) {
+        qtyPlus.addEventListener('click', function() {
+          const current = parseInt(qtyInput.value);
+          if (current < product.stock) qtyInput.value = (current + 1).toString();
+        });
+      }
+
+      // Event listener para agregar al carrito
+      const addToCartBtn = document.getElementById('add-to-cart-btn');
+      if (addToCartBtn && qtyInput) {
+        addToCartBtn.addEventListener('click', function() {
+          const quantity = parseInt(qtyInput.value);
+          console.log('Agregando ' + quantity + ' x ' + product.name + ' al carrito');
+          
+          // ✅ USAR FUNCIONES DEL public/js/cart.js
+          if (typeof window.addToCart === 'function') {
+            window.addToCart(product.id, product.name, product.price, quantity);
+            
+            // Feedback visual
+            addToCartBtn.innerHTML = '✅ Agregado!';
+            setTimeout(function() {
+              addToCartBtn.innerHTML = '🛒 Agregar al Carrito';
+            }, 2000);
+            
+          } else {
+            console.error('Sistema de carrito no disponible');
+            alert('Error: Sistema de carrito no cargado. Intenta recargar la página.');
+          }
+        });
+      }
+
+      // Event listener para comprar ahora
+      const buyNowBtn = document.getElementById('buy-now-btn');
+      if (buyNowBtn && qtyInput) {
+        buyNowBtn.addEventListener('click', function() {
+          const quantity = parseInt(qtyInput.value);
+          console.log('Comprando ' + quantity + ' x ' + product.name);
+          
+          // Agregar al carrito y redirigir
+          if (typeof window.addToCart === 'function') {
+            window.addToCart(product.id, product.name, product.price, quantity);
+            setTimeout(function() {
+              window.location.href = '/checkout';
+            }, 500);
+          } else {
+            window.location.href = '/checkout';
+          }
+        });
+      }
+    }
+  }
+
+  // ✅ CARGAR GALERÍA DE IMÁGENES
+  function loadImageGallery(product) {
+    const container = document.getElementById('product-gallery');
+    if (!container) return;
+
+    const images = product.images || [];
+    if (images.length <= 1) return;
+
+    const primaryImage = images.find(function(img) { return img.isPrimary; }) || images[0];
+    
+    container.innerHTML = `
+      <div class="space-y-4">
+        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <img
+            id="main-image"
+            src="${primaryImage.url}"
+            alt="${primaryImage.alt || product.name}"
+            class="w-full h-full object-cover cursor-zoom-in"
+            onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzk5OTk5OSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAwIDEwMGgxMDBjNS41IDAgMTAgNC41IDEwIDEwdjEwMGMwIDUuNS00LjUgMTAtMTAgMTBIMTAwYy01LjUgMC0xMC00LjUtMTAtMTBWMTEwYzAtNS41IDQuNS0xMCAxMC0xMHptNTAgMjBjLTExIDAtMjAgOS0yMCAyMHM5IDIwIDIwIDIwIDIwLTkgMjAtMjAtOS0yMC0yMC0yMHptMCAzMGMtNS41IDAtMTAtNC41LTEwLTEwczQuNS0xMCAxMC0xMCAxMCA0LjUgMTAgMTAtNC41IDEwLTEwIDEweiIvPjwvc3ZnPg=='"
+          />
+        </div>
+        
+        <div class="grid grid-cols-4 gap-2">
+          ${images.map(function(img, index) { 
+            return `
+              <button 
+                class="aspect-square bg-gray-100 rounded border-2 overflow-hidden transition-all ${
+                  img.isPrimary ? 'border-gray-900 ring-2 ring-gray-200' : 'border-gray-200 hover:border-gray-400'
+                }"
+                onclick="selectImage('${img.url}', '${img.alt || product.name}', ${index})"
+              >
+                <img
+                  src="${img.url}"
+                  alt="${img.alt || 'Vista ' + (index + 1)}"
+                  class="w-full h-full object-cover"
+                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIGZpbGw9IiM5OTk5OTkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEwIDEwaDIwYzEuMSAwIDIgLjkgMiAydjIwYzAgMS4xLS45IDItMiAySDE0Yy0xLjEgMC0yLS45LTItMlYxMmMwLTEuMS45LTIgMi0yem0xMCA4Yy0yLjIgMC00IDEuOC00IDRzMS44IDQgNCA0IDQtMS44IDQtNC0xLjgtNC00LTR6bTAgNmMtMS4xIDAtMi0uOS0yLTJzLjktMiAyLTIgMiAuOSAyIDItLjkgMi0yIDJ6Ii8+PC9zdmc+'"
+                />
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // ✅ FUNCIÓN PARA CAMBIAR IMAGEN PRINCIPAL
+  function selectImage(url, alt, index) {
+    const mainImage = document.getElementById('main-image') as HTMLImageElement;
+    if (mainImage) {
+      mainImage.src = url;
+      mainImage.alt = alt;
+    }
+    
+    // Actualizar estado de thumbnails
+    const thumbnails = document.querySelectorAll('#product-gallery button');
+    thumbnails.forEach(function(thumb, i) {
+      if (i === index) {
+        thumb.className = thumb.className.replace('border-gray-200 hover:border-gray-400', 'border-gray-900 ring-2 ring-gray-200');
+      } else {
+        thumb.className = thumb.className.replace('border-gray-900 ring-2 ring-gray-200', 'border-gray-200 hover:border-gray-400');
+      }
+    });
+  }
+
+  // ✅ DECLARAR FUNCIÓN GLOBAL
+  window.selectImage = selectImage;
+
+  // ✅ EJECUTAR CUANDO EL DOM ESTÉ LISTO
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Script de producto ejecutándose...');
+    
+    // Verificar que cart.js esté cargado
+    if (typeof window.addToCart === 'function') {
+      console.log('✅ Sistema de carrito disponible');
+    } else {
+      console.warn('⚠️ Sistema de carrito no disponible');
+    }
+    
+    // Cargar botón de agregar al carrito
+    const actionsContainer = document.getElementById('product-actions');
+    if (actionsContainer && actionsContainer.dataset.product) {
+      try {
+        const product = JSON.parse(actionsContainer.dataset.product);
+        createAddToCartButton(product);
+      } catch (error) {
+        console.error('❌ Error parseando producto para actions:', error);
+      }
+    }
+
+    // Cargar galería de imágenes
+    const galleryContainer = document.getElementById('product-gallery');
+    if (galleryContainer && galleryContainer.dataset.product) {
+      try {
+        const product = JSON.parse(galleryContainer.dataset.product);
+        loadImageGallery(product);
+      } catch (error) {
+        console.error('❌ Error parseando producto para gallery:', error);
+      }
+    }
+  });
+</script>

@@ -1,0 +1,488 @@
+---
+// src/pages/categoria/[categoria].astro - PÁGINA DE CATEGORÍA ESTILO ZARA
+import Layout from '../../components/layout/Layout.astro';
+import { getProductsByCategory, getCategoryBySlug, getCategories } from '../../lib/supabase';
+import type { Product, Category } from '../../lib/types';
+
+// Obtener parámetros de la URL
+const { categoria } = Astro.params;
+
+// Verificar que la categoría existe
+const category = await getCategoryBySlug(categoria as string);
+
+if (!category) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Categoría no encontrada'
+  });
+}
+
+// Obtener productos y categorías
+const [products, allCategories] = await Promise.all([
+  getProductsByCategory(categoria as string),
+  getCategories()
+]);
+
+// SEO Data
+const pageTitle = `${category.name} - Kamasex.shop`;
+const pageDescription = category.description || `Descubre nuestra colección de ${category.name.toLowerCase()} premium con envío discreto`;
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  
+  <!-- Breadcrumb estilo Zara -->
+  <div class="border-b border-neutral-200 bg-white">
+    <div class="container py-4">
+      <nav class="flex items-center space-x-2 text-xs tracking-wide uppercase">
+        <a href="/" class="text-neutral-500 hover:text-neutral-900 transition-colors">Inicio</a>
+        <span class="text-neutral-300">/</span>
+        <a href="/productos" class="text-neutral-500 hover:text-neutral-900 transition-colors">Productos</a>
+        <span class="text-neutral-300">/</span>
+        <span class="text-neutral-900 font-medium">{category.name}</span>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Hero de Categoría estilo Zara -->
+  <section class="bg-neutral-50 py-16 lg:py-24">
+    <div class="container text-center">
+      <div class="max-w-3xl mx-auto space-y-6">
+        <h1 class="text-4xl lg:text-6xl font-light tracking-wider text-neutral-900">
+          {category.name.toUpperCase()}
+        </h1>
+        
+        {category.description && (
+          <p class="text-lg text-neutral-600 font-light leading-relaxed">
+            {category.description}
+          </p>
+        )}
+        
+        <div class="w-24 h-px bg-neutral-300 mx-auto"></div>
+        
+        <p class="text-sm text-neutral-500 tracking-wide">
+          {products.length} producto{products.length !== 1 ? 's' : ''} disponible{products.length !== 1 ? 's' : ''}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category Navigation estilo Zara -->
+  <div class="bg-white border-b border-neutral-200 sticky top-16 lg:top-20 z-30">
+    <div class="container">
+      <div class="flex items-center justify-between py-4">
+        
+        <!-- Category Links -->
+        <div class="hidden lg:flex items-center space-x-8">
+          <a 
+            href="/productos" 
+            class="text-sm tracking-wide text-neutral-500 hover:text-neutral-900 transition-colors font-medium"
+          >
+            TODOS
+          </a>
+          {allCategories.map((cat) => (
+            <a 
+              href={`/categoria/${cat.slug}`}
+              class={`text-sm tracking-wide font-medium transition-colors ${
+                cat.id === category.id 
+                  ? 'text-neutral-900 border-b-2 border-neutral-900 pb-1' 
+                  : 'text-neutral-500 hover:text-neutral-900'
+              }`}
+            >
+              {cat.name.toUpperCase()}
+            </a>
+          ))}
+        </div>
+
+        <!-- Sort & Filter -->
+        <div class="flex items-center space-x-6">
+          
+          <!-- Sort Dropdown -->
+          <div class="relative">
+            <select 
+              id="sort-select" 
+              class="appearance-none bg-transparent border-none text-sm tracking-wide text-neutral-700 pr-6 focus:outline-none cursor-pointer"
+            >
+              <option value="featured">DESTACADOS</option>
+              <option value="newest">MÁS NUEVOS</option>
+              <option value="price-low">PRECIO: MENOR A MAYOR</option>
+              <option value="price-high">PRECIO: MAYOR A MENOR</option>
+              <option value="name">NOMBRE A-Z</option>
+            </select>
+            <svg class="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+
+          <!-- Filter Toggle -->
+          <button 
+            id="filter-toggle"
+            class="text-sm tracking-wide text-neutral-700 hover:text-neutral-900 transition-colors flex items-center"
+          >
+            FILTROS
+            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Panel (expandible) -->
+  <div id="filter-panel" class="bg-neutral-50 border-b border-neutral-200 hidden">
+    <div class="container py-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        
+        <!-- Price Range -->
+        <div>
+          <h3 class="text-sm font-medium tracking-wide text-neutral-900 mb-3">PRECIO</h3>
+          <div class="space-y-2">
+            <label class="flex items-center text-sm text-neutral-600">
+              <input type="checkbox" class="mr-3" name="price" value="0-50000">
+              Menos de $50,000
+            </label>
+            <label class="flex items-center text-sm text-neutral-600">
+              <input type="checkbox" class="mr-3" name="price" value="50000-150000">
+              $50,000 - $150,000
+            </label>
+            <label class="flex items-center text-sm text-neutral-600">
+              <input type="checkbox" class="mr-3" name="price" value="150000-300000">
+              $150,000 - $300,000
+            </label>
+            <label class="flex items-center text-sm text-neutral-600">
+              <input type="checkbox" class="mr-3" name="price" value="300000+">
+              Más de $300,000
+            </label>
+          </div>
+        </div>
+
+        <!-- Availability -->
+        <div>
+          <h3 class="text-sm font-medium tracking-wide text-neutral-900 mb-3">DISPONIBILIDAD</h3>
+          <div class="space-y-2">
+            <label class="flex items-center text-sm text-neutral-600">
+              <input type="checkbox" class="mr-3" name="availability" value="in-stock">
+              En stock
+            </label>
+            <label class="flex items-center text-sm text-neutral-600">
+              <input type="checkbox" class="mr-3" name="availability" value="featured">
+              Destacados
+            </label>
+          </div>
+        </div>
+
+        <!-- Additional Filters -->
+        <div>
+          <h3 class="text-sm font-medium tracking-wide text-neutral-900 mb-3">OTROS</h3>
+          <div class="space-y-2">
+            <label class="flex items-center text-sm text-neutral-600">
+              <input type="checkbox" class="mr-3" name="other" value="new">
+              Nuevos
+            </label>
+            <label class="flex items-center text-sm text-neutral-600">
+              <input type="checkbox" class="mr-3" name="other" value="sale">
+              En oferta
+            </label>
+          </div>
+        </div>
+
+        <!-- Clear Filters -->
+        <div class="flex items-end">
+          <button 
+            id="clear-filters"
+            class="text-sm tracking-wide text-neutral-500 hover:text-neutral-900 transition-colors underline"
+          >
+            LIMPIAR FILTROS
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container py-12">
+    
+    {/* Empty State */}
+    {products.length === 0 ? (
+      <div class="text-center py-24">
+        <div class="max-w-md mx-auto space-y-6">
+          <div class="w-24 h-24 bg-neutral-100 rounded-full flex items-center justify-center mx-auto">
+            <svg class="w-12 h-12 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+          </div>
+          
+          <div class="space-y-4">
+            <h2 class="text-2xl font-light text-neutral-900">
+              SIN PRODUCTOS DISPONIBLES
+            </h2>
+            <p class="text-neutral-600">
+              Actualmente no tenemos productos en la categoría {category.name.toLowerCase()}.
+            </p>
+            <div class="w-16 h-px bg-neutral-300 mx-auto"></div>
+          </div>
+          
+          <div class="space-y-3">
+            <a href="/productos" class="inline-block border border-neutral-900 px-8 py-3 text-neutral-900 text-sm font-medium tracking-wide hover:bg-neutral-900 hover:text-white transition-all">
+              VER TODOS LOS PRODUCTOS
+            </a>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <>
+        <!-- Products Grid estilo Zara -->
+        <div 
+          id="products-grid" 
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 lg:gap-12"
+        >
+          {products.map((product: Product) => (
+            <article class="group">
+              <a href={`/producto/${product.slug}`} class="block">
+                
+                <!-- Product Image -->
+                <div class="aspect-[3/4] bg-neutral-100 mb-4 overflow-hidden">
+                  <img 
+                    src={product.image_url || '/images/product-placeholder.jpg'}
+                    alt={product.name}
+                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  
+                  <!-- Quick Add Button (aparece en hover) -->
+                  <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 flex items-end justify-center pb-6">
+                    <button 
+                      class="opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-white text-neutral-900 px-6 py-2 text-sm font-medium tracking-wide hover:bg-neutral-900 hover:text-white"
+                      data-product-id={product.id}
+                      onclick="addToCart(this)"
+                    >
+                      AGREGAR AL CARRITO
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Product Info -->
+                <div class="space-y-2 text-center">
+                  <h3 class="text-sm font-medium tracking-wide text-neutral-900 group-hover:text-neutral-600 transition-colors">
+                    {product.name}
+                  </h3>
+                  <p class="text-sm text-neutral-500 tracking-wider">
+                    ${product.price.toLocaleString('es-CO')}
+                  </p>
+                  
+                  <!-- Stock Status -->
+                  {product.stock > 0 ? (
+                    product.stock <= 5 ? (
+                      <p class="text-xs text-orange-600 tracking-wide">
+                        ÚLTIMAS {product.stock} UNIDADES
+                      </p>
+                    ) : (
+                      <p class="text-xs text-green-600 tracking-wide">
+                        DISPONIBLE
+                      </p>
+                    )
+                  ) : (
+                    <p class="text-xs text-neutral-400 tracking-wide">
+                      AGOTADO
+                    </p>
+                  )}
+                </div>
+              </a>
+            </article>
+          ))}
+        </div>
+
+        <!-- Load More Button -->
+        {products.length >= 20 && (
+          <div class="text-center mt-16">
+            <button 
+              id="load-more"
+              class="border border-neutral-300 px-8 py-3 text-neutral-700 text-sm font-medium tracking-wide hover:border-neutral-900 hover:text-neutral-900 transition-all"
+            >
+              CARGAR MÁS PRODUCTOS
+            </button>
+          </div>
+        )}
+      </>
+    )}
+  </div>
+
+  <!-- Categorías Relacionadas -->
+  {allCategories.length > 1 && (
+    <section class="bg-neutral-50 py-16">
+      <div class="container">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-light text-neutral-900 mb-4 tracking-wide">
+            EXPLORAR OTRAS CATEGORÍAS
+          </h2>
+          <div class="w-24 h-px bg-neutral-300 mx-auto"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {allCategories.filter(cat => cat.id !== category.id).slice(0, 3).map((otherCategory) => (
+            <a 
+              href={`/categoria/${otherCategory.slug}`}
+              class="group block text-center"
+            >
+              <div class="aspect-square bg-neutral-200 mb-4 overflow-hidden">
+                <img 
+                  src={otherCategory.image || '/images/category-placeholder.jpg'}
+                  alt={otherCategory.name}
+                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+              </div>
+              <h3 class="text-lg font-medium tracking-wide text-neutral-900 group-hover:text-neutral-600 transition-colors">
+                {otherCategory.name.toUpperCase()}
+              </h3>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</Layout>
+
+<script>
+  // Filter Panel Toggle
+  const filterToggle = document.getElementById('filter-toggle');
+  const filterPanel = document.getElementById('filter-panel');
+  
+  filterToggle?.addEventListener('click', () => {
+    filterPanel?.classList.toggle('hidden');
+  });
+
+  // Sort Functionality
+  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
+  const productsGrid = document.getElementById('products-grid');
+  
+  sortSelect?.addEventListener('change', () => {
+    const sortValue = sortSelect.value;
+    if (!productsGrid) return;
+    
+    const products = Array.from(productsGrid.children);
+    
+    products.sort((a, b) => {
+      const priceA = parseFloat(a.querySelector('[data-price]')?.getAttribute('data-price') || '0');
+      const priceB = parseFloat(b.querySelector('[data-price]')?.getAttribute('data-price') || '0');
+      const nameA = a.querySelector('h3')?.textContent || '';
+      const nameB = b.querySelector('h3')?.textContent || '';
+      
+      switch(sortValue) {
+        case 'price-low': return priceA - priceB;
+        case 'price-high': return priceB - priceA;
+        case 'name': return nameA.localeCompare(nameB);
+        case 'newest': return 0; // Mantener orden original
+        default: return 0; // Featured
+      }
+    });
+    
+    // Re-append sorted elements
+    products.forEach(product => productsGrid.appendChild(product));
+  });
+
+  // Filter Functionality
+  const filterInputs = document.querySelectorAll('#filter-panel input[type="checkbox"]');
+  
+  filterInputs.forEach(input => {
+    input.addEventListener('change', applyFilters);
+  });
+  
+  function applyFilters() {
+    const products = document.querySelectorAll('#products-grid > article');
+    const activeFilters = {
+      price: Array.from(document.querySelectorAll('input[name="price"]:checked')).map(el => (el as HTMLInputElement).value),
+      availability: Array.from(document.querySelectorAll('input[name="availability"]:checked')).map(el => (el as HTMLInputElement).value),
+      other: Array.from(document.querySelectorAll('input[name="other"]:checked')).map(el => (el as HTMLInputElement).value)
+    };
+    
+    products.forEach(product => {
+      let shouldShow = true;
+      
+      // Apply filters here based on product data
+      // This is a simplified example - you'd need to add data attributes to products
+      
+      if (shouldShow) {
+        (product as HTMLElement).style.display = 'block';
+      } else {
+        (product as HTMLElement).style.display = 'none';
+      }
+    });
+  }
+
+  // Clear Filters
+  document.getElementById('clear-filters')?.addEventListener('click', () => {
+    filterInputs.forEach(input => {
+      (input as HTMLInputElement).checked = false;
+    });
+    applyFilters();
+  });
+
+  // Add to Cart functionality
+  window.addToCart = function(button: HTMLButtonElement) {
+    const productId = button.getAttribute('data-product-id');
+    
+    // Simulate adding to cart
+    button.textContent = '✓ AGREGADO';
+    button.style.backgroundColor = '#22c55e';
+    button.style.color = 'white';
+    
+    setTimeout(() => {
+      button.textContent = 'AGREGAR AL CARRITO';
+      button.style.backgroundColor = '';
+      button.style.color = '';
+    }, 2000);
+    
+    // Update cart count
+    window.dispatchEvent(new CustomEvent('cart-updated'));
+    
+    // Show notification
+    if (window.showNotification) {
+      window.showNotification('Producto agregado al carrito');
+    }
+  };
+</script>
+
+<style>
+  /* Smooth transitions for grid items */
+  #products-grid article {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  
+  /* Filter panel animation */
+  #filter-panel {
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  /* Product hover effects */
+  #products-grid article:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Custom checkbox styles */
+  input[type="checkbox"] {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #d4d4d4;
+    border-radius: 0;
+    background: white;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  input[type="checkbox"]:checked {
+    background: #171717;
+    border-color: #171717;
+  }
+  
+  input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+  }
+</style>
