@@ -1,4 +1,4 @@
-// astro.config.mjs - CONFIGURACIÓN CON SSR
+// astro.config.mjs - CONFIGURACIÓN ESTÁTICA CORREGIDA
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
@@ -6,13 +6,13 @@ import react from '@astrojs/react';
 export default defineConfig({
   integrations: [
     tailwind({
-      applyBaseStyles: true // Usar nuestros estilos base personalizados
+      applyBaseStyles: true
     }),
     react()
   ],
   
-  // ✅ CAMBIO PRINCIPAL: De 'static' a 'server'
-  output: 'server',
+  // ✅ CAMBIO: De 'server' a 'static' para Netlify
+  output: 'static',
   
   site: 'https://kamasex.shop',
   base: '/',

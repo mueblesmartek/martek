@@ -5,6 +5,11 @@
 [build.environment]
   NODE_VERSION = "18"
 
+# ✅ Si usas adaptador Netlify, agregar estas funciones
+[functions]
+  # Configuración para funciones serverless si usas SSR
+  directory = "netlify/functions"
+
 # Headers básicos para seguridad
 [[headers]]
   for = "/*"
