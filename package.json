@@ -1,5 +1,5 @@
 {
-  "name": "kamasex-shop",
+  "name": "martek-shop",
   "type": "module",
   "version": "1.0.0",
   "description": "Tienda premium de bienestar íntimo femenino",
@@ -37,6 +37,6 @@
     "supabase",
     "tailwind"
   ],
-  "author": "Kamasex.shop",
+  "author": "mueblesmartek.com",
   "license": "MIT"
 }

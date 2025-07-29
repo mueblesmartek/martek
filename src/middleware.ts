@@ -1,5 +1,4 @@
-
-/*// ✅ src/middleware.ts - MIDDLEWARE CORREGIDO CON TIPOS APROPIADOS
+// src/middleware.ts - DESCOMENTAR TODO EL CÓDIGO
 import { defineMiddleware } from 'astro:middleware';
 import { supabase } from './lib/supabase';
 
@@ -14,6 +13,8 @@ interface SupabaseUser {
   created_at: string;
   [key: string]: any;
 }
+
+
 
 // ✅ MIDDLEWARE CORREGIDO CON MANEJO DE TIPOS EXPLÍCITO
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -47,4 +48,4 @@ declare global {
   }
 }
 
-export {};*/
+export {};

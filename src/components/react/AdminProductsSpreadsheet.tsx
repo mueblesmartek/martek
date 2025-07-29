@@ -1,4 +1,4 @@
-// src/components/react/AdminProductsSpreadsheet.tsx - COMPONENTE PRINCIPAL REFACTORIZADO
+// src/components/react/AdminProductsSpreadsheet.tsx - CORRECCIÓN COMPLETA DE ERRORES TYPESCRIPT
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { AdminBulkActions } from './admin/AdminBulkActions';
 import { AdminProductsTable } from './admin/AdminProductsTable';
@@ -8,10 +8,10 @@ import {
   updateProduct, 
   deleteProduct, 
   bulkInsertProducts,
-  generateSlug,
-  supabase 
+  getCategories,
+  generateSlug // ✅ AGREGAR IMPORT DE GENERATESLUG
 } from '../../lib/supabase';
-import type { Product, ProductRowForAdmin, ProductImage, CSVProduct, ValidationError } from '../../lib/types';
+import type { Product, ProductRowForAdmin, ProductImage, CSVProduct, ValidationError, Category } from '../../lib/types';
 
 interface AdminProductsSpreadsheetProps {
   initialProducts?: Product[];
@@ -29,8 +29,10 @@ export function AdminProductsSpreadsheet({
   const [isSaving, setIsSaving] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [lastError, setLastError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<string[]>([
-    'juguetes', 'accesorios', 'lubricantes', 'lenceria', 'general'
+  
+  // ✅ RENOMBRAR PARA EVITAR CONFLICTO
+  const [availableCategories, setAvailableCategories] = useState<string[]>([
+    'bases-sencillas', 'bases-dobles', 'bases-queen', 'bases-king', 'bases-cajones', 'bases-premium'
   ]);
 
   // ✅ PRODUCTOS SUCIOS (con cambios sin guardar)
@@ -38,6 +40,51 @@ export function AdminProductsSpreadsheet({
     products.filter(p => p.isDirty || p.isNew), 
     [products]
   );
+
+  // ✅ FUNCIONES AUXILIARES DEFINIDAS PRIMERO
+  const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    
+    // Toast simple
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 right-4 px-4 py-2 rounded-md text-white z-50 ${
+      type === 'success' ? 'bg-green-500' : 
+      type === 'error' ? 'bg-red-500' : 
+      type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+    }`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }, []);
+
+  const validateProduct = useCallback((product: ProductRowForAdmin): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // ✅ VALIDACIÓN MEJORADA
+    if (!product.name?.trim()) {
+      errors.push('Nombre es requerido');
+    }
+
+    if (!product.price || product.price <= 0) {
+      errors.push('Precio debe ser mayor a 0');
+    }
+
+    if (product.stock === undefined || product.stock < 0) {
+      errors.push('Stock debe ser 0 o mayor');
+    }
+
+    if (!product.category?.trim()) {
+      errors.push('Categoría es requerida');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }, []);
 
   // ✅ CARGAR PRODUCTOS INICIALES
   useEffect(() => {
@@ -50,6 +97,25 @@ export function AdminProductsSpreadsheet({
     } else {
       loadProducts();
     }
+  }, []);
+
+  // ✅ CARGAR CATEGORÍAS REALES
+  useEffect(() => {
+    const loadCategoryData = async () => {
+      try {
+        const cats = await getCategories();
+        const categoryNames = cats.map((cat: Category) => cat.slug);
+        setAvailableCategories(categoryNames.length > 0 ? categoryNames : [
+          'bases-sencillas', 'bases-dobles', 'bases-queen', 
+          'bases-king', 'bases-cajones', 'bases-premium'
+        ]);
+      } catch (error) {
+        console.error('Error cargando categorías:', error);
+        setAvailableCategories(['bases-sencillas', 'bases-dobles', 'bases-queen', 'bases-king', 'bases-cajones', 'bases-premium']);
+      }
+    };
+    
+    loadCategoryData();
   }, []);
 
   // ✅ CARGAR PRODUCTOS DESDE SUPABASE
@@ -93,32 +159,52 @@ export function AdminProductsSpreadsheet({
       return updated;
     }));
   }, []);
+const handleAddProduct = useCallback(() => {
+  const tempId = `temp_${Date.now()}`;
+  const newProduct: ProductRowForAdmin = {
+    tempId,
+    name: 'Nuevo Producto',
+    price: 1000,
+    category: availableCategories[0] || 'bases-sencillas',
+    stock: 0,
+    description: 'Descripción del producto',
+    image_url: null,
+    // ✅ OMITIR EL CAMPO IMAGES TEMPORALMENTE
+    // images: [],
+    is_active: true,
+    featured: false,
+    slug: null,
+    meta_title: null,
+    meta_description: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    isNew: true,
+    isDirty: true
+  };
+  
+  setProducts(prev => [newProduct, ...prev]);
+  showNotification('✅ Producto agregado. Edita los campos y guarda.', 'success');
+}, [availableCategories, showNotification]);
 
-  // ✅ AGREGAR PRODUCTO NUEVO
-  const handleAddProduct = useCallback(() => {
-    const tempId = `temp_${Date.now()}`;
-    const newProduct: ProductRowForAdmin = {
-      tempId,
-      name: '',
-      price: 0,
-      category: 'general',
-      stock: 0,
-      description: '',
-      image_url: null,
-      images: [],
-      is_active: true,
-      featured: false,
-      slug: null,
-      meta_title: null,
-      meta_description: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      isNew: true,
-      isDirty: true
-    };
-    
-    setProducts(prev => [newProduct, ...prev]);
-  }, []);
+
+  // ✅ ACTUALIZACIÓN MASIVA
+  const handleBulkUpdate = useCallback((updates: Partial<Product>[]) => {
+    setProducts(prev => prev.map(product => {
+      const productId = product.id || product.tempId;
+      const update = updates.find(u => u.id === productId);
+      
+      if (!update) return product;
+
+      return {
+        ...product,
+        ...update,
+        isDirty: true,
+        updated_at: new Date().toISOString()
+      };
+    }));
+
+    showNotification(`✅ ${updates.length} productos actualizados`, 'success');
+  }, [showNotification]);
 
   // ✅ ELIMINAR PRODUCTO
   const handleProductDelete = useCallback(async (productId: string) => {
@@ -130,6 +216,7 @@ export function AdminProductsSpreadsheet({
     if (product.isNew && product.tempId) {
       setProducts(prev => prev.filter(p => p.tempId !== productId));
       setSelectedProducts(prev => prev.filter(id => id !== productId));
+      showNotification('Producto removido', 'info');
       return;
     }
 
@@ -147,9 +234,77 @@ export function AdminProductsSpreadsheet({
         showNotification('❌ Error eliminando producto', 'error');
       }
     }
-  }, [products]);
+  }, [products, showNotification]);
 
-  // ✅ GUARDAR TODOS LOS CAMBIOS
+  // ✅ IMPORTAR DESDE CSV CON TIPOS CORREGIDOS
+  const handleImportCSV = useCallback(async (csvProducts: CSVProduct[]) => {
+    setIsLoading(true);
+    
+    try {
+      // ✅ CONVERTIR CSVProduct A FORMATO COMPLETO
+      const productsToInsert = csvProducts.map(csvProduct => ({
+        name: csvProduct.name,
+        description: csvProduct.description || '',
+        price: csvProduct.price,
+        category: csvProduct.category,
+        stock: csvProduct.stock,
+        image_url: csvProduct.image_url || null,
+        is_active: true, // ✅ AGREGAR CAMPOS FALTANTES
+        featured: false, // ✅ AGREGAR CAMPOS FALTANTES
+        slug: generateSlug(csvProduct.name),
+        meta_title: null,
+        meta_description: null,
+        images: []
+      }));
+
+      const insertedProducts = await bulkInsertProducts(productsToInsert);
+      await loadProducts();
+      showNotification(`✅ ${insertedProducts.length} productos importados`, 'success');
+      
+    } catch (error) {
+      console.error('Error importing CSV:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      showNotification(`❌ Error importando: ${errorMessage}`, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [showNotification, loadProducts]);
+
+  // ✅ ELIMINAR MÚLTIPLES PRODUCTOS
+  const handleBulkDelete = useCallback(async (productIds: string[]) => {
+    if (!confirm(`¿Eliminar ${productIds.length} productos seleccionados?`)) {
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Eliminar de la base de datos
+      const deletePromises = productIds
+        .map(id => products.find(p => p.id === id))
+        .filter(p => p && p.id)
+        .map(p => deleteProduct(p!.id!));
+
+      await Promise.all(deletePromises);
+
+      // Remover todos del estado
+      setProducts(prev => prev.filter(p => 
+        !productIds.includes(p.id || p.tempId || '')
+      ));
+      setSelectedProducts([]);
+
+      showNotification(`✅ ${productIds.length} productos eliminados`, 'success');
+      
+    } catch (error) {
+      console.error('Error bulk deleting:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      showNotification(`❌ Error eliminando productos: ${errorMessage}`, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [products, showNotification]);
+
+  // ✅ GUARDAR TODOS LOS CAMBIOS CON MEJOR MANEJO DE ERRORES
   const handleSaveAll = useCallback(async () => {
     if (dirtyProducts.length === 0) return;
 
@@ -187,7 +342,8 @@ export function AdminProductsSpreadsheet({
           successCount++;
         } else {
           errorCount++;
-          errors.push(`Producto ${index + 1}: ${result.reason.message}`);
+          const errorMessage = result.reason instanceof Error ? result.reason.message : 'Error desconocido';
+          errors.push(`Producto ${index + 1}: ${errorMessage}`);
         }
       });
 
@@ -201,134 +357,17 @@ export function AdminProductsSpreadsheet({
 
     } catch (error) {
       console.error('Error saving products:', error);
-      setLastError('Error guardando productos');
-      showNotification('❌ Error guardando productos', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      showNotification(`❌ Error guardando productos: ${errorMessage}`, 'error');
+      setLastError(errorMessage);
     } finally {
       setIsSaving(false);
     }
-  }, [dirtyProducts, loadProducts]);
-
-  // ✅ IMPORTACIÓN MASIVA
-  const handleBulkImport = useCallback(async (csvProducts: CSVProduct[]) => {
-    try {
-      setIsLoading(true);
-      const results = await bulkInsertProducts(csvProducts);
-      
-      if (results.length > 0) {
-        showNotification(`✅ ${results.length} productos importados`, 'success');
-        await loadProducts();
-      }
-    } catch (error) {
-      console.error('Error importing products:', error);
-      showNotification('❌ Error importando productos', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [loadProducts]);
-
-  // ✅ ACTUALIZACIÓN MASIVA
-  const handleBulkUpdate = useCallback((updates: Partial<Product>[]) => {
-    setProducts(prev => prev.map(product => {
-      const productId = product.id || product.tempId;
-      const update = updates.find(u => u.id === productId);
-      
-      if (!update) return product;
-
-      return {
-        ...product,
-        ...update,
-        isDirty: true,
-        updated_at: new Date().toISOString()
-      };
-    }));
-
-    showNotification(`✅ ${updates.length} productos actualizados`, 'success');
-  }, []);
-
-  // ✅ ELIMINACIÓN MASIVA
-  const handleBulkDelete = useCallback(async (productIds: string[]) => {
-    try {
-      setIsLoading(true);
-      
-      // Separar productos nuevos de existentes
-      const existingIds = productIds.filter(id => 
-        products.find(p => p.id === id && !p.isNew)
-      );
-      const newIds = productIds.filter(id => 
-        products.find(p => p.tempId === id && p.isNew)
-      );
-
-      // Eliminar productos existentes de la DB
-      if (existingIds.length > 0) {
-        await Promise.all(existingIds.map(id => deleteProduct(id)));
-      }
-
-      // Remover todos del estado
-      setProducts(prev => prev.filter(p => 
-        !productIds.includes(p.id || p.tempId || '')
-      ));
-      setSelectedProducts([]);
-
-      showNotification(`✅ ${productIds.length} productos eliminados`, 'success');
-      
-    } catch (error) {
-      console.error('Error bulk deleting:', error);
-      showNotification('❌ Error eliminando productos', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [products]);
-
-  // ✅ VALIDACIÓN DE PRODUCTO
-  const validateProduct = useCallback((product: ProductRowForAdmin): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
-
-    if (!product.name?.trim()) {
-      errors.push('Nombre es requerido');
-    }
-
-    if (!product.price || product.price <= 0) {
-      errors.push('Precio debe ser mayor a 0');
-    }
-
-    if (product.stock === undefined || product.stock < 0) {
-      errors.push('Stock debe ser 0 o mayor');
-    }
-
-    if (!product.category?.trim()) {
-      errors.push('Categoría es requerida');
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }, []);
+  }, [dirtyProducts, validateProduct, showNotification, loadProducts]);
 
   // ✅ MANEJO DE ERRORES DE VALIDACIÓN
   const handleValidationError = useCallback((productId: string, errors: ValidationError[]) => {
     console.warn(`Validation errors for product ${productId}:`, errors);
-    // Podrías implementar un estado de errores aquí si necesitas mostrarlos en la UI
-  }, []);
-
-  // ✅ NOTIFICACIONES SIMPLES
-  const showNotification = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info') => {
-    // Implementación simple - podrías usar tu sistema de notificaciones existente
-    console.log(`[${type.toUpperCase()}] ${message}`);
-    
-    // Toast simple
-    const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-4 py-2 rounded-md text-white z-50 ${
-      type === 'success' ? 'bg-green-500' : 
-      type === 'error' ? 'bg-red-500' : 
-      type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
-    }`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
   }, []);
 
   // ✅ CALLBACK CUANDO CAMBIAN LOS PRODUCTOS
@@ -379,15 +418,18 @@ export function AdminProductsSpreadsheet({
             >
               {isSaving ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
                   <span>Guardando...</span>
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <span>Guardar Todo ({dirtyProducts.length})</span>
+                  <span>Guardar Cambios ({dirtyProducts.length})</span>
                 </>
               )}
             </button>
@@ -395,117 +437,72 @@ export function AdminProductsSpreadsheet({
         </div>
 
         {/* Estadísticas rápidas */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
           <div className="bg-blue-50 p-3 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">{products.length}</div>
-            <div className="text-sm text-blue-700">Total Productos</div>
+            <div className="text-sm text-blue-800">Total Productos</div>
           </div>
           <div className="bg-green-50 p-3 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">
-              {products.filter(p => p.is_active).length}
-            </div>
-            <div className="text-sm text-green-700">Activos</div>
+            <div className="text-2xl font-bold text-green-600">{dirtyProducts.length}</div>
+            <div className="text-sm text-green-800">Sin Guardar</div>
           </div>
-          <div className="bg-yellow-50 p-3 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600">{dirtyProducts.length}</div>
-            <div className="text-sm text-yellow-700">Sin Guardar</div>
+          <div className="bg-purple-50 p-3 rounded-lg">
+            <div className="text-2xl font-bold text-purple-600">{selectedProducts.length}</div>
+            <div className="text-sm text-purple-800">Seleccionados</div>
           </div>
-          <div className="bg-red-50 p-3 rounded-lg">
-            <div className="text-2xl font-bold text-red-600">
-              {products.filter(p => (p.stock || 0) <= 5).length}
-            </div>
-            <div className="text-sm text-red-700">Stock Bajo</div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="text-2xl font-bold text-gray-600">{availableCategories.length}</div>
+            <div className="text-sm text-gray-800">Categorías</div>
           </div>
         </div>
       </div>
 
-      {/* ✅ ERROR DISPLAY */}
-      {lastError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex">
-            <svg className="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <h4 className="text-sm font-medium text-red-900">Error</h4>
-              <pre className="text-sm text-red-700 mt-1 whitespace-pre-wrap">{lastError}</pre>
-            </div>
-            <button
-              onClick={() => setLastError(null)}
-              className="ml-auto text-red-500 hover:text-red-700"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ✅ ACCIONES MASIVAS */}
+      {/* Acciones bulk */}
       <AdminBulkActions
         products={products}
         onBulkUpdate={handleBulkUpdate}
         onBulkDelete={handleBulkDelete}
-        onBulkImport={handleBulkImport}
+        onBulkImport={handleImportCSV}
         selectedProducts={selectedProducts}
         onSelectionChange={setSelectedProducts}
         isLoading={isLoading}
         dirtyCount={dirtyProducts.length}
       />
 
-      {/* ✅ TABLA DE PRODUCTOS */}
+      {/* Tabla de productos */}
       <AdminProductsTable
         products={products}
-        onProductUpdate={handleProductUpdate}
-        onProductDelete={handleProductDelete}
-        categories={categories}
+        categories={availableCategories}
         selectedProducts={selectedProducts}
         onSelectionChange={setSelectedProducts}
+        onProductUpdate={handleProductUpdate}
+        onProductDelete={handleProductDelete}
         onValidationError={handleValidationError}
         isLoading={isLoading}
       />
 
-      {/* ✅ FOOTER CON ACCIONES RÁPIDAS */}
-      <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-        <div className="text-sm text-gray-600">
-          {products.length > 0 ? (
-            <span>
-              Mostrando {products.length} productos • 
-              {dirtyProducts.length > 0 && (
-                <span className="text-yellow-600 font-medium ml-1">
-                  {dirtyProducts.length} cambios sin guardar
-                </span>
-              )}
-            </span>
-          ) : (
-            <span>No hay productos</span>
-          )}
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={loadProducts}
-            disabled={isLoading}
-            className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
-          >
-            🔄 Recargar
-          </button>
-          
-          {dirtyProducts.length > 0 && (
-            <button
-              onClick={() => {
-                if (confirm('¿Descartar todos los cambios no guardados?')) {
-                  loadProducts();
-                }
-              }}
-              className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+      {/* Error display */}
+      {lastError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 text-red-400 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="text-sm font-medium text-red-800">Errores encontrados:</h3>
+              <pre className="mt-2 text-xs text-red-700 whitespace-pre-wrap">{lastError}</pre>
+            </div>
+            <button 
+              onClick={() => setLastError(null)}
+              className="ml-auto text-red-400 hover:text-red-600"
             >
-              🗑️ Descartar Cambios
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

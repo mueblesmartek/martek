@@ -26,11 +26,11 @@ const { categories } = Astro.props;
       </div>
 
       <!-- Categories Grid -->
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 ">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 ">
         {categories.slice(0, 8).map(category => (
           <a 
             href={`/productos?categoria=${encodeURIComponent(category.name)}`}
-            class="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300 hover:border-gray-300"
+            class="group bg-white  shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300 hover:border-gray-300"
           >
             <!-- Imagen de la Categoría -->
             <div class="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -79,7 +79,7 @@ const { categories } = Astro.props;
       {categories.length > 8 && (
         <div class="text-center mt-12">
           <a 
-            href="/productos" 
+            href="/producto" 
             class="inline-flex items-center space-x-2 border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-red-600 px-6 py-3 rounded-lg font-medium transition-colors"
           >
             <span>Ver Todas las Categorías</span>

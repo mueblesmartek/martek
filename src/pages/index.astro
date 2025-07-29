@@ -1,9 +1,11 @@
 ---
-// src/pages/index.astro - HOMEPAGE MARTEK
+// src/pages/index.astro - HOMEPAGE MARTEK CORREGIDO CON CATEGORÍAS
 import Layout from '../components/layout/Layout.astro';
 import Hero from '../components/astro/Hero.astro';
 import FeaturedProductsSection from '../components/astro/FeaturedProductsSection.astro';
 import CategoriesSection from '../components/astro/CategoriesSection.astro';
+
+// ✅ IMPORTACIÓN CORREGIDA - Importar ambas funciones
 import { getFeaturedProducts, getCategories } from '../lib/supabase';
 import type { Product, Category } from '../lib/types';
 
@@ -14,7 +16,7 @@ let categories: Category[] = [];
 try {
   // Obtener productos destacados y categorías en paralelo
   [featuredProducts, categories] = await Promise.all([
-    getFeaturedProducts(2), // Solo 2 productos
+    getFeaturedProducts(4), // Solo 2 productos
     getCategories()
   ]);
   
@@ -30,7 +32,7 @@ try {
 
 <Layout 
   title="Martek - Bases para Camas"
-  description="Bases de cama de alta calidad. Más de 60 años de experiencia en muebles."
+  description="Bases de cama de alta calidad. Más de 45 años de experiencia en muebles."
 >
   
   <!-- Hero Section -->
@@ -38,6 +40,9 @@ try {
 
   <!-- Productos Destacados Section -->
   <FeaturedProductsSection products={featuredProducts} />
+
+  <!-- ✅ AGREGAR: Categorías Section -->
+  <CategoriesSection categories={categories} />
 
   <!-- Trust Section Simplificada -->
   <section class="py-12 bg-white border-t border-gray-200">

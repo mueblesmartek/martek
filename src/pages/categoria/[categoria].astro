@@ -1,14 +1,38 @@
 ---
-// src/pages/categoria/[categoria].astro - PÁGINA DE CATEGORÍA ESTILO ZARA
+// src/pages/categoria/[categoria].astro - VERSIÓN CORREGIDA COMPLETA
 import Layout from '../../components/layout/Layout.astro';
 import { getProductsByCategory, getCategoryBySlug, getCategories } from '../../lib/supabase';
 import type { Product, Category } from '../../lib/types';
 
-// Obtener parámetros de la URL
-const { categoria } = Astro.params;
+// ✅ FUNCIÓN getStaticPaths
+export async function getStaticPaths() {
+  try {
+    const categories = await getCategories();
+    
+    if (!categories || categories.length === 0) {
+      console.warn('No categories found for static paths');
+      return [];
+    }
 
-// Verificar que la categoría existe
-const category = await getCategoryBySlug(categoria as string);
+    const paths = categories.map(category => ({
+      params: { categoria: category.slug },
+      props: { categoryData: category }
+    }));
+
+    console.log(`🏗️ Generando ${paths.length} páginas de categorías estáticas`);
+    return paths;
+  } catch (err) {
+    console.error('Error en getStaticPaths de categorías:', err);
+    return [];
+  }
+}
+
+// ✅ OBTENER DATOS
+const { categoria } = Astro.params;
+const { categoryData } = Astro.props;
+
+// Usar categoryData si está disponible, si no hacer fetch
+const category = categoryData || await getCategoryBySlug(categoria as string);
 
 if (!category) {
   return new Response(null, {
@@ -17,14 +41,14 @@ if (!category) {
   });
 }
 
-// Obtener productos y categorías
+// ✅ OBTENER PRODUCTOS Y CATEGORÍAS - ESTAS VARIABLES FALTABAN
 const [products, allCategories] = await Promise.all([
   getProductsByCategory(categoria as string),
   getCategories()
 ]);
 
 // SEO Data
-const pageTitle = `${category.name} - Kamasex.shop`;
+const pageTitle = `${category.name} - mueblesmartek.com`;
 const pageDescription = category.description || `Descubre nuestra colección de ${category.name.toLowerCase()} premium con envío discreto`;
 ---
 
@@ -238,7 +262,9 @@ const pageDescription = category.description || `Descubre nuestra colección de 
         >
           {products.map((product: Product) => (
             <article class="group">
-              <a href={`/producto/${product.slug}`} class="block">
+             
+<a href={`/producto/${product.slug}`} class="block">
+
                 
                 <!-- Product Image -->
                 <div class="aspect-[3/4] bg-neutral-100 mb-4 overflow-hidden">
@@ -371,12 +397,11 @@ const pageDescription = category.description || `Descubre nuestra colección de 
         case 'price-low': return priceA - priceB;
         case 'price-high': return priceB - priceA;
         case 'name': return nameA.localeCompare(nameB);
-        case 'newest': return 0; // Mantener orden original
-        default: return 0; // Featured
+        case 'newest': return 0;
+        default: return 0;
       }
     });
     
-    // Re-append sorted elements
     products.forEach(product => productsGrid.appendChild(product));
   });
 
@@ -398,9 +423,6 @@ const pageDescription = category.description || `Descubre nuestra colección de 
     products.forEach(product => {
       let shouldShow = true;
       
-      // Apply filters here based on product data
-      // This is a simplified example - you'd need to add data attributes to products
-      
       if (shouldShow) {
         (product as HTMLElement).style.display = 'block';
       } else {
@@ -417,11 +439,10 @@ const pageDescription = category.description || `Descubre nuestra colección de 
     applyFilters();
   });
 
-  // Add to Cart functionality
-  window.addToCart = function(button: HTMLButtonElement) {
+  // ✅ ARREGLO: Add to Cart functionality corregida
+  function addProductToCart(button: HTMLButtonElement) {
     const productId = button.getAttribute('data-product-id');
     
-    // Simulate adding to cart
     button.textContent = '✓ AGREGADO';
     button.style.backgroundColor = '#22c55e';
     button.style.color = 'white';
@@ -432,14 +453,16 @@ const pageDescription = category.description || `Descubre nuestra colección de 
       button.style.color = '';
     }, 2000);
     
-    // Update cart count
     window.dispatchEvent(new CustomEvent('cart-updated'));
     
-    // Show notification
-    if (window.showNotification) {
-      window.showNotification('Producto agregado al carrito');
+    // ✅ ARREGLO: Verificar si existe showNotification
+    if (typeof (window as any).showNotification === 'function') {
+      (window as any).showNotification('Producto agregado al carrito');
     }
-  };
+  }
+
+  // ✅ ARREGLO: Hacer función global correctamente
+  (window as any).addProductToCart = addProductToCart;
 </script>
 
 <style>

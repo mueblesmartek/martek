@@ -14,7 +14,7 @@ interface AdminStats {
 
 // Componente interno con acceso a notificaciones
 function AdminDashboardContent() {
-  const [user] = useState({ email: 'admin@kamasex.shop', full_name: 'Admin' });
+  const [user] = useState({ email: 'admin@mueblesmartek.com', full_name: 'Admin' });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'orders'>('products');
   const [stats, setStats] = useState<AdminStats>({
@@ -111,7 +111,7 @@ function AdminDashboardContent() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">Panel de Administración</h1>
-                <p className="text-gray-600 mt-1">Kamasex.shop</p>
+                <p className="text-gray-600 mt-1">mueblesmartek.com</p>
               </div>
               
               <div className="flex items-center gap-4">

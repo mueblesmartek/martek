@@ -123,7 +123,7 @@ async function sendOrderConfirmationEmail(order: any) {
   /*
   const emailData = {
     to: order.shipping_address.email,
-    subject: `Confirmación de Pedido #${order.order_number} - Kamasex.shop`,
+    subject: `Confirmación de Pedido #${order.order_number} - mueblesmartek.com`,
     template: 'order-confirmation',
     data: {
       order_number: order.order_number,

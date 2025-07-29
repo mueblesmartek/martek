@@ -1,4 +1,4 @@
-// public/js/cart-global.js - SCRIPT ÚNICO PARA TODA LA APP KAMASEX.SHOP
+// public/js/cart-global.js - SCRIPT ÚNICO PARA TODA LA APP mueblesmartek.com
 (function() {
   'use strict';
   

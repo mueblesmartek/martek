@@ -17,7 +17,7 @@ try {
 
 <Layout 
   title="Bases para Camas - Martek" 
-  description="Bases de cama de alta calidad con más de 60 años de experiencia"
+  description="Bases de cama de alta calidad con más de 45 años de experiencia"
 >
   <div class="min-h-screen bg-gray-50 py-12">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -134,40 +134,108 @@ try {
   </div>
 
   <!-- Script para carrito -->
-  <script>
+  <script is:inline>
     console.log('🛏️ Página de bases Martek cargada');
 
-    // Función global para agregar al carrito
+    // ✅ FUNCIÓN GLOBAL SIN TIPOS
     window.addProductToCart = function(productId, productName, productPrice, productImage, productCategory, buttonElement) {
       console.log('➕ Agregando base:', productName);
       
-      // Prevenir múltiples clicks
-      if (buttonElement && buttonElement.disabled) return;
-      
-      const originalText = buttonElement ? buttonElement.textContent || '' : '';
+      // ✅ VERIFICACIONES ULTRA SEGURAS
+      var canUseButton = false;
+      var isDisabled = false;
       
       if (buttonElement) {
-        buttonElement.disabled = true;
-        buttonElement.textContent = 'Agregando...';
-        buttonElement.className = buttonElement.className.replace('bg-red-600', 'bg-gray-400');
+        try {
+          // Verificar tipo de elemento
+          var tagName = buttonElement.tagName;
+          if (tagName === 'BUTTON' || tagName === 'INPUT') {
+            canUseButton = true;
+            // Verificar disabled de forma segura
+            if (buttonElement.hasAttribute && buttonElement.hasAttribute('disabled')) {
+              isDisabled = true;
+            } else if (buttonElement.disabled === true) {
+              isDisabled = true;
+            }
+          }
+        } catch (e) {
+          console.log('Error verificando botón, continuando sin modificarlo');
+          canUseButton = false;
+        }
+      }
+      
+      // No continuar si está deshabilitado
+      if (isDisabled) {
+        return;
+      }
+      
+      var originalText = '';
+      if (buttonElement) {
+        try {
+          originalText = buttonElement.textContent || buttonElement.innerText || '';
+        } catch (e) {
+          originalText = '';
+        }
+      }
+      
+      // Modificar botón de forma ultra segura
+      if (canUseButton && buttonElement) {
+        try {
+          buttonElement.setAttribute('disabled', 'true');
+          if (buttonElement.textContent !== undefined) {
+            buttonElement.textContent = 'Agregando...';
+          } else if (buttonElement.innerText !== undefined) {
+            buttonElement.innerText = 'Agregando...';
+          }
+          if (buttonElement.className) {
+            buttonElement.className = buttonElement.className.replace('bg-red-600', 'bg-gray-400');
+          }
+        } catch (e) {
+          console.log('No se pudo modificar botón');
+        }
       }
       
       try {
-        const validPrice = typeof productPrice === 'number' && !isNaN(productPrice) ? productPrice : 0;
+        // Validar precio
+        var validPrice = 0;
+        if (typeof productPrice === 'number' && !isNaN(productPrice)) {
+          validPrice = productPrice;
+        } else if (typeof productPrice === 'string') {
+          var parsed = parseFloat(productPrice);
+          if (!isNaN(parsed)) {
+            validPrice = parsed;
+          }
+        }
         
-        // Obtener carrito actual
-        const existingCart = localStorage.getItem('martek-cart');
-        let cart = existingCart ? JSON.parse(existingCart) : [];
+        // Obtener carrito
+        var existingCart = localStorage.getItem('martek-cart');
+        var cart = [];
+        if (existingCart) {
+          try {
+            cart = JSON.parse(existingCart);
+            if (!Array.isArray(cart)) {
+              cart = [];
+            }
+          } catch (e) {
+            cart = [];
+          }
+        }
         
-        // Buscar si el producto ya existe
-        const existingIndex = cart.findIndex(item => item.id === productId);
+        // Buscar producto existente
+        var existingIndex = -1;
+        for (var i = 0; i < cart.length; i++) {
+          if (cart[i] && cart[i].id === productId) {
+            existingIndex = i;
+            break;
+          }
+        }
         
         if (existingIndex > -1) {
           cart[existingIndex].quantity += 1;
         } else {
           cart.push({
             id: productId,
-            name: productName,
+            name: productName || 'Producto',
             price: validPrice,
             image: productImage || '/images/base-default.jpg',
             category: productCategory || 'Base',
@@ -179,15 +247,35 @@ try {
         localStorage.setItem('martek-cart', JSON.stringify(cart));
         
         // Mostrar feedback
-        if (buttonElement) {
-          buttonElement.textContent = '✓ Agregado';
-          buttonElement.className = buttonElement.className.replace('bg-gray-400', 'bg-green-600');
-          
-          setTimeout(() => {
-            buttonElement.disabled = false;
-            buttonElement.textContent = originalText;
-            buttonElement.className = buttonElement.className.replace('bg-green-600', 'bg-red-600');
-          }, 2000);
+        if (canUseButton && buttonElement) {
+          try {
+            if (buttonElement.textContent !== undefined) {
+              buttonElement.textContent = '✓ Agregado';
+            } else if (buttonElement.innerText !== undefined) {
+              buttonElement.innerText = '✓ Agregado';
+            }
+            if (buttonElement.className) {
+              buttonElement.className = buttonElement.className.replace('bg-gray-400', 'bg-green-600');
+            }
+            
+            setTimeout(function() {
+              try {
+                buttonElement.removeAttribute('disabled');
+                if (buttonElement.textContent !== undefined) {
+                  buttonElement.textContent = originalText;
+                } else if (buttonElement.innerText !== undefined) {
+                  buttonElement.innerText = originalText;
+                }
+                if (buttonElement.className) {
+                  buttonElement.className = buttonElement.className.replace('bg-green-600', 'bg-red-600');
+                }
+              } catch (e) {
+                console.log('Error restaurando botón');
+              }
+            }, 2000);
+          } catch (e) {
+            console.log('Error mostrando feedback');
+          }
         }
         
         console.log('✅ Base agregada al carrito');
@@ -195,12 +283,114 @@ try {
       } catch (error) {
         console.error('❌ Error agregando al carrito:', error);
         
-        if (buttonElement) {
-          buttonElement.disabled = false;
-          buttonElement.textContent = originalText;
-          buttonElement.className = buttonElement.className.replace('bg-gray-400', 'bg-red-600');
+        // Restaurar botón
+        if (canUseButton && buttonElement) {
+          try {
+            buttonElement.removeAttribute('disabled');
+            if (buttonElement.textContent !== undefined) {
+              buttonElement.textContent = originalText;
+            } else if (buttonElement.innerText !== undefined) {
+              buttonElement.innerText = originalText;
+            }
+            if (buttonElement.className) {
+              buttonElement.className = buttonElement.className.replace('bg-gray-400', 'bg-red-600');
+            }
+          } catch (e) {
+            console.log('Error restaurando botón después de error');
+          }
         }
       }
     };
+
+    // ✅ FUNCIÓN PARA CONFIGURAR BOTONES
+    function setupCartButtons() {
+      var cartButtons = document.querySelectorAll('[data-action="add-to-cart"]');
+      
+      for (var i = 0; i < cartButtons.length; i++) {
+        var button = cartButtons[i];
+        
+        // Evitar duplicar listeners
+        if (button.getAttribute('data-listener-added') === 'true') {
+          continue;
+        }
+        
+        button.addEventListener('click', function(event) {
+          event.preventDefault();
+          
+          var btn = event.target || event.srcElement;
+          
+          // Obtener datos usando getAttribute (compatible)
+          var productId = '';
+          var productName = '';
+          var productPrice = 0;
+          var productImage = '';
+          var productCategory = '';
+          
+          try {
+            if (btn && typeof btn.getAttribute === 'function') {
+              productId = btn.getAttribute('data-product-id') || '';
+              productName = btn.getAttribute('data-product-name') || '';
+              var priceStr = btn.getAttribute('data-product-price') || '0';
+              productPrice = parseFloat(priceStr) || 0;
+              productImage = btn.getAttribute('data-product-image') || '';
+              productCategory = btn.getAttribute('data-product-category') || '';
+            }
+          } catch (e) {
+            console.error('Error obteniendo datos del producto:', e);
+            return;
+          }
+          
+          // Llamar función global
+          if (typeof window.addProductToCart === 'function') {
+            window.addProductToCart(
+              productId,
+              productName,
+              productPrice,
+              productImage,
+              productCategory,
+              btn
+            );
+          }
+        });
+        
+        button.setAttribute('data-listener-added', 'true');
+      }
+    }
+
+    // ✅ INICIALIZAR
+    function initializeCart() {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupCartButtons);
+      } else {
+        setupCartButtons();
+      }
+      
+      // Observer para cambios dinámicos
+      if (window.MutationObserver) {
+        var observer = new MutationObserver(function(mutations) {
+          var shouldSetup = false;
+          
+          for (var i = 0; i < mutations.length; i++) {
+            var mutation = mutations[i];
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+              shouldSetup = true;
+              break;
+            }
+          }
+          
+          if (shouldSetup) {
+            setupCartButtons();
+          }
+        });
+        
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+    }
+
+    // Ejecutar inicialización
+    initializeCart();
   </script>
 </Layout>

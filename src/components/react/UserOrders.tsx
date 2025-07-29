@@ -476,7 +476,7 @@ export function UserOrders() {
             
             {selectedOrder.order_number && (
               <a
-                href={`mailto:soporte@kamasex.shop?subject=Consulta sobre pedido ${selectedOrder.order_number}`}
+                href={`mailto:soporte@mueblesmartek.com?subject=Consulta sobre pedido ${selectedOrder.order_number}`}
                 className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
               >
                 Contactar soporte

@@ -6,6 +6,6 @@
   X-Adult-Content: true
   
 /api/*
-  Access-Control-Allow-Origin: https://kamasex.shop
+  Access-Control-Allow-Origin: https://mueblesmartek.com
   Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
   Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key

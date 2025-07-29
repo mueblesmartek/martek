@@ -106,7 +106,7 @@ const primaryImage = product ? getPrimaryImageUrl(product) : '';
 const hasMultiple = product ? hasMultipleImages(product) : false;
 
 // ✅ Metadatos SEO
-const pageTitle = product ? `${product.name} - Kamasex.shop` : 'Producto no encontrado';
+const pageTitle = product ? `${product.name} - mueblesmartek.com` : 'Producto no encontrado';
 const pageDescription = product?.description || 'Producto no disponible';
 ---
 
@@ -394,7 +394,7 @@ const pageDescription = product?.description || 'Producto no disponible';
       "image": productImages.map(img => img.url),
       "offers": {
         "@type": "Offer",
-        "url": `https://kamasex.shop/producto/${product.slug}`,
+        "url": `https://mueblesmartek.com/producto/${product.slug}`,
         "priceCurrency": "COP",
         "price": product.price,
         "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"

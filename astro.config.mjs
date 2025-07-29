@@ -13,7 +13,7 @@ export default defineConfig({
   
   output: 'static',
   
-  site: 'https://kamasex.shop',
+  site: 'https://mueblesmartek.com',
   base: '/',
   trailingSlash: 'ignore',
   build: {
