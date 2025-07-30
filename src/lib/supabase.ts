@@ -240,7 +240,15 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
       throw new Error('Categoría es requerida');
     }
 
-    // ✅ PREPARAR DATOS SIN EL CAMPO IMAGES
+    // ✅ VALIDAR IMÁGENES SI EXISTEN
+    if (productData.images && productData.images.length > 0) {
+      const imageValidation = validateImages(productData.images);
+      if (!imageValidation.isValid) {
+        throw new Error(`Error en imágenes: ${imageValidation.errors.join(', ')}`);
+      }
+    }
+
+    // ✅ PREPARAR DATOS CON TODAS LAS IMÁGENES HABILITADAS
     const cleanData = {
       name: productData.name.trim(),
       description: productData.description?.trim() || '',
@@ -248,8 +256,8 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
       category: productData.category.trim(),
       stock: Number(productData.stock || 0),
       image_url: productData.image_url || null,
-      // ✅ OMITIR EL CAMPO IMAGES TEMPORALMENTE
-      // images: productData.images && productData.images.length > 0 ? productData.images : [],
+      // 🟢 HABILITAR MÚLTIPLES IMÁGENES
+      images: productData.images && productData.images.length > 0 ? productData.images : [],
       is_active: Boolean(productData.is_active ?? true),
       featured: Boolean(productData.featured ?? false),
       slug: productData.slug || generateSlug(productData.name),
@@ -259,7 +267,11 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
       updated_at: new Date().toISOString()
     };
 
-    console.log('🔄 Creando producto SIN images:', cleanData);
+    console.log('🔄 Creando producto CON images:', {
+      name: cleanData.name,
+      imageCount: cleanData.images.length,
+      hasImageUrl: !!cleanData.image_url
+    });
 
     const { data, error } = await supabase
       .from('products')
@@ -272,8 +284,8 @@ export async function createProduct(productData: Omit<Product, 'id' | 'created_a
       throw new Error(`Error de base de datos: ${error.message}`);
     }
 
-    console.log('✅ Producto creado:', data?.name);
-    log(`Producto creado: ${data?.name}`);
+    console.log('✅ Producto creado con', data.images?.length || 0, 'imágenes');
+    log(`Producto creado: ${data?.name} con ${data.images?.length || 0} imágenes`);
     return data;
   } catch (err) {
     console.error('❌ Excepción creando producto:', err);
@@ -293,6 +305,14 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
   try {
     console.log(`🔄 Actualizando producto ID: ${id}`);
     
+    // ✅ VALIDAR IMÁGENES SI EXISTEN EN LA ACTUALIZACIÓN
+    if (updates.images !== undefined && updates.images && updates.images.length > 0) {
+      const imageValidation = validateImages(updates.images);
+      if (!imageValidation.isValid) {
+        throw new Error(`Error en imágenes: ${imageValidation.errors.join(', ')}`);
+      }
+    }
+    
     // ✅ CREAR OBJETO LIMPIO MANUALMENTE
     const cleanUpdates: Record<string, any> = {};
     
@@ -304,10 +324,10 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
     if (updates.stock !== undefined) cleanUpdates.stock = updates.stock;
     if (updates.image_url !== undefined) cleanUpdates.image_url = updates.image_url;
     
-    // ✅ OMITIR EL CAMPO IMAGES TEMPORALMENTE
-    // if (updates.images !== undefined) {
-    //   cleanUpdates.images = updates.images && updates.images.length > 0 ? updates.images : [];
-    // }
+    // 🟢 HABILITAR CAMPO IMAGES
+    if (updates.images !== undefined) {
+      cleanUpdates.images = updates.images && updates.images.length > 0 ? updates.images : [];
+    }
     
     if (updates.is_active !== undefined) cleanUpdates.is_active = updates.is_active;
     if (updates.featured !== undefined) cleanUpdates.featured = updates.featured;
@@ -318,7 +338,7 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
     // Siempre actualizar timestamp
     cleanUpdates.updated_at = new Date().toISOString();
 
-    console.log('📝 Datos limpios para actualizar:', cleanUpdates);
+    console.log('🔄 Actualizando con', cleanUpdates.images?.length || 0, 'imágenes');
 
     const { data, error } = await supabase
       .from('products')
@@ -329,15 +349,11 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
 
     if (error) {
       console.error('❌ Error actualizando producto:', error);
-      throw new Error(`Error de base de datos: ${error.message}`);
+      throw new Error(error.message);
     }
 
-    if (!data) {
-      throw new Error('Producto no encontrado');
-    }
-
-    console.log('✅ Producto actualizado:', data.name);
-    log(`Producto actualizado: ${data.name}`);
+    console.log('✅ Producto actualizado con', data.images?.length || 0, 'imágenes');
+    log(`Producto actualizado: ${data?.name} con ${data.images?.length || 0} imágenes`);
     return data;
   } catch (err) {
     console.error('❌ Excepción actualizando producto:', err);
@@ -346,8 +362,95 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
   }
 }
 
-// Agregar estas funciones a src/lib/supabase.ts después de getCategories()
+export async function migrateImageUrlToImages(productId: string): Promise<void> {
+  if (!supabase) {
+    throw new Error('Supabase no configurado');
+  }
 
+  try {
+    // Obtener producto actual
+    const { data: product, error: fetchError } = await supabase
+      .from('products')
+      .select('id, name, image_url, images')
+      .eq('id', productId)
+      .single();
+
+    if (fetchError || !product) {
+      console.log('❌ No se pudo obtener producto para migración');
+      return;
+    }
+
+    // Si ya tiene múltiples imágenes, no migrar
+    if (product.images && product.images.length > 0) {
+      console.log('✅ Producto ya tiene múltiples imágenes');
+      return;
+    }
+
+    // Si tiene image_url, convertir a formato múltiple
+    if (product.image_url) {
+      const migratedImages = [{
+        id: `migrated_${Date.now()}`,
+        url: product.image_url,
+        alt: product.name || 'Imagen del producto',
+        isPrimary: true,
+        sortOrder: 0
+      }];
+
+      await updateProduct(productId, { images: migratedImages });
+      console.log('✅ Imagen migrada de image_url a images array');
+    }
+  } catch (err) {
+    console.error('❌ Error migrando imagen:', err);
+  }
+}
+
+function validateImages(images: any[]): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  if (!Array.isArray(images)) {
+    return { isValid: false, errors: ['Images debe ser un array'] };
+  }
+  
+  if (images.length === 0) {
+    return { isValid: true, errors: [] }; // Vacío es válido
+  }
+  
+  // Verificar que hay al menos una imagen primary
+  const primaryImages = images.filter(img => img.isPrimary);
+  if (primaryImages.length === 0) {
+    errors.push('Debe haber al menos una imagen marcada como principal');
+  } else if (primaryImages.length > 1) {
+    errors.push('Solo puede haber una imagen principal');
+  }
+  
+  // Verificar IDs únicos
+  const ids = images.map(img => img.id);
+  const uniqueIds = new Set(ids);
+  if (ids.length !== uniqueIds.size) {
+    errors.push('Los IDs de las imágenes deben ser únicos');
+  }
+  
+  // Verificar URLs válidas
+  images.forEach((img, index) => {
+    if (!img.url || !img.url.trim()) {
+      errors.push(`La imagen ${index + 1} no tiene URL válida`);
+    }
+    if (!img.id || !img.id.trim()) {
+      errors.push(`La imagen ${index + 1} no tiene ID válido`);
+    }
+    if (typeof img.isPrimary !== 'boolean') {
+      errors.push(`La imagen ${index + 1} debe tener isPrimary como boolean`);
+    }
+    if (typeof img.sortOrder !== 'number') {
+      errors.push(`La imagen ${index + 1} debe tener sortOrder como número`);
+    }
+  });
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
 /**
  * Obtener categoría por slug
  */

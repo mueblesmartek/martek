@@ -1,36 +1,44 @@
 ---
-// src/components/astro/Hero.astro - MARTEK HERO
+// src/components/astro/Hero.astro - MARTEK HERO CON IMAGEN DE FONDO
 ---
 
 <!-- Hero Section Martek -->
-<section class="min-h-screen flex items-center justify-center bg-gray-100">
-  <div class="text-center space-y-8 max-w-2xl mx-auto px-4">
-    
+<section class="min-h-screen flex items-center justify-center relative overflow-hidden">
+  <!-- Imagen de fondo con blur -->
+  <div 
+    class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+    style="background-image: url('/images/modern.webp'); filter: blur(5px); transform: scale(1.1);"
+  ></div>
+  
+  <!-- Capa negra -->
+  <div class="absolute inset-0 bg-black/20"></div>
+  
+  <!-- Contenido -->
+  <div class="relative z-10 text-center space-y-8 max-w-2xl mx-auto px-4">
     <!-- Logo Martek -->
     <div class="space-y-6">
       <div class="flex justify-center">
         <div class="text-6xl md:text-8xl font-bold">
-          <span class="text-gray-700">MAR</span><span class="text-red-600">TEK</span>
+          <span class="text-white">MAR</span><span class="text-red-600">TEK</span>
         </div>
       </div>
-      
       <div class="w-24 h-px bg-red-600 mx-auto"></div>
       
       <!-- Subtítulo -->
-      <p class="text-xl md:text-2xl font-light text-gray-600 leading-relaxed">
+      <p class="text-xl md:text-2xl font-light text-gray-800 leading-relaxed">
         Bases de cama de alta calidad
       </p>
       
       <!-- Descripción -->
-      <p class="text-gray-500 max-w-lg mx-auto leading-relaxed">
+      <p class="text-gray-800 max-w-lg mx-auto leading-relaxed">
         Más de 45 años de experiencia en muebles. Calidad y durabilidad garantizada.
       </p>
-
+      
       <!-- CTA Button -->
       <div class="pt-6">
         <a 
-          href="/productos"
-          class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg"
+          href="/productos" 
+          class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-red-600/25"
         >
           <span>Ver Bases</span>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,12 +46,11 @@
           </svg>
         </a>
       </div>
-
+      
       <!-- Features Simples -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-md mx-auto pt-8">
-        
         <!-- Calidad -->
-        <div class="flex items-center space-x-2 text-gray-600">
+        <div class="flex items-center space-x-2 text-gray-800">
           <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
           </svg>
@@ -51,7 +58,7 @@
         </div>
         
         <!-- Envío -->
-        <div class="flex items-center space-x-2 text-gray-600">
+        <div class="flex items-center space-x-2 text-gray-800">
           <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
             <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
             <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707L16 7.586A1 1 0 0015.414 7H14z"></path>
@@ -59,6 +66,15 @@
           <span>Envío Incluido</span>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator opcional -->
+  <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10">
+    <div class="animate-bounce">
+      <svg class="w-6 h-6 text-gray/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+      </svg>
     </div>
   </div>
 </section>
