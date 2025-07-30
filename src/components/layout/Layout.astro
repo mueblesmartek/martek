@@ -195,6 +195,29 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
               return false;
             };
             
+            // 🐛 DEBUG: Disparar evento para notificar que el carrito está listo
+            console.log('🐛 DEBUG: Disparando eventos de carrito listo...');
+            
+            // Evento personalizado para componentes React
+            window.dispatchEvent(new CustomEvent('cart-system-ready', {
+              detail: { 
+                timestamp: Date.now(),
+                cartAPI: !!window.CartAPI,
+                addToCart: !!window.addToCart
+              }
+            }));
+            
+            // También usar el evento que esperan los componentes
+            if (window.CartAPI && typeof window.CartAPI.on === 'function') {
+              console.log('🐛 DEBUG: Disparando cart:updated...');
+              // Simular un evento de carrito actualizado para despertar componentes
+              setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('cart:updated', {
+                  detail: { items: window.CartAPI.getItems ? window.CartAPI.getItems() : [] }
+                }));
+              }, 100);
+            }
+            
           } else {
             console.error('❌ Sistema de carrito no se pudo inicializar');
             
@@ -206,6 +229,25 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             
             window.waitForCartAPI = () => Promise.resolve(false);
           }
+          
+          // 🐛 DEBUG: Verificar qué componentes siguen cargando después de 5 segundos
+          setTimeout(() => {
+            console.log('🐛 DEBUG: Verificando componentes después de 5 segundos...');
+            
+            // Verificar elementos con clases de loading
+            const loadingElements = document.querySelectorAll('.loading, [data-loading="true"], .spinner');
+            if (loadingElements.length > 0) {
+              console.log('🐛 DEBUG: Elementos que siguen cargando:', loadingElements);
+              loadingElements.forEach((el, index) => {
+                console.log(`🐛 Elemento ${index + 1}:`, el.className, el.id, el.textContent?.substring(0, 50));
+              });
+            }
+            
+            // Verificar estado de React components
+            const reactContainers = document.querySelectorAll('[data-reactroot], [data-react-component]');
+            console.log('🐛 DEBUG: Contenedores React encontrados:', reactContainers.length);
+            
+          }, 5000);
           
         } catch (error) {
           console.error('❌ Error en inicialización del carrito:', error);
