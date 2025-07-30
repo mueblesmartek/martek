@@ -155,32 +155,10 @@ const pageDescription = product?.description || 'Producto no disponible';
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
           
-          <!-- ✅ GALERÍA DE IMÁGENES -->
+          <!-- ✅ GALERÍA DE IMÁGENES - SIEMPRE REACT -->
           <div class="space-y-4">
-            {hasMultiple ? (
-              <!-- Galería múltiple con React -->
-              <div id="product-gallery" data-product={JSON.stringify(product)}></div>
-            ) : (
-              <!-- Imagen única estática -->
-              <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                <img
-                  src={primaryImage}
-                  alt={product.name}
-                  class="w-full h-full object-cover"
-                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjZjlmYWZiIi8+CjxyZWN0IHg9IjE1MCIgeT0iMTUwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2U1ZTdlYiIgcng9IjgiLz4KPHR5cGU+U2luIGltYWdlbjwvdGV4dD4KPC9zdmc+'"
-                />
-              </div>
-            )}
-
-            <!-- Indicador de múltiples imágenes -->
-            {hasMultiple && (
-              <div class="flex items-center justify-center space-x-2 text-sm text-gray-500">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>{productImages.length} imágenes disponibles</span>
-              </div>
-            )}
+            <!-- ✅ SIEMPRE usar React component con thumbnails -->
+            <div id="product-gallery" data-product={JSON.stringify(product)}></div>
           </div>
 
           <!-- Info del producto -->
@@ -279,12 +257,10 @@ const pageDescription = product?.description || 'Producto no disponible';
                   <span class="text-gray-600">SKU:</span>
                   <span class="font-medium text-sm">{product.id.slice(0, 8).toUpperCase()}</span>
                 </div>
-                {hasMultiple && (
-                  <div class="flex justify-between">
-                    <span class="text-gray-600">Imágenes:</span>
-                    <span class="font-medium">{productImages.length} disponibles</span>
-                  </div>
-                )}
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Imágenes:</span>
+                  <span class="font-medium">{productImages.length} disponibles</span>
+                </div>
               </div>
             </div>
 
@@ -402,11 +378,37 @@ const pageDescription = product?.description || 'Producto no disponible';
     })} />
   )}
 </Layout>
-<!-- REEMPLAZAR SOLO EL <script> EN [slug].astro CON ESTO: -->
 
 <script>
+  // ✅ CARGAR COMPONENTE REACT PARA GALERÍA CON THUMBNAILS
+  if (document.getElementById('product-gallery')) {
+    Promise.all([
+      import('../../components/react/ProductImageGallery'),
+      import('react'),
+      import('react-dom/client')
+    ]).then(([{ ProductImageGallery }, React, ReactDOM]) => {
+      const container = document.getElementById('product-gallery');
+      if (container && container.dataset.product) {
+        try {
+          const productData = JSON.parse(container.dataset.product);
+          const root = ReactDOM.createRoot(container);
+          root.render(React.createElement(ProductImageGallery, { 
+            product: productData,
+            showThumbnails: true,        // ✅ THUMBNAILS HABILITADOS
+            enableZoom: true,
+            enableFullscreen: true
+          }));
+        } catch (error) {
+          console.error('Error cargando ProductImageGallery:', error);
+        }
+      }
+    }).catch(error => {
+      console.error('Error importando ProductImageGallery:', error);
+    });
+  }
+
   // ✅ FUNCIÓN PARA CREAR BOTÓN DE AGREGAR AL CARRITO
-  function createAddToCartButton(product) {
+  function createAddToCartButton(product: any) {
     const container = document.getElementById('product-actions');
     if (!container) return;
 
@@ -462,7 +464,7 @@ const pageDescription = product?.description || 'Producto no disponible';
       </div>
     `;
 
-    // Event listeners para cantidad
+    // ✅ Event listeners para cantidad
     if (!isOutOfStock) {
       const qtyInput = document.getElementById('quantity-input') as HTMLInputElement;
       const qtyMinus = document.getElementById('qty-minus');
@@ -482,21 +484,26 @@ const pageDescription = product?.description || 'Producto no disponible';
         });
       }
 
-      // Event listener para agregar al carrito
+      // ✅ Event listener para agregar al carrito
       const addToCartBtn = document.getElementById('add-to-cart-btn');
       if (addToCartBtn && qtyInput) {
         addToCartBtn.addEventListener('click', function() {
           const quantity = parseInt(qtyInput.value);
           console.log('Agregando ' + quantity + ' x ' + product.name + ' al carrito');
           
-          // ✅ USAR FUNCIONES DEL public/js/cart.js
+          // Usar funciones del public/js/cart.js
           if (typeof window.addToCart === 'function') {
             window.addToCart(product.id, product.name, product.price, quantity);
             
             // Feedback visual
             addToCartBtn.innerHTML = '✅ Agregado!';
+            addToCartBtn.classList.add('bg-green-600');
+            addToCartBtn.classList.remove('bg-gray-900');
+            
             setTimeout(function() {
               addToCartBtn.innerHTML = '🛒 Agregar al Carrito';
+              addToCartBtn.classList.remove('bg-green-600');
+              addToCartBtn.classList.add('bg-gray-900');
             }, 2000);
             
           } else {
@@ -506,7 +513,7 @@ const pageDescription = product?.description || 'Producto no disponible';
         });
       }
 
-      // Event listener para comprar ahora
+      // ✅ Event listener para comprar ahora
       const buyNowBtn = document.getElementById('buy-now-btn');
       if (buyNowBtn && qtyInput) {
         buyNowBtn.addEventListener('click', function() {
@@ -527,73 +534,6 @@ const pageDescription = product?.description || 'Producto no disponible';
     }
   }
 
-  // ✅ CARGAR GALERÍA DE IMÁGENES
-  function loadImageGallery(product) {
-    const container = document.getElementById('product-gallery');
-    if (!container) return;
-
-    const images = product.images || [];
-    if (images.length <= 1) return;
-
-    const primaryImage = images.find(function(img) { return img.isPrimary; }) || images[0];
-    
-    container.innerHTML = `
-      <div class="space-y-4">
-        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-          <img
-            id="main-image"
-            src="${primaryImage.url}"
-            alt="${primaryImage.alt || product.name}"
-            class="w-full h-full object-cover cursor-zoom-in"
-            onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzk5OTk5OSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAwIDEwMGgxMDBjNS41IDAgMTAgNC41IDEwIDEwdjEwMGMwIDUuNS00LjUgMTAtMTAgMTBIMTAwYy01LjUgMC0xMC00LjUtMTAtMTBWMTEwYzAtNS41IDQuNS0xMCAxMC0xMHptNTAgMjBjLTExIDAtMjAgOS0yMCAyMHM5IDIwIDIwIDIwIDIwLTkgMjAtMjAtOS0yMC0yMC0yMHptMCAzMGMtNS41IDAtMTAtNC41LTEwLTEwczQuNS0xMCAxMC0xMCAxMCA0LjUgMTAgMTAtNC41IDEwLTEwIDEweiIvPjwvc3ZnPg=='"
-          />
-        </div>
-        
-        <div class="grid grid-cols-4 gap-2">
-          ${images.map(function(img, index) { 
-            return `
-              <button 
-                class="aspect-square bg-gray-100 rounded border-2 overflow-hidden transition-all ${
-                  img.isPrimary ? 'border-red-600 ring-2 ring-gray-200' : 'border-gray-200 hover:border-gray-400'
-                }"
-                onclick="selectImage('${img.url}', '${img.alt || product.name}', ${index})"
-              >
-                <img
-                  src="${img.url}"
-                  alt="${img.alt || 'Vista ' + (index + 1)}"
-                  class="w-full h-full object-cover"
-                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIGZpbGw9IiM5OTk5OTkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEwIDEwaDIwYzEuMSAwIDIgLjkgMiAydjIwYzAgMS4xLS45IDItMiAySDE0Yy0xLjEgMC0yLS45LTItMlYxMmMwLTEuMS45LTIgMi0yem0xMCA4Yy0yLjIgMC00IDEuOC00IDRzMS44IDQgNCA0IDQtMS44IDQtNC0xLjgtNC00LTR6bTAgNmMtMS4xIDAtMi0uOS0yLTJzLjktMiAyLTIgMiAuOSAyIDItLjkgMi0yIDJ6Ii8+PC9zdmc+'"
-                />
-              </button>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  // ✅ FUNCIÓN PARA CAMBIAR IMAGEN PRINCIPAL
-  function selectImage(url, alt, index) {
-    const mainImage = document.getElementById('main-image') as HTMLImageElement;
-    if (mainImage) {
-      mainImage.src = url;
-      mainImage.alt = alt;
-    }
-    
-    // Actualizar estado de thumbnails
-    const thumbnails = document.querySelectorAll('#product-gallery button');
-    thumbnails.forEach(function(thumb, i) {
-      if (i === index) {
-        thumb.className = thumb.className.replace('border-gray-200 hover:border-gray-400', 'border-red-600 ring-2 ring-gray-200');
-      } else {
-        thumb.className = thumb.className.replace('border-red-600 ring-2 ring-gray-200', 'border-gray-200 hover:border-gray-400');
-      }
-    });
-  }
-
-  // ✅ DECLARAR FUNCIÓN GLOBAL
-  window.selectImage = selectImage;
-
   // ✅ EJECUTAR CUANDO EL DOM ESTÉ LISTO
   document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Script de producto ejecutándose...');
@@ -613,17 +553,6 @@ const pageDescription = product?.description || 'Producto no disponible';
         createAddToCartButton(product);
       } catch (error) {
         console.error('❌ Error parseando producto para actions:', error);
-      }
-    }
-
-    // Cargar galería de imágenes
-    const galleryContainer = document.getElementById('product-gallery');
-    if (galleryContainer && galleryContainer.dataset.product) {
-      try {
-        const product = JSON.parse(galleryContainer.dataset.product);
-        loadImageGallery(product);
-      } catch (error) {
-        console.error('❌ Error parseando producto para gallery:', error);
       }
     }
   });
