@@ -1,5 +1,5 @@
 ---
-// src/components/layout/Layout.astro - LAYOUT MARTEK CON CARRITO
+// src/components/layout/Layout.astro - LAYOUT HÍBRIDO A+B
 import Header from './Header.astro';
 import Footer from './Footer.astro';
 import { GlobalCart } from '../react/Cart';
@@ -53,6 +53,164 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   
+  <!-- 🚀 SOLUCIÓN A: CART.JS EN HEAD - MÁXIMA PRIORIDAD -->
+  <script src="/js/cart.js" is:inline></script>
+  
+  <!-- 🚀 SOLUCIÓN B: EVENT SYSTEM - DESPUÉS DE CART.JS -->
+  <script is:inline>
+    // 🎯 SISTEMA DE EVENTOS HÍBRIDO - GARANTIZA DISPONIBILIDAD
+    (function() {
+      console.log('🛏️ Martek - Iniciando sistema híbrido...');
+      
+      // Flag para evitar múltiples ejecuciones
+      if (window.MARTEK_EVENT_SYSTEM_LOADED) {
+        console.log('🔄 Sistema de eventos ya cargado');
+        return;
+      }
+      window.MARTEK_EVENT_SYSTEM_LOADED = true;
+      
+      // 🎯 FUNCIÓN DE VERIFICACIÓN ROBUSTA
+      function checkCartAvailability() {
+        const checks = {
+          CartAPI: typeof window.CartAPI !== 'undefined',
+          addToCart: typeof window.addToCart === 'function',
+          CartManager: typeof window.CartManager !== 'undefined',
+          updateCartCounter: typeof window.updateCartCounter === 'function'
+        };
+        
+        // Necesitamos al menos CartAPI O addToCart
+        const isAvailable = checks.CartAPI || checks.addToCart;
+        
+        if (isAvailable) {
+          console.log('✅ Sistema de carrito verificado:', checks);
+        }
+        
+        return isAvailable;
+      }
+      
+      // 🎯 DISPATCHER DE EVENTOS
+      function dispatchCartReady() {
+        console.log('📡 Disparando evento cart-ready...');
+        
+        // Evento personalizado con detalles
+        const cartReadyEvent = new CustomEvent('cart-ready', {
+          detail: {
+            timestamp: Date.now(),
+            cartAPI: !!window.CartAPI,
+            addToCart: !!window.addToCart,
+            cartManager: !!window.CartManager
+          }
+        });
+        
+        window.dispatchEvent(cartReadyEvent);
+        
+        // También disparar eventos compatibles
+        window.dispatchEvent(new CustomEvent('cart-system-ready'));
+        window.dispatchEvent(new CustomEvent('martek-cart-ready'));
+        
+        console.log('✅ Eventos de carrito listo disparados');
+      }
+      
+      // 🎯 FUNCIÓN HELPER GLOBAL
+      window.waitForCart = function(timeout = 10000) {
+        return new Promise((resolve) => {
+          if (checkCartAvailability()) {
+            resolve(true);
+            return;
+          }
+          
+          console.log('⏳ Esperando evento cart-ready...');
+          
+          const timeoutId = setTimeout(() => {
+            console.warn('⚠️ Timeout esperando cart-ready');
+            resolve(false);
+          }, timeout);
+          
+          window.addEventListener('cart-ready', function() {
+            clearTimeout(timeoutId);
+            resolve(true);
+          }, { once: true });
+        });
+      };
+      
+      // 🎯 FUNCIÓN SAFE ADD TO CART GLOBAL
+      window.safeAddToCart = async function(productId, productName, productPrice, quantity = 1) {
+        const isReady = await window.waitForCart(5000);
+        
+        if (!isReady) {
+          console.error('❌ Carrito no disponible para agregar producto');
+          alert('Error: Sistema de carrito no disponible. Por favor, recarga la página.');
+          return false;
+        }
+        
+        try {
+          // Intentar múltiples métodos
+          if (typeof window.addToCart === 'function') {
+            window.addToCart(productId, productName, productPrice, quantity);
+            return true;
+          } else if (window.CartAPI && typeof window.CartAPI.addProduct === 'function') {
+            return window.CartAPI.addProduct({
+              product_id: productId,
+              product_name: productName,
+              product_price: productPrice,
+              quantity: quantity
+            });
+          } else if (window.CartManager && typeof window.CartManager.addItem === 'function') {
+            return window.CartManager.addItem(productId, productName, productPrice, quantity);
+          }
+          
+          throw new Error('No se encontró método para agregar al carrito');
+          
+        } catch (error) {
+          console.error('❌ Error agregando al carrito:', error);
+          alert('Error agregando al carrito. Por favor, intenta de nuevo.');
+          return false;
+        }
+      };
+      
+      // 🎯 INICIALIZACIÓN INMEDIATA O ESPERA
+      function initializeEventSystem() {
+        if (checkCartAvailability()) {
+          // Cart ya disponible, disparar inmediatamente
+          console.log('✅ Cart disponible inmediatamente');
+          dispatchCartReady();
+        } else {
+          // Esperar a que cart.js se inicialice
+          console.log('⏳ Esperando inicialización de cart.js...');
+          
+          let attempts = 0;
+          const maxAttempts = 100; // 10 segundos max
+          
+          const checkInterval = setInterval(() => {
+            attempts++;
+            
+            if (checkCartAvailability()) {
+              clearInterval(checkInterval);
+              dispatchCartReady();
+            } else if (attempts >= maxAttempts) {
+              clearInterval(checkInterval);
+              console.error('❌ Timeout: cart.js no se inicializó');
+              
+              // Disparar evento de error
+              window.dispatchEvent(new CustomEvent('cart-error', {
+                detail: { error: 'Timeout esperando cart.js' }
+              }));
+            }
+          }, 100);
+        }
+      }
+      
+      // 🎯 EJECUTAR CUANDO DOM ESTÉ LISTO
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeEventSystem);
+      } else {
+        // DOM ya listo, ejecutar inmediatamente
+        initializeEventSystem();
+      }
+      
+    })();
+  </script>
+  
   <!-- Estilos críticos inline -->
   <style>
     *,*::before,*::after{box-sizing:border-box;}
@@ -86,206 +244,32 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   <!-- Footer -->
   <Footer />
 
-  <!-- ✅ CARRITO GLOBAL CON HYDRATION FORZADA -->
-  <div id="global-cart-mount-point"></div>
+  <!-- ✅ CARRITO GLOBAL - AHORA USA EVENTOS -->
+  <GlobalCart client:load />
 
-  <!-- ✅ SCRIPT PRINCIPAL - CART + HYDRATION FIX -->
-  <script is:inline>
-    // 🔧 FLAG GLOBAL PARA EVITAR CARGA DOBLE
-    if (!window.MARTEK_CART_LOADING && !window.MARTEK_CART_LOADED) {
-      window.MARTEK_CART_LOADING = true;
+  <!-- ✅ VERIFICACIÓN FINAL Y DEBUG -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🎉 Layout completamente cargado');
       
-      console.log('🛏️ Martek - Iniciando carga de carrito...');
-      
-      // ✅ FUNCIÓN HELPER PARA ESPERAR CARRITO
-      function waitForCartReady(maxAttempts = 100) {
-        return new Promise((resolve) => {
-          let attempts = 0;
-          
-          const checkCart = () => {
-            attempts++;
-            
-            const hasCartAPI = typeof window.CartAPI !== 'undefined';
-            const hasAddToCart = typeof window.addToCart === 'function';
-            const hasCartLoaded = window.MARTEK_CART_LOADED === true;
-            
-            if ((hasCartAPI || hasAddToCart) || hasCartLoaded) {
-              console.log('✅ Sistema de carrito detectado');
-              window.MARTEK_CART_LOADED = true;
-              resolve(true);
-            } else if (attempts >= maxAttempts) {
-              console.warn('⚠️ Timeout esperando carrito después de', attempts * 100, 'ms');
-              resolve(false);
-            } else {
-              setTimeout(checkCart, 100);
-            }
-          };
-          
-          checkCart();
-        });
-      }
-      
-      // ✅ CARGAR CART.JS DE FORMA SEGURA
-      function loadCartScript() {
-        return new Promise((resolve, reject) => {
-          const existingScript = document.querySelector('script[src="/js/cart.js"]');
-          if (existingScript) {
-            console.log('🔄 cart.js ya existe, esperando carga...');
-            resolve(true);
-            return;
-          }
-          
-          console.log('📦 Cargando cart.js...');
-          const script = document.createElement('script');
-          script.src = '/js/cart.js';
-          script.async = false;
-          
-          script.onload = () => {
-            console.log('✅ cart.js cargado exitosamente');
-            window.MARTEK_CART_LOADED = true;
-            resolve(true);
-          };
-          
-          script.onerror = (error) => {
-            console.error('❌ Error cargando cart.js:', error);
-            reject(error);
-          };
-          
-          document.head.appendChild(script);
-        });
-      }
-      
-      // 🔧 FORZAR HIDRATACIÓN DE REACT COMPONENTS
-      async function forceReactHydration() {
-        console.log('🔄 Iniciando hidratación forzada de React...');
-        
-        try {
-          // Cargar React y ReactDOM
-          const [React, ReactDOM] = await Promise.all([
-            import('react'),
-            import('react-dom/client')
-          ]);
-          
-          console.log('✅ React y ReactDOM cargados');
-          
-          // Esperar un poco para que el DOM esté completamente listo
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          // Montar GlobalCart manualmente
-          const cartContainer = document.getElementById('global-cart-mount-point');
-          if (cartContainer) {
-            try {
-              const { GlobalCart } = await import('../components/react/Cart');
-              const root = ReactDOM.createRoot(cartContainer);
-              root.render(React.createElement(GlobalCart));
-              console.log('✅ GlobalCart hidratado manualmente');
-            } catch (error) {
-              console.error('❌ Error hidratando GlobalCart:', error);
-            }
-          }
-          
-          // Verificar y forzar hidratación de otros componentes React
-          const reactComponents = document.querySelectorAll('[data-astro-component]');
-          console.log(`🔄 Encontrados ${reactComponents.length} componentes Astro para hidratar`);
-          
-          // Disparar evento personalizado para despertar componentes
-          window.dispatchEvent(new CustomEvent('astro:hydration-force', {
-            detail: { timestamp: Date.now() }
-          }));
-          
-          // Trigger de eventos para componentes que podrían estar esperando
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('astro:page-load'));
-            window.dispatchEvent(new CustomEvent('DOMContentLoaded'));
-          }, 100);
-          
-        } catch (error) {
-          console.error('❌ Error en hidratación forzada:', error);
-        }
-      }
-      
-      // ✅ INICIALIZACIÓN PRINCIPAL
-      document.addEventListener('DOMContentLoaded', async function() {
-        try {
-          console.log('🚀 Iniciando secuencia de carga...');
-          
-          // 1. Cargar cart.js
-          await loadCartScript();
-          
-          // 2. Esperar a que se inicialice
-          const cartReady = await waitForCartReady();
-          
-          if (cartReady) {
-            console.log('✅ Layout: Sistema de carrito inicializado');
-            
-            // 3. Crear helpers globales
-            window.waitForCartAPI = () => waitForCartReady(50);
-            
-            window.safeAddToCart = async function(productId, productName, productPrice, quantity = 1) {
-              const ready = await waitForCartReady(30);
-              
-              if (ready) {
-                if (typeof window.addToCart === 'function') {
-                  window.addToCart(productId, productName, productPrice, quantity);
-                  return true;
-                } else if (window.CartAPI && typeof window.CartAPI.addProduct === 'function') {
-                  return window.CartAPI.addProduct({
-                    product_id: productId,
-                    product_name: productName,
-                    product_price: productPrice,
-                    quantity: quantity
-                  });
-                }
-              }
-              
-              console.error('No se pudo agregar al carrito - sistema no disponible');
-              alert('Error: Sistema de carrito no disponible. Por favor, recarga la página.');
-              return false;
-            };
-            
-            // 4. Disparar eventos de carrito listo
-            console.log('📡 Disparando eventos de carrito listo...');
-            window.dispatchEvent(new CustomEvent('cart-system-ready', {
-              detail: { 
-                timestamp: Date.now(),
-                cartAPI: !!window.CartAPI,
-                addToCart: !!window.addToCart
-              }
-            }));
-            
-            // 5. Forzar hidratación de React (FIX PRINCIPAL)
-            await forceReactHydration();
-            
-            console.log('🎉 Inicialización completa - cart + React hidratado');
-            
-          } else {
-            console.error('❌ Sistema de carrito no se pudo inicializar');
-            
-            // Fallback functions
-            window.safeAddToCart = async function() {
-              alert('Sistema de carrito no disponible. Por favor, recarga la página.');
-              return false;
-            };
-            
-            window.waitForCartAPI = () => Promise.resolve(false);
-          }
-          
-        } catch (error) {
-          console.error('❌ Error en inicialización:', error);
-          
-          // Fallback functions
-          window.safeAddToCart = async function() {
-            alert('Error del sistema. Por favor, recarga la página.');
-            return false;
-          };
-          
-          window.waitForCartAPI = () => Promise.resolve(false);
-        }
+      // Verificar que el sistema de eventos esté funcionando
+      window.addEventListener('cart-ready', function(event) {
+        console.log('✅ Layout recibió evento cart-ready:', event.detail);
       });
       
-    } else {
-      console.log('🔄 Sistema de carrito ya cargado o en proceso');
-    }
+      window.addEventListener('cart-error', function(event) {
+        console.error('❌ Layout recibió evento cart-error:', event.detail);
+      });
+      
+      // Debug info después de 2 segundos
+      setTimeout(() => {
+        console.log('🐛 DEBUG - Estado final:');
+        console.log('  - waitForCart:', typeof window.waitForCart);
+        console.log('  - safeAddToCart:', typeof window.safeAddToCart);
+        console.log('  - CartAPI:', typeof window.CartAPI);
+        console.log('  - addToCart:', typeof window.addToCart);
+      }, 2000);
+    });
   </script>
 </body>
 </html>
