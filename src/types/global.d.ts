@@ -1,6 +1,5 @@
 // ✅ src/types/global.d.ts - DECLARACIONES GLOBALES CORREGIDAS PARA TYPESCRIPT
 
-// ✅ TIPOS PARA SUPABASE
 type SupabaseUser = {
   id: string;
   email?: string;
@@ -22,11 +21,20 @@ type SupabaseClient = {
   from: (table: string) => any;
 };
 
-// ✅ DECLARACIONES GLOBALES PARA WINDOW
+// ✅ DECLARACIONES GLOBALES (SOLO NO-CARRITO)
 declare global {
   interface Window {
-    // Funciones del carrito
-    addProductToCart: (
+    // Funciones de autenticación
+    loginUser: (email: string, password: string) => Promise<boolean>;
+    logoutUser: () => void;
+    getCurrentUser: () => any | null;
+    
+    // Funciones de productos y búsqueda
+    searchProducts: (query: string) => void;
+    filterByCategory: (category: string) => void;
+    
+    // Función legacy (mantener por compatibilidad)
+    addProductToCart?: (
       productId: string, 
       productName: string, 
       productPrice: number, 
@@ -34,50 +42,10 @@ declare global {
       productCategory: string, 
       buttonElement?: Element | null
     ) => void;
-    
-    addToCart: (product: {
-      id: string;
-      name: string;
-      price: number;
-      image?: string;
-      category?: string;
-    }, quantity?: number) => void;
-    
-    removeFromCart: (productId: string) => void;
-    updateCartQuantity: (productId: string, quantity: number) => void;
-    clearCart: () => void;
-    getCartItems: () => any[];
-    getCartTotal: () => number;
-    getCartCount: () => number;
-    
-    // Funciones de autenticación
-    loginUser: (email: string, password: string) => Promise<boolean>;
-    logoutUser: () => void;
-    getCurrentUser: () => any | null;
-    
-    // Funciones de productos
-    searchProducts: (query: string) => void;
-    filterByCategory: (category: string) => void;
   }
 }
 
-// Tipos específicos para el carrito
-export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image?: string;
-  category?: string;
-}
-
-export interface CartState {
-  items: CartItem[];
-  total: number;
-  count: number;
-}
-
-// Tipos para autenticación
+// ✅ TIPOS PARA AUTENTICACIÓN (no relacionados con carrito)
 export interface User {
   id: string;
   email: string;

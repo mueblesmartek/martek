@@ -192,8 +192,8 @@ export function validateShippingAddress(address: ShippingAddress): { isValid: bo
   }
 
   if (!address.email?.trim() || !/\S+@\S+\.\S+/.test(address.email)) {
-    errors.push('Email válido es requerido');
-  }
+  errors.push('Email válido es requerido');
+}
 
   if (!address.phone?.trim()) {
     errors.push('Teléfono es requerido');

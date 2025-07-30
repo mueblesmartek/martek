@@ -12,6 +12,7 @@
     "type-check": "astro check"
   },
   "dependencies": {
+    "@astrojs/node": "^8.3.4",
     "@astrojs/react": "^3.0.9",
     "@astrojs/tailwind": "^5.1.0",
     "@supabase/supabase-js": "^2.39.0",

@@ -1,225 +1,121 @@
-// src/components/react/ProductForm.tsx - CORRECCIÓN DE IMPORTACIONES
-import React, { useState } from 'react';
+// src/components/react/ProductCard.tsx - COMPONENTE CORRECTO
+import React from 'react';
 import type { Product } from '../../lib/types';
-// ✅ CORREGIR IMPORTACIÓN: createOrder -> createProduct
-import { createProduct, updateProduct } from '../../lib/supabase';
+import { getPrimaryImageUrl } from '../../lib/types';
 
-interface ProductFormProps {
-  product?: Product;
-  onSave?: (product: Product) => void;
-  onCancel?: () => void;
+interface ProductCardProps {
+  product: Product;
+  variant?: 'default' | 'compact' | 'featured';
+  className?: string;
 }
 
-export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
-  const [formData, setFormData] = useState({
-    name: product?.name || '',
-    description: product?.description || '',
-    price: product?.price || 0,
-    category: product?.category || '',
-    stock: product?.stock || 0,
-    image_url: product?.image_url || '',
-    featured: product?.featured || false,
-    is_active: product?.is_active ?? true
-  });
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      let savedProduct: Product;
-      
-      if (product?.id) {
-        // Actualizar producto existente
-        savedProduct = await updateProduct(product.id, formData);
-      } else {
-        // Crear nuevo producto
-        savedProduct = await createProduct(formData);
-      }
-
-      onSave?.(savedProduct);
-    } catch (error) {
-      console.error('Error saving product:', error);
-      setErrors({ general: 'Error al guardar el producto' });
-    } finally {
-      setIsLoading(false);
-    }
+export function ProductCard({ product, variant = 'default', className = '' }: ProductCardProps) {
+  const primaryImage = getPrimaryImageUrl(product);
+  
+  const formatPrice = (price: number): string => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked 
-              : type === 'number' ? parseFloat(value) || 0 
-              : value
-    }));
-  };
+  const isOutOfStock = !product.is_active || product.stock <= 0;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <article className={`group text-center ${className}`}>
+      <a href={`/producto/${product.slug}`} className="block space-y-4">
         
-        {/* Nombre */}
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Nombre del Producto
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            required
-          />
-        </div>
-
-        {/* Precio */}
-        <div>
-          <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-            Precio
-          </label>
-          <input
-            type="number"
-            id="price"
-            name="price"
-            value={formData.price}
-            onChange={handleChange}
-            min="0"
-            step="0.01"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            required
-          />
-        </div>
-
-        {/* Categoría */}
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-            Categoría
-          </label>
-          <select
-            id="category"
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            required
-          >
-            <option value="">Seleccionar categoría</option>
-            <option value="Bases Sencillas">Bases Sencillas</option>
-            <option value="Bases Dobles">Bases Dobles</option>
-            <option value="Bases Queen">Bases Queen</option>
-            <option value="Bases King">Bases King</option>
-            <option value="Bases con Cajones">Bases con Cajones</option>
-            <option value="Bases Premium">Bases Premium</option>
-          </select>
-        </div>
-
-        {/* Stock */}
-        <div>
-          <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-2">
-            Stock
-          </label>
-          <input
-            type="number"
-            id="stock"
-            name="stock"
-            value={formData.stock}
-            onChange={handleChange}
-            min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
-        </div>
-
-        {/* URL de Imagen */}
-        <div className="md:col-span-2">
-          <label htmlFor="image_url" className="block text-sm font-medium text-gray-700 mb-2">
-            URL de Imagen
-          </label>
-          <input
-            type="url"
-            id="image_url"
-            name="image_url"
-            value={formData.image_url}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            placeholder="https://ejemplo.com/imagen.jpg"
-          />
-        </div>
-
-        {/* Descripción */}
-        <div className="md:col-span-2">
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-            Descripción
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-            placeholder="Descripción del producto..."
-          />
-        </div>
-
-        {/* Checkboxes */}
-        <div className="md:col-span-2 flex space-x-6">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              name="featured"
-              checked={formData.featured}
-              onChange={handleChange}
-              className="mr-2"
+        {/* Imagen */}
+        <div className="aspect-square bg-white border border-gray-100 overflow-hidden rounded-lg relative">
+          {primaryImage ? (
+            <img 
+              src={primaryImage} 
+              alt={product.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
             />
-            <span className="text-sm text-gray-700">Producto Destacado</span>
-          </label>
-
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              name="is_active"
-              checked={formData.is_active}
-              onChange={handleChange}
-              className="mr-2"
-            />
-            <span className="text-sm text-gray-700">Producto Activo</span>
-          </label>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+              <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          )}
+          
+          {/* Featured badge */}
+          {product.featured && (
+            <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+              Destacado
+            </div>
+          )}
+          
+          {/* Out of stock overlay */}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <span className="text-white font-medium">Agotado</span>
+            </div>
+          )}
         </div>
-      </div>
-
-      {/* Error Message */}
-      {errors.general && (
-        <div className="text-red-600 text-sm">{errors.general}</div>
-      )}
-
-      {/* Actions */}
-      <div className="flex justify-end space-x-4">
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+        
+        {/* Content */}
+        <div className="space-y-2">
+          <h3 className="font-medium text-gray-800 group-hover:text-red-600 transition-colors line-clamp-2">
+            {product.name}
+          </h3>
+          
+          <div className="space-y-1">
+            <p className="text-lg font-semibold text-red-600">
+              {formatPrice(product.price)}
+            </p>
+            
+            {product.category && (
+              <p className="text-sm text-gray-500 capitalize">
+                {product.category}
+              </p>
+            )}
+            
+            {/* Stock info */}
+            <div className="text-xs text-gray-400">
+              {isOutOfStock ? (
+                <span className="text-red-500">Sin stock</span>
+              ) : product.stock <= 5 ? (
+                <span className="text-amber-500">¡Últimas {product.stock} unidades!</span>
+              ) : (
+                <span>Disponible</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </a>
+      
+      {/* Quick add to cart button (optional) */}
+      {!isOutOfStock && (
+        <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              // Aquí puedes agregar la funcionalidad de agregar al carrito
+              if (window.addProductToCart) {
+                window.addProductToCart(
+                  product.id,
+                  product.name,
+                  product.price,
+                  primaryImage || '',
+                  product.category || ''
+                );
+              }
+            }}
+            className="w-full bg-gray-900 text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors text-sm"
           >
-            Cancelar
+            Agregar al carrito
           </button>
-        )}
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 disabled:bg-gray-400 transition-colors"
-        >
-          {isLoading ? 'Guardando...' : product?.id ? 'Actualizar' : 'Crear'} Producto
-        </button>
-      </div>
-    </form>
+        </div>
+      )}
+    </article>
   );
 }
+
+// Export default también para compatibilidad
+export default ProductCard;

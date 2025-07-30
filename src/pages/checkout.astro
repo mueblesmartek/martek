@@ -1,27 +1,30 @@
 ---
-// src/pages/checkout.astro - CORREGIDO SIN CARTPROVIDER
+// src/pages/checkout.astro - PÁGINA DE CHECKOUT COMPLETAMENTE CORREGIDA
 import Layout from '../components/layout/Layout.astro';
-import { CheckoutForm } from '../components/react/CheckoutForm';
+
+// ✅ CONFIGURACIÓN Y VALIDACIONES
+const isDevelopment = import.meta.env.DEV;
+const baseUrl = import.meta.env.SITE || Astro.url.origin;
+
+// Verificar configuración de Wompi
+const wompiConfigured = !!(import.meta.env.PUBLIC_WOMPI_PUBLIC_KEY);
+if (!wompiConfigured && isDevelopment) {
+  console.warn('⚠️ Wompi no configurado - usando modo desarrollo');
+}
 ---
 
 <Layout 
-  title="Checkout - mueblesmartek.com"
-  description="Completa tu compra de forma segura y discreta. Envío confidencial garantizado."
+  title="Checkout - mueblesmartek.com" 
+  description="Finaliza tu compra de forma segura y rápida"
+  noIndex={true}
 >
-  <div class="min-h-screen bg-gray-50 py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <!-- ✅ CONTENEDOR PRINCIPAL CON MEJOR DISEÑO -->
+  <div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       
-      <!-- Header -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">Checkout</h1>
-        <p class="text-gray-600">
-          Completa tu compra de forma segura y confidencial
-        </p>
-      </div>
-
-      <!-- Breadcrumb -->
+      <!-- ✅ BREADCRUMB MEJORADO -->
       <nav class="mb-8" aria-label="Breadcrumb">
-        <ol class="flex items-center justify-center space-x-2 text-sm text-gray-500">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500">
           <li>
             <a href="/" class="hover:text-gray-700 transition-colors">Inicio</a>
           </li>
@@ -42,172 +45,475 @@ import { CheckoutForm } from '../components/react/CheckoutForm';
         </ol>
       </nav>
 
-      <!-- Formulario de checkout (React component) -->
-      <CheckoutForm client:load />
+      <!-- ✅ HEADER PRINCIPAL -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Finalizar compra</h1>
+        <p class="text-gray-600">Completa tu información para procesar el pedido</p>
+      </div>
 
-      <!-- Información de seguridad -->
-      <div class="mt-16 bg-white rounded-lg border p-8">
-        <h3 class="text-lg font-semibold text-gray-800 mb-6 text-center">
-          Compra 100% segura y confidencial
-        </h3>
+      <!-- ✅ CONTENIDO PRINCIPAL -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="text-center">
-            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-              </svg>
+        <!-- ✅ FORMULARIO Y CONTENIDO PRINCIPAL -->
+        <div class="lg:col-span-2">
+          <div id="checkout-main-content">
+            
+            <!-- ✅ ESTADO DE CARRITO VACÍO -->
+            <div id="empty-cart-state" class="hidden">
+              <div class="bg-white rounded-lg shadow-sm border p-8 text-center">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l-2.5 5M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
+                  </svg>
+                </div>
+                <h2 class="text-2xl font-medium text-gray-800 mb-3">Tu carrito está vacío</h2>
+                <p class="text-gray-600 mb-6">Parece que no has agregado ningún producto para comprar</p>
+                <div class="space-y-3">
+                  <a href="/productos" 
+                     class="inline-flex items-center px-6 py-3 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Explorar productos
+                  </a>
+                  <br>
+                  <a href="/carrito" 
+                     class="inline-flex items-center text-gray-600 hover:text-gray-800 transition-colors">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Ver carrito
+                  </a>
+                </div>
+              </div>
             </div>
-            <h4 class="font-medium text-gray-800 mb-2">Pago seguro</h4>
-            <p class="text-sm text-gray-600">
-              Conexión SSL 256-bit. Tus datos están protegidos.
-            </p>
-          </div>
 
-          <div class="text-center">
-            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-              </svg>
+            <!-- ✅ FORMULARIO DE CHECKOUT -->
+            <div id="checkout-content">
+              <!-- El componente React se montará aquí -->
+              <div id="checkout-form-container" class="min-h-[600px] flex items-center justify-center">
+                <div class="text-center">
+                  <svg class="w-8 h-8 animate-spin text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <p class="text-gray-600">Cargando formulario de checkout...</p>
+                </div>
+              </div>
             </div>
-            <h4 class="font-medium text-gray-800 mb-2">Envío discreto</h4>
-            <p class="text-sm text-gray-600">
-              Paquete neutro sin identificación del contenido.
-            </p>
-          </div>
 
-          <div class="text-center">
-            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
+          </div>
+        </div>
+
+        <!-- ✅ RESUMEN DE PEDIDO -->
+        <div class="lg:col-span-1">
+          <div id="checkout-summary">
+            <!-- El resumen se llena dinámicamente -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ✅ INFORMACIÓN DE SEGURIDAD Y GARANTÍAS -->
+      <div class="mt-12">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-6 text-center">¿Por qué comprar con nosotros?</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            
+            <div class="text-center">
+              <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h4 class="font-medium text-gray-800 mb-2">Pago seguro</h4>
+              <p class="text-sm text-gray-600">
+                Procesamos pagos con Wompi. Tus datos están protegidos.
+              </p>
             </div>
-            <h4 class="font-medium text-gray-800 mb-2">Garantía</h4>
-            <p class="text-sm text-gray-600">
-              30 días de garantía en todos nuestros productos.
-            </p>
+
+            <div class="text-center">
+              <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <h4 class="font-medium text-gray-800 mb-2">Envío rápido</h4>
+              <p class="text-sm text-gray-600">
+                Entrega en 2-5 días hábiles. Envío gratis en compras mayores a $100,000.
+              </p>
+            </div>
+
+            <div class="text-center">
+              <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 class="font-medium text-gray-800 mb-2">Garantía</h4>
+              <p class="text-sm text-gray-600">
+                1 año de garantía en todos nuestros productos.
+              </p>
+            </div>
+
+            <div class="text-center">
+              <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <h4 class="font-medium text-gray-800 mb-2">Soporte 24/7</h4>
+              <p class="text-sm text-gray-600">
+                Atención al cliente disponible todos los días.
+              </p>
+            </div>
+
           </div>
         </div>
       </div>
+
     </div>
   </div>
 
-  <!-- ✅ SCRIPT INLINE PARA CHECKOUT - Sin imports externos -->
   <script>
-    // ✅ FIX PARA checkout.astro - Corregir errores TypeScript
+    console.log('💳 Iniciando página de checkout...');
 
-console.log('🛒 Iniciando sistema de carrito para checkout...');
+    // ✅ USAR EL SISTEMA GLOBAL DE cart.js
+    function initializeCheckout() {
+      if (!window.CartManager) {
+        console.error('❌ Sistema de carrito no disponible');
+        return;
+      }
+      
+      console.log('✅ Inicializando checkout...');
 
-// ✅ DECLARACIONES GLOBALES PARA TYPESCRIPT
-declare global {
-  interface Window {
-    CartUtils: {
-      getItems: () => any[];
-      setItems: (items: any[]) => void;
-      getTotalItems: () => number;
-      getTotalPrice: () => number;
-      formatPrice: (price: number) => string;
-    };
-    CART_EVENTS: {
-      UPDATED: string;
-      ITEM_ADDED: string;
-      ITEM_REMOVED: string;
-      CLEARED: string;
-    };
+      const cartManager = window.CartManager;
+      const priceUtils = window.PriceUtils;
+
+      // Elementos del DOM
+      const emptyCartState = document.getElementById('empty-cart-state');
+      const checkoutContent = document.getElementById('checkout-content');
+      const checkoutSummary = document.getElementById('checkout-summary');
+      const checkoutFormContainer = document.getElementById('checkout-form-container');
+
+      // ✅ VALIDAR CARRITO Y MOSTRAR ESTADO APROPIADO
+      function validateCartAndShowState() {
+        const summary = cartManager.getCheckoutSummary();
+        
+        console.log('🔍 Validando carrito para checkout:', summary);
+
+        if (summary.isEmpty) {
+          // Carrito vacío
+          if (emptyCartState) emptyCartState.classList.remove('hidden');
+          if (checkoutContent) checkoutContent.classList.add('hidden');
+          showNotification('Tu carrito está vacío', 'warning');
+          return false;
+        } else {
+          // Carrito con productos
+          if (emptyCartState) emptyCartState.classList.add('hidden');
+          if (checkoutContent) checkoutContent.classList.remove('hidden');
+          renderCheckoutSummary(summary);
+          renderCheckoutForm();
+          return true;
+        }
+      }
+
+      // ✅ RENDERIZAR RESUMEN DEL CHECKOUT
+        function renderCheckoutSummary(summary: any) {
+        if (!checkoutSummary) return;
+
+        const { items, totals } = summary;
+
+        checkoutSummary.innerHTML = `
+          <div class="bg-white rounded-lg border p-6">
+            <h3 class="text-lg font-medium text-gray-800 mb-4">Resumen del pedido</h3>
+            
+            <!-- Lista de productos -->
+            <div class="space-y-3 mb-6 max-h-60 overflow-y-auto">
+            ${items.map((item: any) => `
+                <div class="flex items-center space-x-3">
+                  <div class="w-12 h-12 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+                    ${item.product_image ? 
+                      `<img src="${item.product_image}" alt="${item.product_name}" class="w-full h-full object-cover">` :
+                      `<div class="w-full h-full flex items-center justify-center text-gray-400">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                        </svg>
+                      </div>`
+                    }
+                  </div>
+                  
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">${item.product_name}</p>
+                    <p class="text-xs text-gray-600">Cantidad: ${item.quantity}</p>
+                  </div>
+                  
+                  <div class="text-right">
+                    <p class="text-sm font-medium text-gray-900">
+                      ${priceUtils.format(priceUtils.calculateItemTotal(item.product_price, item.quantity))}
+                    </p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            
+            <!-- Totales -->
+            <div class="border-t pt-4 space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Subtotal (${totals.items} productos)</span>
+                <span class="text-gray-800">${priceUtils.format(totals.subtotal)}</span>
+              </div>
+              
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Envío</span>
+                <span class="text-gray-800">
+                  ${totals.shipping === 0 ? 'Gratis' : priceUtils.format(totals.shipping)}
+                </span>
+              </div>
+              
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">IVA (19%)</span>
+                <span class="text-gray-800">${priceUtils.format(totals.tax)}</span>
+              </div>
+              
+              <div class="border-t pt-2 flex justify-between font-semibold text-lg">
+                <span class="text-gray-800">Total</span>
+                <span class="text-gray-900">${priceUtils.format(totals.total)}</span>
+              </div>
+            </div>
+
+            ${totals.subtotal >= 100000 ? `
+              <div class="mt-4 p-3 bg-green-50 rounded-md">
+                <p class="text-sm text-green-700">
+                  <strong>¡Envío gratis incluido!</strong>
+                </p>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      // ✅ RENDERIZAR FORMULARIO DE CHECKOUT (SIMPLE)
+      function renderCheckoutForm() {
+        if (!checkoutFormContainer) return;
+
+        // Si hay React disponible, intentar usar CheckoutForm
+        if (window.React) {
+            console.log('✅ React disponible, intentando montar CheckoutForm...');
+          // El componente React se montará automáticamente si está disponible
+          return;
+        }
+
+        // Fallback: formulario HTML simple
+        checkoutFormContainer.innerHTML = `
+          <div class="bg-white rounded-lg border p-6">
+            <h3 class="text-lg font-medium text-gray-800 mb-6">Información de envío</h3>
+            
+            <form id="checkout-form" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                  <input type="text" id="full_name" name="full_name" required
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+                </div>
+                
+                <div>
+                  <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input type="email" id="email" name="email" required
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+                </div>
+              </div>
+              
+              <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                <input type="tel" id="phone" name="phone" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+              </div>
+              
+              <div>
+                <label for="address_line_1" class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                <input type="text" id="address_line_1" name="address_line_1" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
+                  <input type="text" id="city" name="city" required
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+                </div>
+                
+                <div>
+                  <label for="state" class="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
+                  <input type="text" id="state" name="state" required
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+                </div>
+                
+                <div>
+                  <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-1">Código postal</label>
+                  <input type="text" id="postal_code" name="postal_code" required
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+                </div>
+              </div>
+              
+              <div>
+                <label for="customer_notes" class="block text-sm font-medium text-gray-700 mb-1">Notas del pedido (opcional)</label>
+                <textarea id="customer_notes" name="customer_notes" rows="3"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"></textarea>
+              </div>
+              
+              <div class="pt-4">
+                <button type="submit" 
+                        class="w-full bg-gray-900 text-white py-3 px-4 rounded-md hover:bg-gray-800 transition-colors font-medium">
+                  Realizar pedido
+                </button>
+              </div>
+            </form>
+          </div>
+        `;
+
+        // Agregar event listener al formulario
+        const form = document.getElementById('checkout-form');
+        if (form) {
+          form.addEventListener('submit', handleFormSubmit);
+        }
+      }
+
+      // ✅ MANEJAR ENVÍO DEL FORMULARIO
+        async function handleFormSubmit(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(e.target);
+          const summary = cartManager.getCheckoutSummary();
+          
+          // ✅ DEBUG ESPECÍFICO ANTES DEL FETCH
+          console.log('🔍 Summary del carrito:', summary);
+          console.log('🔍 Items del carrito:', summary.items);
+          console.log('🔍 Totales:', summary.totals);
+        
+        const orderData = {
+          total: summary.totals.total,
+          subtotal: summary.totals.subtotal,
+          tax: summary.totals.tax,
+          shipping_cost: summary.totals.shipping,
+          shipping_address: {
+            full_name: formData.get('full_name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            address_line_1: formData.get('address_line_1'),
+            city: formData.get('city'),
+            state: formData.get('state'),
+            postal_code: formData.get('postal_code'),
+            country: 'Colombia'
+          },
+          items: summary.items.map(item => ({
+            product_id: item.product_id,
+            product_name: item.product_name,
+            price: item.product_price,
+            quantity: item.quantity,
+            total: priceUtils.calculateItemTotal(item.product_price, item.quantity)
+          })),
+          customer_notes: formData.get('customer_notes') || null,
+          payment_method: 'pending'
+        };
+          console.log('📤 orderData completo:', orderData);
+          console.log('📤 JSON string:', JSON.stringify(orderData));
+          console.log('📤 Longitud JSON:', JSON.stringify(orderData).length);
+
+           if (!orderData.items || orderData.items.length === 0) {
+            console.error('❌ orderData.items está vacío');
+            showNotification('Error: No hay productos en el carrito', 'error');
+            return;
   }
-}
 
-// ✅ CONSTANTES (compatibles con useCartStorage.ts)
-const CART_STORAGE_KEY = 'martek-cart';
-const CART_EVENTS = {
-  UPDATED: 'cart-updated',
-  ITEM_ADDED: 'cart-item-added',
-  ITEM_REMOVED: 'cart-item-removed',
-  CLEARED: 'cart-cleared'
-};
+        try {
+    const formDataToSend = new FormData();
+formDataToSend.append('data', JSON.stringify(orderData));
 
-// ✅ UTILIDADES DEL CARRITO - CORREGIDAS PARA EVITAR NaN
-const CartStorage = {
-  getItems(): any[] {
-    try {
-      const stored = localStorage.getItem(CART_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('Error reading cart:', error);
-      return [];
-    }
-  },
-
-  setItems(items: any[]): void {
-    try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-      window.dispatchEvent(new CustomEvent(CART_EVENTS.UPDATED, { 
-        detail: { items } 
-      }));
-    } catch (error) {
-      console.error('Error saving cart:', error);
-    }
-  },
-
-  getTotalItems(): number {
-    return this.getItems().reduce((total: number, item: any) => {
-      const quantity = typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 0;
-      return total + quantity;
-    }, 0);
-  },
-
-  getTotalPrice(): number {
-    return this.getItems().reduce((total: number, item: any) => {
-      // ✅ FIX: usar product_price en lugar de price
-      const price = typeof item.product_price === 'number' && !isNaN(item.product_price) ? item.product_price : 0;
-      const quantity = typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : 0;
-      return total + (price * quantity);
-    }, 0);
-  },
-
-  formatPrice(price: number): string {
-    try {
-      const validPrice = typeof price === 'number' && !isNaN(price) ? price : 0;
-      return new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(validPrice);
-    } catch (error) {
-      console.error('Error formatting price:', error);
-      return `$${price || 0}`;
-    }
-  }
-};
-
-// ✅ FUNCIONES GLOBALES PARA COMPATIBILIDAD CON REACT
-window.CartUtils = CartStorage;
-window.CART_EVENTS = CART_EVENTS;
-
-// ✅ INICIALIZACIÓN
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('✅ Sistema de carrito para checkout inicializado');
-  
-  // Verificar que hay items en el carrito
-  const items = CartStorage.getItems();
-  if (items.length === 0) {
-    console.log('🛒 Carrito vacío en checkout');
-  } else {
-    console.log(`🛒 ${items.length} items en carrito, total: ${CartStorage.formatPrice(CartStorage.getTotalPrice())}`);
-  }
-  
-  // Actualizar contador si existe
-  const totalItems = CartStorage.getTotalItems();
-  const counters = document.querySelectorAll('[data-cart-counter]');
-  
-  counters.forEach(counter => {
-    (counter as HTMLElement).textContent = totalItems.toString();
-    if (totalItems > 0) {
-      counter.classList.remove('hidden');
-      counter.classList.add('flex');
-    }
-  });
+const response = await fetch('/api/orders/create', {
+  method: 'POST',
+  body: formDataToSend // Sin Content-Type header - se setea automáticamente
 });
+
+          const result = await response.json();
+
+          if (result.success) {
+            showNotification('¡Pedido creado exitosamente!', 'success');
+            cartManager.clearCart();
+            
+            // Redirigir a página de confirmación
+            setTimeout(() => {
+              window.location.href = `/pedido-confirmado?order=${result.order?.order_number || result.order?.id}`;
+            }, 2000);
+          } else {
+            showNotification(result.message || 'Error creando pedido', 'error');
+          }
+        } catch (error) {
+          console.error('Error enviando pedido:', error);
+          showNotification('Error de conexión. Intenta nuevamente.', 'error');
+        }
+      }
+
+      // ✅ SISTEMA DE NOTIFICACIONES SIMPLE
+        function showNotification(message: string, type = 'info', duration = 4000) {
+        const notification = document.createElement('div');
+        notification.className = `
+          fixed top-4 right-4 z-50 px-4 py-3 rounded-md shadow-lg transition-all duration-300 transform translate-x-full opacity-0
+          ${type === 'success' ? 'bg-green-600 text-white' :
+            type === 'error' ? 'bg-red-600 text-white' :
+            type === 'warning' ? 'bg-yellow-600 text-white' :
+            'bg-blue-600 text-white'}
+        `;
+        
+        notification.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <span class="flex-1">${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    class="text-white hover:text-gray-200 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.classList.remove('translate-x-full', 'opacity-0');
+          notification.classList.add('translate-x-0', 'opacity-100');
+        }, 100);
+
+        setTimeout(() => {
+          notification.classList.add('translate-x-full', 'opacity-0');
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.remove();
+            }
+          }, 300);
+        }, duration);
+      }
+
+      // ✅ ESCUCHAR CAMBIOS DEL CARRITO
+      window.addEventListener('cart-updated', () => {
+        validateCartAndShowState();
+      });
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'martek-cart') {
+          validateCartAndShowState();
+        }
+      });
+
+      // ✅ INICIALIZAR
+      validateCartAndShowState();
+
+      console.log('✅ Checkout inicializado correctamente');
+    }
+
+    // ✅ INICIAR CUANDO EL SISTEMA ESTÉ LISTO
+    document.addEventListener('DOMContentLoaded', function() {
+      // Esperar un poco para que cart.js se cargue
+      setTimeout(initializeCheckout, 100);
+    });
   </script>
 </Layout>

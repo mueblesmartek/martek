@@ -1,8 +1,8 @@
-// src/hooks/useCart.ts - HOOK SIMPLIFICADO SIN CONTEXT API
+// src/hooks/useCart.ts - HOOK SIMPLIFICADO PARA CART.JS
 import { useState, useEffect, useCallback } from 'react';
 import type { CartItem } from '../lib/types';
 
-// 🔗 DECLARACIÓN GLOBAL PARA TYPESCRIPT
+// ✅ DECLARACIÓN GLOBAL PARA TYPESCRIPT
 declare global {
   interface Window {
     CartAPI: {
@@ -14,38 +14,28 @@ declare global {
         quantity?: number;
         product_image?: string;
         product_category?: string;
-      }): void;
-      updateQuantity(id: string, quantity: number): void;
-      removeItem(id: string): void;
-      clear(): void;
+      }): boolean;
+      updateQuantity(itemId: string, quantity: number): boolean;
+      removeItem(itemId: string): boolean;
+      clear(): boolean;
       getTotalItems(): number;
       getTotalPrice(): number;
       formatPrice(price: number): string;
-      on(event: string, callback: (e: CustomEvent) => void): void;
-      off(event: string, callback: (e: CustomEvent) => void): void;
-      emit(event: string, data?: any): void;
-      showNotification(message: string, type?: 'success' | 'error' | 'info'): void;
+      on(event: string, callback: (e: { detail: any }) => void): void;
+      off(event: string, callback: (e: { detail: any }) => void): void;
+      showNotification(message: string, type?: 'success' | 'error' | 'info' | 'warning'): void;
     };
   }
 }
 
-// 🎯 INTERFACE PARA EL ESTADO DEL CARRITO
-interface CartState {
-  items: CartItem[];
-  totalItems: number;
-  totalPrice: number;
-  isLoading: boolean;
-  isHydrated: boolean;
-}
-
-// 🎯 INTERFACE PARA EL HOOK
+// ✅ INTERFACE DEL HOOK
 interface UseCartReturn {
   // Estado
   items: CartItem[];
   totalItems: number;
   totalPrice: number;
   isLoading: boolean;
-  isHydrated: boolean;
+  isReady: boolean;
   
   // Acciones
   addProduct: (data: {
@@ -55,40 +45,45 @@ interface UseCartReturn {
     quantity?: number;
     product_image?: string;
     product_category?: string;
-  }) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  removeItem: (id: string) => void;
-  clear: () => void;
+  }) => boolean;
+  updateQuantity: (itemId: string, quantity: number) => boolean;
+  removeItem: (itemId: string) => boolean;
+  clear: () => boolean;
   
   // Utilidades
   formatPrice: (price: number) => string;
-  showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
+  showNotification: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
   
-  // Información del item específico
+  // Información específica
   getItemQuantity: (productId: string) => number;
   isInCart: (productId: string) => boolean;
+  isEmpty: boolean;
 }
 
 /**
- * 🛒 Hook useCart - Versión simplificada sin Context API
+ * 🛒 Hook useCart - Versión Simplificada
  * 
- * Se conecta directamente con window.CartAPI para:
- * - Evitar problemas entre React islands en Astro
- * - Mantener sincronización con localStorage
- * - Usar eventos para comunicación entre components
+ * Se conecta directamente con window.CartAPI del script unificado.
+ * Maneja sincronización automática via eventos.
  */
 export function useCart(): UseCartReturn {
   
-  // 📦 ESTADO LOCAL DEL HOOK
-  const [state, setState] = useState<CartState>({
+  // ✅ ESTADO SIMPLIFICADO
+  const [state, setState] = useState<{
+    items: CartItem[];
+    totalItems: number;
+    totalPrice: number;
+    isLoading: boolean;
+    isReady: boolean;
+  }>({
     items: [],
     totalItems: 0,
     totalPrice: 0,
     isLoading: true,
-    isHydrated: false
+    isReady: false
   });
 
-  // 🔄 FUNCIÓN PARA SINCRONIZAR ESTADO CON CARTAPI
+  // ✅ SINCRONIZAR CON CARTAPI
   const syncWithCartAPI = useCallback(() => {
     if (typeof window === 'undefined' || !window.CartAPI) {
       return;
@@ -99,67 +94,62 @@ export function useCart(): UseCartReturn {
       const totalItems = window.CartAPI.getTotalItems();
       const totalPrice = window.CartAPI.getTotalPrice();
 
-      setState(prev => ({
-        ...prev,
+      setState({
         items,
         totalItems,
         totalPrice,
         isLoading: false,
-        isHydrated: true
-      }));
+        isReady: true
+      });
 
     } catch (error) {
-      console.error('❌ Error sincronizando con CartAPI:', error);
+      console.error('❌ Error sincronizando useCart:', error);
       setState(prev => ({
         ...prev,
         isLoading: false,
-        isHydrated: true
+        isReady: false
       }));
     }
   }, []);
 
-  // 🎬 INICIALIZACIÓN Y EVENTOS
+  // ✅ INICIALIZACIÓN CON EVENTOS
   useEffect(() => {
-    // Esperar a que CartAPI esté disponible
     let timeoutId: NodeJS.Timeout;
+    let eventCleanup: (() => void) | null = null;
     
-    const waitForCartAPI = () => {
+    const initializeCart = () => {
       if (typeof window !== 'undefined' && window.CartAPI) {
-        // CartAPI disponible, sincronizar estado inicial
+        // Sincronizar estado inicial
         syncWithCartAPI();
         
-        // Configurar listeners de eventos
-        const handleCartUpdate = () => syncWithCartAPI();
+        // Configurar listener de eventos (un solo evento genérico)
+        const handleCartChange = () => syncWithCartAPI();
         
-        window.CartAPI.on('cart:updated', handleCartUpdate);
-        window.CartAPI.on('cart:added', handleCartUpdate);
-        window.CartAPI.on('cart:removed', handleCartUpdate);
-        window.CartAPI.on('cart:cleared', handleCartUpdate);
+        window.CartAPI.on('cart:updated', handleCartChange);
         
-        return () => {
-          // Cleanup listeners
+        // Cleanup function
+        eventCleanup = () => {
           if (window.CartAPI) {
-            window.CartAPI.off('cart:updated', handleCartUpdate);
-            window.CartAPI.off('cart:added', handleCartUpdate);
-            window.CartAPI.off('cart:removed', handleCartUpdate);
-            window.CartAPI.off('cart:cleared', handleCartUpdate);
+            window.CartAPI.off('cart:updated', handleCartChange);
           }
         };
+        
+        console.log('✅ useCart conectado a CartAPI');
       } else {
-        // CartAPI no disponible aún, reintentar
-        timeoutId = setTimeout(waitForCartAPI, 100);
+        // CartAPI no disponible, reintentar
+        timeoutId = setTimeout(initializeCart, 100);
       }
     };
 
-    const cleanup = waitForCartAPI();
+    initializeCart();
     
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
-      if (cleanup) cleanup();
+      if (eventCleanup) eventCleanup();
     };
   }, [syncWithCartAPI]);
 
-  // 🛠️ FUNCIONES DE ACCIÓN (Wrappers para CartAPI)
+  // ✅ FUNCIONES DE ACCIÓN (wrappers simples)
   const addProduct = useCallback((data: {
     product_id: string;
     product_name: string;
@@ -169,38 +159,41 @@ export function useCart(): UseCartReturn {
     product_category?: string;
   }) => {
     if (window.CartAPI) {
-      window.CartAPI.addProduct(data);
-    } else {
-      console.warn('⚠️ CartAPI no disponible');
+      return window.CartAPI.addProduct(data);
     }
+    console.warn('⚠️ CartAPI no disponible');
+    return false;
   }, []);
 
-  const updateQuantity = useCallback((id: string, quantity: number) => {
+  const updateQuantity = useCallback((itemId: string, quantity: number) => {
     if (window.CartAPI) {
-      window.CartAPI.updateQuantity(id, quantity);
+      return window.CartAPI.updateQuantity(itemId, quantity);
     }
+    return false;
   }, []);
 
-  const removeItem = useCallback((id: string) => {
+  const removeItem = useCallback((itemId: string) => {
     if (window.CartAPI) {
-      window.CartAPI.removeItem(id);
+      return window.CartAPI.removeItem(itemId);
     }
+    return false;
   }, []);
 
   const clear = useCallback(() => {
     if (window.CartAPI) {
-      window.CartAPI.clear();
+      return window.CartAPI.clear();
     }
+    return false;
   }, []);
 
   const formatPrice = useCallback((price: number) => {
     if (window.CartAPI) {
       return window.CartAPI.formatPrice(price);
     }
-    return `$${price || 0}`;
+    return `$${price?.toLocaleString('es-CO') || 0}`;
   }, []);
 
-  const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+  const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     if (window.CartAPI) {
       window.CartAPI.showNotification(message, type);
     } else {
@@ -208,7 +201,7 @@ export function useCart(): UseCartReturn {
     }
   }, []);
 
-  // 🔍 FUNCIONES DE CONSULTA
+  // ✅ FUNCIONES DE CONSULTA
   const getItemQuantity = useCallback((productId: string): number => {
     return state.items.find(item => item.product_id === productId)?.quantity || 0;
   }, [state.items]);
@@ -217,14 +210,15 @@ export function useCart(): UseCartReturn {
     return state.items.some(item => item.product_id === productId);
   }, [state.items]);
 
-  // 📤 RETORNAR API COMPLETA
+  // ✅ RETORNAR API COMPLETA
   return {
     // Estado
     items: state.items,
     totalItems: state.totalItems,
     totalPrice: state.totalPrice,
     isLoading: state.isLoading,
-    isHydrated: state.isHydrated,
+    isReady: state.isReady,
+    isEmpty: state.totalItems === 0,
     
     // Acciones
     addProduct,
@@ -243,25 +237,34 @@ export function useCart(): UseCartReturn {
 }
 
 /**
- * 🎯 Hook adicional para componentes que solo necesitan info básica
+ * 🎯 Hook ligero para componentes que solo necesitan info básica
  */
 export function useCartInfo() {
-  const { totalItems, totalPrice, formatPrice, isLoading } = useCart();
+  const { totalItems, totalPrice, formatPrice, isLoading, isReady, isEmpty } = useCart();
   
   return {
     totalItems,
     totalPrice,
     formattedTotal: formatPrice(totalPrice),
     isLoading,
-    isEmpty: totalItems === 0
+    isReady,
+    isEmpty
   };
 }
 
 /**
- * 📦 Hook para manejar un producto específico
+ * 📦 Hook especializado para manejar un producto específico
  */
 export function useCartItem(productId: string) {
-  const { items, addProduct, updateQuantity, removeItem, getItemQuantity, isInCart } = useCart();
+  const { 
+    items, 
+    addProduct, 
+    updateQuantity, 
+    removeItem, 
+    getItemQuantity, 
+    isInCart,
+    isReady 
+  } = useCart();
   
   const item = items.find(item => item.product_id === productId);
   const quantity = getItemQuantity(productId);
@@ -274,42 +277,33 @@ export function useCartItem(productId: string) {
     product_image?: string;
     product_category?: string;
   }) => {
-    addProduct({
+    return addProduct({
       product_id: productId,
       ...productData
     });
   }, [productId, addProduct]);
-  
-  const increaseQuantity = useCallback(() => {
+
+  const updateItemQuantity = useCallback((newQuantity: number) => {
     if (item) {
-      updateQuantity(item.id, quantity + 1);
+      return updateQuantity(item.id, newQuantity);
     }
-  }, [item, quantity, updateQuantity]);
-  
-  const decreaseQuantity = useCallback(() => {
-    if (item && quantity > 1) {
-      updateQuantity(item.id, quantity - 1);
-    } else if (item) {
-      removeItem(item.id);
-    }
-  }, [item, quantity, updateQuantity, removeItem]);
-  
+    return false;
+  }, [item, updateQuantity]);
+
   const removeFromCart = useCallback(() => {
     if (item) {
-      removeItem(item.id);
+      return removeItem(item.id);
     }
+    return false;
   }, [item, removeItem]);
-  
+
   return {
     item,
     quantity,
     inCart,
+    isReady,
     addToCart,
-    increaseQuantity,
-    decreaseQuantity,
+    updateQuantity: updateItemQuantity,
     removeFromCart
   };
 }
-
-// 🔧 EXPORT DEL TIPO PARA USAR EN OTROS LUGARES
-export type { UseCartReturn, CartState };

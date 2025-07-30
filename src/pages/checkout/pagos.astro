@@ -1,296 +1,402 @@
 ---
-// src/pages/checkout/pagos.astro - PÁGINA DE PAGOS CON WOMPI
+// src/pages/checkout/pagos.astro - INTEGRACIÓN WOMPI COMPLETAMENTE CORREGIDA
 import Layout from '../../components/layout/Layout.astro';
 import { supabase } from '../../lib/supabase';
-import type { Order, ShippingAddress } from '../../lib/types';
+import type { Order } from '../../lib/types';
 
-// Obtener order ID de la URL
+// ✅ OBTENER Y VALIDAR ORDER ID
 const url = new URL(Astro.request.url);
 const orderId = url.searchParams.get('order');
 
 let order: Order | null = null;
 let error: string | null = null;
 
-// Cargar datos de la orden
-if (orderId) {
-  try {
-    const { data, error: fetchError } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .eq('payment_status', 'pending') // Solo órdenes pendientes
-      .single();
+// ✅ VALIDACIÓN Y CARGA DE ORDEN
+if (!orderId) {
+  error = 'ID de orden requerido';
+} else {
+   try {
+    if (!supabase) {
+      error = 'Servicio no disponible';
+    } else {
+      const { data, error: fetchError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .eq('payment_status', 'pending')
+        .single();
     
-    if (fetchError) throw fetchError;
-    order = data;
-  } catch (e: unknown) {
-    console.error('Error fetching order:', e);
-    error = e instanceof Error ? e.message : 'Orden no encontrada';
-  }
+    if (fetchError) {
+      console.error('Error fetching order:', fetchError);
+      error = 'Orden no encontrada o ya procesada';
+    } else {
+      order = data;
+      if (order) {
+        console.log('✅ Orden cargada para pago:', order.order_number);
+      }
+    }
 }
 
-// Redirigir si no hay orden
+// ✅ REDIRIGIR SI HAY ERROR
 if (!order || error) {
-  return Astro.redirect('/checkout');
+  console.error('❌ Error en pagos:', error);
+  return Astro.redirect('/checkout?error=' + encodeURIComponent(error || 'Orden no válida'));
 }
 
-// Configuración de Wompi (usar variables de entorno)
+// ✅ CONFIGURACIÓN WOMPI (con validación)
 const WOMPI_PUBLIC_KEY = import.meta.env.PUBLIC_WOMPI_PUBLIC_KEY || 'pub_test_QGtAUdYs7u3CQWmCk44nPbGQNEkwabKD';
 const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co';
+
+// Validar configuración
+if (!WOMPI_PUBLIC_KEY) {
+  console.error('❌ WOMPI_PUBLIC_KEY no configurado');
+  return Astro.redirect('/checkout?error=Configuración de pago no disponible');
+}
+
+// ✅ FUNCIONES UTILITARIAS
+const formatPrice = (price: number): string => {
+  try {
+    const validPrice = typeof price === 'number' && !isNaN(price) && price >= 0 ? price : 0;
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(validPrice);
+  } catch (error) {
+    return `$${price.toLocaleString('es-CO')}`;
+  }
+};
 ---
 
 <Layout 
   title={`Pagar Pedido #${order.order_number} - mueblesmartek.com`}
-  description="Completa tu pago de forma segura"
-  noindex={true}
+  description="Completa tu pago de forma segura con Wompi"
+  noIndex={true}
 >
   <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       
-      <!-- Header -->
+      <!-- ✅ HEADER MEJORADO -->
       <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+          <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
         <h1 class="text-3xl font-bold text-gray-800 mb-2">Finalizar Pago</h1>
         <p class="text-gray-600">Pedido #{order.order_number}</p>
+        <p class="text-sm text-gray-500 mt-1">
+          Total a pagar: <span class="font-semibold text-gray-800">{formatPrice(order.total)}</span>
+        </p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- Columna Izquierda: Métodos de Pago -->
+        <!-- ✅ COLUMNA IZQUIERDA: MÉTODOS DE PAGO -->
         <div class="lg:col-span-2 space-y-6">
           
-          <!-- Seguridad Info -->
+          <!-- Información de Seguridad -->
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div class="flex items-center space-x-3">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-start space-x-3">
+              <svg class="w-6 h-6 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               <div>
-                <h3 class="text-sm font-semibold text-blue-900">Pago Seguro</h3>
+                <h3 class="text-sm font-semibold text-blue-900 mb-1">Pago 100% Seguro</h3>
                 <p class="text-xs text-blue-700">Procesado por Wompi - Certificación PCI DSS</p>
+                <p class="text-xs text-blue-600 mt-1">Tus datos financieros están protegidos</p>
               </div>
             </div>
           </div>
 
-          <!-- Métodos de Pago -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-6">Método de Pago</h2>
+          <!-- ✅ MÉTODOS DE PAGO MEJORADOS -->
+          <div class="bg-white rounded-lg shadow-sm border p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6">Selecciona tu método de pago</h2>
             
             <div class="space-y-4">
               
               <!-- Tarjeta de Crédito/Débito -->
-              <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input type="radio" name="payment_method" value="card" checked class="sr-only payment-radio" />
-                <div class="flex items-center space-x-4 w-full">
-                  <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center payment-indicator">
-                    <div class="w-3 h-3 bg-gray-900 rounded-full opacity-0"></div>
-                  </div>
-                  <div class="flex-1">
+              <div class="payment-method-option border rounded-lg p-4 cursor-pointer transition-all hover:border-gray-400" data-method="card">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="payment-indicator w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center">
+                      <div class="w-2.5 h-2.5 bg-red-600 rounded-full opacity-0 transition-opacity"></div>
+                    </div>
                     <div class="flex items-center space-x-3">
-                      <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      <span class="font-medium text-gray-800">Tarjeta de Crédito/Débito</span>
+                      <div>
+                        <p class="font-medium text-gray-800">Tarjeta de Crédito/Débito</p>
+                        <p class="text-sm text-gray-500">Visa, Mastercard, American Express</p>
+                      </div>
                     </div>
-                    <p class="text-sm text-gray-600 mt-1">Visa, Mastercard, American Express</p>
                   </div>
-                  <div class="flex space-x-2">
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/visa/visa-original.svg" alt="Visa" class="w-8 h-5" />
-                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mastercard/mastercard-original.svg" alt="Mastercard" class="w-8 h-5" />
+                  
+                  <div class="flex items-center space-x-2">
+                    <img src="/icons/visa.svg" alt="Visa" class="h-6" />
+                    <img src="/icons/mastercard.svg" alt="Mastercard" class="h-6" />
+                    <img src="/icons/amex.svg" alt="American Express" class="h-6" />
                   </div>
                 </div>
-              </label>
+                <input type="radio" name="payment_method" value="card" class="payment-radio hidden" />
+              </div>
 
               <!-- PSE -->
-              <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input type="radio" name="payment_method" value="pse" class="sr-only payment-radio" />
-                <div class="flex items-center space-x-4 w-full">
-                  <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center payment-indicator">
-                    <div class="w-3 h-3 bg-gray-900 rounded-full opacity-0"></div>
-                  </div>
-                  <div class="flex-1">
+              <div class="payment-method-option border rounded-lg p-4 cursor-pointer transition-all hover:border-gray-400" data-method="pse">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="payment-indicator w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center">
+                      <div class="w-2.5 h-2.5 bg-red-600 rounded-full opacity-0 transition-opacity"></div>
+                    </div>
                     <div class="flex items-center space-x-3">
-                      <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
-                      <span class="font-medium text-gray-800">PSE - Pagos Seguros en Línea</span>
+                      <div>
+                        <p class="font-medium text-gray-800">PSE</p>
+                        <p class="text-sm text-gray-500">Débito directo desde tu banco</p>
+                      </div>
                     </div>
-                    <p class="text-sm text-gray-600 mt-1">Paga directamente desde tu cuenta bancaria</p>
+                  </div>
+                  
+                  <div class="text-sm text-gray-500">
+                    🏦 Todos los bancos
                   </div>
                 </div>
-              </label>
+                <input type="radio" name="payment_method" value="pse" class="payment-radio hidden" />
+              </div>
 
               <!-- Nequi -->
-              <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <input type="radio" name="payment_method" value="nequi" class="sr-only payment-radio" />
-                <div class="flex items-center space-x-4 w-full">
-                  <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center payment-indicator">
-                    <div class="w-3 h-3 bg-gray-900 rounded-full opacity-0"></div>
-                  </div>
-                  <div class="flex-1">
-                    <div class="flex items-center space-x-3">
-                      <div class="w-6 h-6 bg-purple-600 rounded flex items-center justify-center">
-                        <span class="text-white text-xs font-bold">N</span>
-                      </div>
-                      <span class="font-medium text-gray-800">Nequi</span>
+              <div class="payment-method-option border rounded-lg p-4 cursor-pointer transition-all hover:border-gray-400" data-method="nequi">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="payment-indicator w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center">
+                      <div class="w-2.5 h-2.5 bg-red-600 rounded-full opacity-0 transition-opacity"></div>
                     </div>
-                    <p class="text-sm text-gray-600 mt-1">Paga con tu billetera digital Nequi</p>
+                    <div class="flex items-center space-x-3">
+                      <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      <div>
+                        <p class="font-medium text-gray-800">Nequi</p>
+                        <p class="text-sm text-gray-500">Pago desde tu app Nequi</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="text-sm font-medium text-purple-600">
+                    📱 Nequi
                   </div>
                 </div>
-              </label>
+                <input type="radio" name="payment_method" value="nequi" class="payment-radio hidden" />
+              </div>
+
             </div>
 
-            <!-- Botón de Pago -->
+            <!-- ✅ BOTÓN DE PAGO MEJORADO -->
             <div class="mt-8">
-              <button 
-                id="pay-button"
-                type="button"
-                class="w-full bg-red-600 hover:bg-red-700 text-white py-4 px-6 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-3"
-              >
+              <button id="pay-button" 
+                      class="w-full bg-gray-900 text-white py-4 px-6 rounded-lg hover:bg-gray-800 transition-all duration-200 font-medium text-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled>
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                <span>Pagar ${order.total.toLocaleString('es-CO')}</span>
+                <span>Selecciona un método de pago</span>
               </button>
               
               <p class="text-xs text-gray-500 text-center mt-3">
-                Al hacer clic en "Pagar", aceptas nuestros 
-                <a href="/terminos" class="text-gray-700 underline">términos y condiciones</a>
+                Al hacer clic en pagar, serás redirigido a la plataforma segura de Wompi
               </p>
             </div>
           </div>
         </div>
 
-        <!-- Columna Derecha: Resumen del Pedido -->
-        <div class="space-y-6">
-          
-          <!-- Resumen del Pedido -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Resumen del Pedido</h3>
+        <!-- ✅ COLUMNA DERECHA: RESUMEN DE ORDEN -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-lg shadow-sm border p-6 sticky top-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Resumen del pedido</h3>
             
-            <!-- Items -->
-            <div class="space-y-3 mb-6">
-              {order.items.map((item: any) => (
-                <div class="flex items-center space-x-3">
-                  <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+            <!-- Información de envío -->
+            <div class="mb-6 pb-6 border-b">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Enviar a:</h4>
+              <div class="text-sm text-gray-600">
+                <p class="font-medium">{order.shipping_address?.full_name}</p>
+                <p>{order.shipping_address?.address_line_1}</p>
+                {order.shipping_address?.address_line_2 && (
+                  <p>{order.shipping_address.address_line_2}</p>
+                )}
+                <p>{order.shipping_address?.city}, {order.shipping_address?.state}</p>
+                <p>{order.shipping_address?.postal_code}</p>
+                <p class="mt-1">{order.shipping_address?.phone}</p>
+              </div>
+            </div>
+
+            <!-- Items de la orden -->
+            <div class="mb-6 pb-6 border-b">
+              <h4 class="text-sm font-medium text-gray-700 mb-3">Productos ({order.items?.length || 0})</h4>
+              <div class="space-y-3 max-h-40 overflow-y-auto">
+                {order.items?.map((item: any) => (
+                  <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 w-10 h-10 bg-gray-100 rounded">
+                      <div class="w-full h-full flex items-center justify-center text-xs text-gray-500">
+                        {item.quantity}x
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-800 truncate">{item.product_name}</p>
+                      <p class="text-xs text-gray-500">{formatPrice(item.price)}</p>
+                    </div>
+                    <p class="text-sm font-medium">{formatPrice(item.total)}</p>
                   </div>
-                  <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-800">{item.product_name}</p>
-                    <p class="text-xs text-gray-600">Cantidad: {item.quantity}</p>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-sm font-medium text-gray-800">${item.total.toLocaleString('es-CO')}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             <!-- Totales -->
-            <div class="border-t border-gray-200 pt-4 space-y-2">
+            <div class="space-y-2">
               <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Subtotal:</span>
-                <span class="font-medium">${order.subtotal.toLocaleString('es-CO')}</span>
+                <span>Subtotal</span>
+                <span>{formatPrice(order.subtotal || 0)}</span>
               </div>
-              
               <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Envío:</span>
-                <span class="font-medium">
-                  {order.shipping_cost === 0 ? 'Gratis' : `$${order.shipping_cost.toLocaleString('es-CO')}`}
+                <span>Envío</span>
+                <span class={order.shipping_cost === 0 ? 'text-green-600 font-medium' : ''}>
+                  {order.shipping_cost === 0 ? 'Gratis' : formatPrice(order.shipping_cost || 0)}
                 </span>
               </div>
-              
-              {order.tax > 0 && (
-                <div class="flex justify-between text-sm">
-                  <span class="text-gray-600">IVA (19%):</span>
-                  <span class="font-medium">${order.tax.toLocaleString('es-CO')}</span>
-                </div>
-              )}
-              
-              <div class="flex justify-between text-lg font-semibold pt-2 border-t border-gray-200">
-                <span>Total:</span>
-                <span>${order.total.toLocaleString('es-CO')}</span>
+              <div class="flex justify-between text-sm">
+                <span>IVA (19%)</span>
+                <span>{formatPrice(order.tax || 0)}</span>
+              </div>
+              <div class="border-t pt-2 flex justify-between font-semibold text-lg">
+                <span>Total</span>
+                <span>{formatPrice(order.total)}</span>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Información de Envío -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Envío a:</h3>
-            <div class="space-y-2 text-sm">
-              <p class="font-medium">{order.shipping_address.full_name}</p>
-              <p class="text-gray-600">{order.shipping_address.address_line_1}</p>
-              {order.shipping_address.address_line_2 && (
-                <p class="text-gray-600">{order.shipping_address.address_line_2}</p>
-              )}
-              <p class="text-gray-600">
-                {order.shipping_address.city}, {order.shipping_address.state}
-              </p>
-              <p class="text-gray-600">{order.shipping_address.postal_code}</p>
-              <p class="text-gray-600">{order.shipping_address.phone}</p>
+      </div>
+
+      <!-- ✅ INFORMACIÓN ADICIONAL -->
+      <div class="mt-12">
+        <div class="bg-white rounded-lg border p-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">¿Necesitas ayuda?</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            
+            <div class="text-center">
+              <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 class="font-medium text-gray-800 mb-2">Soporte</h4>
+              <p class="text-sm text-gray-600 mb-2">¿Tienes problemas con el pago?</p>
+              <a href="/contacto" class="text-sm text-gray-800 font-medium hover:text-red-600 transition-colors">
+                Contactar soporte →
+              </a>
+            </div>
+
+            <div class="text-center">
+              <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <h4 class="font-medium text-gray-800 mb-2">Envío seguro</h4>
+              <p class="text-sm text-gray-600">Entrega en 2-5 días hábiles</p>
+            </div>
+
+            <div class="text-center">
+              <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h4 class="font-medium text-gray-800 mb-2">Garantía</h4>
+              <p class="text-sm text-gray-600">30 días de garantía</p>
             </div>
             
-            {order.shipping_cost === 0 && (
-              <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div class="flex items-center space-x-2">
-                  <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
-                  <span class="text-sm text-green-800 font-medium">¡Envío gratis!</span>
-                </div>
-                <p class="text-xs text-green-700 mt-1">Por compras superiores a $100,000</p>
-              </div>
-            )}
-          </div>
-
-          <!-- Soporte -->
-          <div class="bg-gray-50 rounded-lg p-4">
-            <h4 class="font-medium text-gray-800 mb-2">¿Necesitas ayuda?</h4>
-            <p class="text-sm text-gray-600 mb-3">
-              Nuestro equipo está aquí para ayudarte con cualquier pregunta sobre tu pedido.
-            </p>
-            <a href="/contacto" class="text-sm text-gray-800 font-medium hover:text-red-600 transition-colors">
-              Contactar soporte →
-            </a>
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </Layout>
 
-<!-- Wompi SDK -->
-<script src="https://checkout.wompi.co/widget.js"></script>
+<!-- ✅ CARGAR WOMPI SDK CON MANEJO DE ERRORES -->
+<script src="https://checkout.wompi.co/widget.js" async onload="console.log('✅ Wompi SDK cargado')" onerror="console.error('❌ Error cargando Wompi SDK')"></script>
 
+<!-- ✅ SCRIPT PRINCIPAL - CORREGIDO Y ROBUSTO -->
 <script define:vars={{ 
   order: order,
   WOMPI_PUBLIC_KEY: WOMPI_PUBLIC_KEY,
   WOMPI_URL: WOMPI_URL
 }}>
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('🏦 Inicializando página de pagos...');
-    
-    // ✅ CONFIGURAR RADIO BUTTONS
-    setupPaymentRadios();
-    
-    // ✅ CONFIGURAR WOMPI
-    setupWompiPayment();
-    
-    // ✅ MANEJAR BOTÓN DE PAGO
-    const payButton = document.getElementById('pay-button');
-    if (payButton) {
-      payButton.addEventListener('click', handlePayment);
-    }
-  });
+  console.log('🏦 Inicializando página de pagos v2.0...');
 
-  // ✅ CONFIGURAR RADIO BUTTONS DE MÉTODOS DE PAGO
-  function setupPaymentRadios() {
-    const radios = document.querySelectorAll('.payment-radio');
-    const indicators = document.querySelectorAll('.payment-indicator');
+  // ✅ VARIABLES GLOBALES
+  let selectedPaymentMethod = null;
+  let isWompiReady = false;
+  let paymentInProgress = false;
+
+  // ✅ FUNCIONES UTILITARIAS
+  function formatPrice(price) {
+    try {
+      const validPrice = typeof price === 'number' && !isNaN(price) && price >= 0 ? price : 0;
+      return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(validPrice);
+    } catch (error) {
+      return `$${price.toLocaleString('es-CO')}`;
+    }
+  }
+
+  function showError(message, duration = 5000) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'fixed top-4 right-4 z-50 bg-red-600 text-white px-6 py-3 rounded-md shadow-lg transform transition-all duration-300';
+    errorDiv.textContent = message;
     
-    radios.forEach((radio, index) => {
-      radio.addEventListener('change', function() {
+    document.body.appendChild(errorDiv);
+    
+    setTimeout(() => {
+      errorDiv.classList.add('translate-x-full', 'opacity-0');
+      setTimeout(() => errorDiv.remove(), 300);
+    }, duration);
+  }
+
+  function showSuccess(message, duration = 3000) {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'fixed top-4 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded-md shadow-lg transform transition-all duration-300';
+    successDiv.textContent = message;
+    
+    document.body.appendChild(successDiv);
+    
+    setTimeout(() => {
+      successDiv.classList.add('translate-x-full', 'opacity-0');
+      setTimeout(() => successDiv.remove(), 300);
+    }, duration);
+  }
+
+  // ✅ CONFIGURAR MÉTODOS DE PAGO
+  function setupPaymentMethods() {
+    const methodOptions = document.querySelectorAll('.payment-method-option');
+    const indicators = document.querySelectorAll('.payment-indicator');
+    const payButton = document.getElementById('pay-button');
+
+    methodOptions.forEach((option, index) => {
+      option.addEventListener('click', function() {
+        if (paymentInProgress) return;
+
+        const method = this.getAttribute('data-method');
+        const radio = this.querySelector('.payment-radio');
+        
         // Reset all indicators
         indicators.forEach(indicator => {
           indicator.classList.remove('border-red-600');
@@ -298,144 +404,258 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
           const dot = indicator.querySelector('div');
           if (dot) dot.classList.add('opacity-0');
         });
+
+        methodOptions.forEach(opt => {
+          opt.classList.remove('border-gray-900', 'bg-gray-50');
+          opt.classList.add('border-gray-300');
+        });
         
-        // Activate current indicator
-        if (this.checked) {
-          const indicator = indicators[index];
+        // Activate selected
+        this.classList.remove('border-gray-300');
+        this.classList.add('border-gray-900', 'bg-gray-50');
+        
+        const indicator = indicators[index];
+        if (indicator) {
           indicator.classList.remove('border-gray-300');
           indicator.classList.add('border-red-600');
           const dot = indicator.querySelector('div');
           if (dot) dot.classList.remove('opacity-0');
         }
+
+        if (radio) radio.checked = true;
+        selectedPaymentMethod = method;
+
+        // Update pay button
+        if (payButton) {
+          payButton.disabled = false;
+          payButton.innerHTML = `
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>Pagar ${formatPrice(order.total)}</span>
+          `;
+        }
+
+        console.log('✅ Método seleccionado:', method);
       });
     });
-    
-    // Activate first radio by default
-    const firstRadio = radios[0];
-    if (firstRadio) {
-      firstRadio.checked = true;
-      firstRadio.dispatchEvent(new Event('change'));
+
+    // Seleccionar primer método por defecto
+    if (methodOptions.length > 0) {
+      methodOptions[0].click();
     }
   }
 
-  // ✅ CONFIGURAR WOMPI PAYMENT
-  function setupWompiPayment() {
-    if (typeof WidgetCheckout === 'undefined') {
-      console.error('❌ Wompi Widget no cargado');
-      return;
-    }
+  // ✅ VERIFICAR Y CONFIGURAR WOMPI
+  function checkWompiStatus() {
+    const maxAttempts = 10;
+    let attempts = 0;
 
-    console.log('✅ Wompi Widget cargado correctamente');
+    const checkInterval = setInterval(() => {
+      attempts++;
+      
+      if (typeof WidgetCheckout !== 'undefined') {
+        console.log('✅ Wompi Widget disponible');
+        isWompiReady = true;
+        clearInterval(checkInterval);
+        enablePaymentButton();
+      } else if (attempts >= maxAttempts) {
+        console.error('❌ Wompi Widget no pudo cargarse después de', maxAttempts, 'intentos');
+        clearInterval(checkInterval);
+        handleWompiUnavailable();
+      }
+    }, 500);
   }
 
-  // ✅ MANEJAR PROCESO DE PAGO
-  function handlePayment() {
+  function enablePaymentButton() {
     const payButton = document.getElementById('pay-button');
-    const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
+    if (payButton && !payButton.disabled) {
+      // Button is already enabled by payment method selection
+      console.log('✅ Botón de pago habilitado');
+    }
+  }
+
+  function handleWompiUnavailable() {
+    showError('Servicio de pagos temporalmente no disponible. Por favor intenta más tarde.');
     
-    if (!selectedMethod) {
-      alert('Por favor selecciona un método de pago');
-      return;
+    const payButton = document.getElementById('pay-button');
+    if (payButton) {
+      payButton.disabled = true;
+      payButton.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Servicio no disponible</span>
+      `;
     }
 
-    // Deshabilitar botón
-    payButton.disabled = true;
-    payButton.innerHTML = `
-      <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
-      <span>Procesando...</span>
+    // Mostrar métodos alternativos
+    showAlternativePaymentInfo();
+  }
+
+  function showAlternativePaymentInfo() {
+    const alternativeDiv = document.createElement('div');
+    alternativeDiv.className = 'mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md';
+    alternativeDiv.innerHTML = `
+      <h4 class="font-medium text-yellow-800 mb-2">Métodos de pago alternativos</h4>
+      <p class="text-sm text-yellow-700 mb-2">Puedes realizar tu pago por:</p>
+      <ul class="text-sm text-yellow-700 list-disc list-inside space-y-1">
+        <li>Transferencia bancaria</li>
+        <li>Depósito en efectivo</li>
+        <li>Pago contraentrega</li>
+      </ul>
+      <p class="text-sm text-yellow-700 mt-2">
+        <a href="/contacto" class="underline font-medium">Contáctanos</a> para recibir instrucciones.
+      </p>
     `;
 
-    // Datos de la transacción
-    const transactionData = {
-      amount_in_cents: Math.round(order.total * 100), // Convertir a centavos
-      currency: 'COP',
-      reference: order.order_number,
-      public_key: WOMPI_PUBLIC_KEY,
-      redirect_url: `${window.location.origin}/checkout/confirmacion?order=${order.id}`,
-      payment_methods: {
-        installments: {
-          default: 1,
-          enabled: [1, 3, 6, 12, 24]
-        }
-      },
-      shipping_address: {
-        address_line_1: order.shipping_address.address_line_1,
-        address_line_2: order.shipping_address.address_line_2 || '',
-        country: 'CO',
-        region: order.shipping_address.state,
-        city: order.shipping_address.city,
-        name: order.shipping_address.full_name,
-        phone_number: order.shipping_address.phone,
-        postal_code: order.shipping_address.postal_code
-      },
-      customer_data: {
-        phone_number: order.shipping_address.phone,
-        full_name: order.shipping_address.full_name,
-        email: order.shipping_address.email
-      }
-    };
+    const paymentSection = document.querySelector('.lg\\:col-span-2');
+    if (paymentSection) {
+      paymentSection.appendChild(alternativeDiv);
+    }
+  }
+
+  // ✅ PROCESAR PAGO CON WOMPI
+  async function processPayment() {
+    if (!selectedPaymentMethod) {
+      showError('Por favor selecciona un método de pago');
+      return;
+    }
+
+    if (!isWompiReady) {
+      showError('Servicio de pagos no disponible. Por favor recarga la página.');
+      return;
+    }
+
+    if (paymentInProgress) {
+      console.log('⏳ Pago ya en progreso, ignorando click adicional');
+      return;
+    }
+
+    paymentInProgress = true;
+    const payButton = document.getElementById('pay-button');
 
     try {
-      // Abrir Widget de Wompi
-      const checkout = new WidgetCheckout({
-        currency: transactionData.currency,
-        amountInCents: transactionData.amount_in_cents,
+      // Deshabilitar botón y mostrar loading
+      if (payButton) {
+        payButton.disabled = true;
+        payButton.innerHTML = `
+          <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Iniciando pago...</span>
+        `;
+      }
+
+      // ✅ PREPARAR DATOS DE TRANSACCIÓN
+      const transactionData = {
+        currency: 'COP',
+        amountInCents: Math.round(order.total * 100),
+        reference: order.order_number,
+        publicKey: WOMPI_PUBLIC_KEY,
+        redirectUrl: `${window.location.origin}/checkout/confirmacion?order=${order.id}`,
+        customerData: {
+          email: order.shipping_address?.email || '',
+          fullName: order.shipping_address?.full_name || '',
+          phoneNumber: order.shipping_address?.phone || ''
+        },
+        shippingAddress: {
+          addressLine1: order.shipping_address?.address_line_1 || '',
+          addressLine2: order.shipping_address?.address_line_2 || '',
+          country: 'CO',
+          region: order.shipping_address?.state || '',
+          city: order.shipping_address?.city || '',
+          name: order.shipping_address?.full_name || '',
+          phoneNumber: order.shipping_address?.phone || '',
+          postalCode: order.shipping_address?.postal_code || ''
+        },
+        paymentMethods: {
+          installments: {
+            default: 1,
+            enabled: [1, 3, 6, 12, 24]
+          }
+        }
+      };
+
+      console.log('💳 Iniciando pago con Wompi:', {
         reference: transactionData.reference,
-        publicKey: transactionData.public_key,
-        redirectUrl: transactionData.redirect_url,
-        customerData: transactionData.customer_data,
-        shippingAddress: transactionData.shipping_address,
-        paymentMethods: transactionData.payment_methods
+        amount: transactionData.amountInCents,
+        method: selectedPaymentMethod
       });
 
+      // ✅ CREAR Y ABRIR WIDGET WOMPI
+      const checkout = new WidgetCheckout(transactionData);
+
       checkout.open(function(result) {
-        // Callback cuando se complete/cierre el widget
-        console.log('Resultado del pago:', result);
+        console.log('🏦 Resultado del widget Wompi:', result);
         
-        if (result.transaction && result.transaction.status === 'APPROVED') {
-          // Pago exitoso - actualizar orden en backend
-          updateOrderPaymentStatus(order.id, result.transaction.id, 'paid')
-            .then(() => {
-              window.location.href = transactionData.redirect_url;
-            })
-            .catch(error => {
-              console.error('Error actualizando orden:', error);
-              alert('Error procesando el pago. Contacta al soporte.');
-            });
-        } else if (result.transaction && result.transaction.status === 'DECLINED') {
-          // Pago rechazado
-          alert('Tu pago fue rechazado. Por favor intenta con otro método de pago.');
-          resetPayButton();
+        if (result.transaction) {
+          handlePaymentResult(result.transaction);
         } else {
-          // Usuario cerró el widget sin completar
+          console.log('👤 Usuario cerró el widget sin completar el pago');
           resetPayButton();
         }
       });
 
     } catch (error) {
-      console.error('Error iniciando Wompi:', error);
-      alert('Error al inicializar el pago. Por favor intenta de nuevo.');
+      console.error('❌ Error iniciando pago:', error);
+      showError('Error al inicializar el pago. Por favor intenta de nuevo.');
       resetPayButton();
     }
   }
 
-  // ✅ RESETEAR BOTÓN DE PAGO
-  function resetPayButton() {
-    const payButton = document.getElementById('pay-button');
-    payButton.disabled = false;
-    payButton.innerHTML = `
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      </svg>
-      <span>Pagar $${order.total.toLocaleString('es-CO')}</span>
-    `;
+  // ✅ MANEJAR RESULTADO DEL PAGO
+  async function handlePaymentResult(transaction) {
+    console.log('📊 Procesando resultado de transacción:', transaction);
+
+    try {
+      if (transaction.status === 'APPROVED') {
+        console.log('✅ Pago aprobado');
+        showSuccess('¡Pago exitoso! Redirigiendo...');
+        
+        // Actualizar estado de la orden
+        await updateOrderPaymentStatus(order.id, transaction.id, 'completed');
+        
+        // Redirigir a confirmación
+        setTimeout(() => {
+          window.location.href = `/checkout/confirmacion?order=${order.id}&transaction=${transaction.id}`;
+        }, 2000);
+
+      } else if (transaction.status === 'DECLINED' || transaction.status === 'FAILED') {
+        console.log('❌ Pago rechazado/fallido');
+        showError('Tu pago fue rechazado. Por favor intenta con otro método de pago.');
+        resetPayButton();
+
+      } else if (transaction.status === 'PENDING') {
+        console.log('⏳ Pago pendiente');
+        showSuccess('Pago en proceso. Te notificaremos cuando se confirme.');
+        
+        // Actualizar estado a pending
+        await updateOrderPaymentStatus(order.id, transaction.id, 'pending');
+        
+        // Redirigir a página de espera
+        setTimeout(() => {
+          window.location.href = `/checkout/confirmacion?order=${order.id}&status=pending`;
+        }, 2000);
+
+      } else {
+        console.log('⚠️ Estado de pago desconocido:', transaction.status);
+        showError('Estado de pago incierto. Por favor contacta al soporte.');
+        resetPayButton();
+      }
+
+    } catch (error) {
+      console.error('❌ Error procesando resultado:', error);
+      showError('Error procesando el resultado del pago. Por favor contacta al soporte.');
+      resetPayButton();
+    }
   }
 
   // ✅ ACTUALIZAR ESTADO DE PAGO EN BACKEND
   async function updateOrderPaymentStatus(orderId, transactionId, status) {
     try {
+      console.log('🔄 Actualizando estado de pago:', { orderId, transactionId, status });
+
       const response = await fetch('/api/orders/update-payment', {
         method: 'POST',
         headers: {
@@ -444,22 +664,83 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
         body: JSON.stringify({
           order_id: orderId,
           payment_reference: transactionId,
-          payment_status: status
+          payment_status: status === 'completed' ? 'completed' : status
         })
       });
 
       if (!response.ok) {
-        throw new Error('Error updating payment status');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error actualizando estado de pago');
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('✅ Estado de pago actualizado:', result);
+      
+      return result;
+
     } catch (error) {
-      console.error('Error en updateOrderPaymentStatus:', error);
+      console.error('❌ Error actualizando estado de pago:', error);
       throw error;
     }
   }
+
+  // ✅ RESETEAR BOTÓN DE PAGO
+  function resetPayButton() {
+    paymentInProgress = false;
+    const payButton = document.getElementById('pay-button');
+    
+    if (payButton && selectedPaymentMethod) {
+      payButton.disabled = false;
+      payButton.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2-2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <span>Pagar ${formatPrice(order.total)}</span>
+      `;
+    }
+  }
+
+  // ✅ INICIALIZACIÓN
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Iniciando configuración de pagos...');
+    
+    // Configurar métodos de pago
+    setupPaymentMethods();
+    
+    // Verificar estado de Wompi
+    checkWompiStatus();
+    
+    // Event listener para botón de pago
+    const payButton = document.getElementById('pay-button');
+    if (payButton) {
+      payButton.addEventListener('click', processPayment);
+    }
+
+    console.log('✅ Configuración de pagos completada');
+  });
+
+  // ✅ MANEJO DE ERRORES GLOBALES
+  window.addEventListener('error', function(event) {
+    console.error('❌ Error global en página de pagos:', event.error);
+    
+    if (event.error && event.error.message && event.error.message.includes('WidgetCheckout')) {
+      handleWompiUnavailable();
+    }
+  });
+
+  // ✅ PREVENIR SALIDA ACCIDENTAL DURANTE PAGO
+  window.addEventListener('beforeunload', function(event) {
+    if (paymentInProgress) {
+      event.preventDefault();
+      event.returnValue = 'Hay un pago en proceso. ¿Estás seguro de que quieres salir?';
+      return event.returnValue;
+    }
+  });
+
+  console.log('✅ Sistema de pagos v2.0 inicializado correctamente');
 </script>
 
+<!-- ✅ ESTILOS ADICIONALES -->
 <style>
   .animate-spin {
     animation: spin 1s linear infinite;
@@ -468,5 +749,14 @@ const WOMPI_URL = import.meta.env.PUBLIC_WOMPI_URL || 'https://checkout.wompi.co
   @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+  }
+
+  .payment-method-option:hover .payment-indicator {
+    border-color: #6b7280;
+  }
+
+  .payment-method-option.selected {
+    border-color: #111827 !important;
+    background-color: #f9fafb;
   }
 </style>

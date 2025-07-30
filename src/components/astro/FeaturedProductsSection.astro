@@ -78,51 +78,49 @@ const { products } = Astro.props;
 
                     <!-- Agregar al Carrito -->
                     {product.stock > 0 ? (
-                      <button 
-                        class="add-to-cart-btn flex-1 bg-gray-900 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors text-sm"
+                      <button
+                        class="flex-1 featured-add-to-cart-btn bg-gray-900 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
                         data-product-id={product.id}
                         data-product-name={product.name}
                         data-product-price={product.price}
-                        data-product-image={product.image_url}
-                        data-product-category={product.category}
+                        data-product-image={product.image_url || ''}
+                        data-product-category={product.category || ''}
                       >
-                        Agregar
+                        🛒 Agregar
                       </button>
                     ) : (
-                      <div class="flex-1 text-center bg-gray-500 text-white py-2 px-4 rounded-lg text-sm opacity-50 cursor-not-allowed">
+                      <div class="flex-1 text-center bg-gray-500 text-white py-2 px-4 rounded-lg text-sm cursor-not-allowed">
                         Agotado
                       </div>
                     )}
                   </div>
-
-                  <!-- Stock Info -->
-                  {product.stock <= 5 && product.stock > 0 && (
-                    <p class="text-xs text-yellow-300 text-center">
-                      Solo quedan {product.stock}
-                    </p>
-                  )}
                 </div>
               </div>
+            </div>
 
-              <!-- Badge Solo en Esquina -->
-              {product.featured && (
-                <div class="absolute top-3 right-3 bg-gray-900 text-white text-xs font-medium px-2 py-1 rounded-full opacity-80">
-                  ⭐
-                </div>
-              )}
+            <!-- Info Rápida (Solo Visible en Vista Grid Expandida) -->
+            <div class="p-4 lg:block hidden">
+              <div class="text-center">
+                <h4 class="font-medium text-gray-800 text-sm line-clamp-2 mb-2">
+                  {product.name}
+                </h4>
+                <p class="text-lg font-semibold text-gray-900">
+                  ${new Intl.NumberFormat('es-CO').format(product.price)}
+                </p>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      <!-- Ver Todos Link -->
+      <!-- Ver Todos los Productos -->
       <div class="text-center mt-12">
         <a 
           href="/productos" 
-          class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+          class="inline-flex items-center px-8 py-3 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors"
         >
-          <span>Ver Todos los Productos</span>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          Ver Todos los Productos
+          <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </a>
@@ -132,83 +130,78 @@ const { products } = Astro.props;
 )}
 
 <script>
-  // Funcionalidad del carrito usando localStorage directamente
   document.addEventListener('DOMContentLoaded', function() {
+    console.log('🛒 FeaturedProducts: Inicializando...');
     
-    // Función para agregar al carrito
-    function addToCart(productData) {
-      try {
-        // Obtener carrito actual del localStorage
-        const currentCart = JSON.parse(localStorage.getItem('cart') || '[]');
-        
-        // Buscar si el producto ya existe
-        const existingItemIndex = currentCart.findIndex(item => item.id === productData.id);
-        
-        if (existingItemIndex !== -1) {
-          // Si existe, incrementar cantidad
-          currentCart[existingItemIndex].quantity += 1;
-        } else {
-          // Si no existe, agregarlo
-          currentCart.push({
-            id: productData.id,
-            name: productData.name,
-            price: productData.price,
-            image: productData.image,
-            category: productData.category,
-            quantity: 1
-          });
-        }
-        
-        // Guardar en localStorage
-        localStorage.setItem('cart', JSON.stringify(currentCart));
-        
-        // Dispatchar evento para actualizar otros componentes
-        window.dispatchEvent(new CustomEvent('cartUpdated', { 
-          detail: { cart: currentCart }
-        }));
-        
-        // Log para debug
-        console.log(`✅ ${productData.name} agregado al carrito`);
-        
-      } catch (error) {
-        console.error('Error agregando al carrito:', error);
+    // ✅ ESPERAR A QUE EL SISTEMA DE CARRITO ESTÉ DISPONIBLE
+    function waitForCartSystem() {
+      if (typeof window.addToCart === 'function') {
+        console.log('✅ Sistema de carrito disponible en FeaturedProducts');
+        setupCartButtons();
+      } else {
+        console.log('⏳ Esperando sistema de carrito...');
+        setTimeout(waitForCartSystem, 100);
       }
     }
     
-    // Agregar event listeners a todos los botones de agregar al carrito
-    document.querySelectorAll('.add-to-cart-btn').forEach(function(button) {
-      button.addEventListener('click', function(e) {
-        e.preventDefault();
+    // ✅ CONFIGURAR BOTONES DE AGREGAR AL CARRITO
+    function setupCartButtons() {
+      // ✅ CORRECCIÓN: Cast a HTMLElement para acceder a dataset
+      document.querySelectorAll('.featured-add-to-cart-btn').forEach(function(button) {
+        const htmlButton = button as HTMLElement;
         
-        // ✅ CASTING EXPLÍCITO SIGUIENDO EL PATRÓN DEL PROYECTO
-        const buttonElement = e.target as HTMLElement;
+        // Evitar duplicar listeners
+        if (htmlButton.dataset.listenerAdded === 'true') {
+          return;
+        }
+        htmlButton.dataset.listenerAdded = 'true';
         
-        // Verificar que el botón existe y tiene los datos necesarios
-        if (!buttonElement || !buttonElement.dataset) return;
-        
-        const productData = {
-          id: buttonElement.dataset.productId || '',
-          name: buttonElement.dataset.productName || '',
-          price: parseFloat(buttonElement.dataset.productPrice || '0'),
-          image: buttonElement.dataset.productImage || '',
-          category: buttonElement.dataset.productCategory || ''
-        };
-        
-        addToCart(productData);
-        
-        // ✅ FEEDBACK VISUAL EN BOTÓN USANDO EL PATRÓN ESTABLECIDO
-        const originalText = buttonElement.innerHTML;
-        buttonElement.innerHTML = '✅ Agregado';
-        buttonElement.classList.add('bg-green-600', 'text-white');
-        buttonElement.classList.remove('bg-gray-900');
-        
-        setTimeout(function() {
-          buttonElement.innerHTML = originalText;
-          buttonElement.classList.remove('bg-green-600', 'text-white');
-          buttonElement.classList.add('bg-gray-900');
-        }, 2000);
+        htmlButton.addEventListener('click', function(event) {
+          event.preventDefault();
+          
+          // ✅ CORRECCIÓN: Obtener datos del producto desde data attributes
+          const productId = htmlButton.dataset.productId;
+          const productName = htmlButton.dataset.productName;
+          const productPrice = parseFloat(htmlButton.dataset.productPrice || '0');
+          const productImage = htmlButton.dataset.productImage;
+          const productCategory = htmlButton.dataset.productCategory;
+          
+          console.log('🛒 Agregando producto desde Featured:', {
+            productId, productName, productPrice, productImage, productCategory
+          });
+          
+          // ✅ USAR EL SISTEMA UNIFICADO
+          if (window.addToCart) {
+            const success = window.addToCart(
+            productId!, 
+            productName!, 
+            productPrice, 
+            1  // cantidad
+          );
+            
+            if (success) {
+              // Feedback visual
+              const originalText = htmlButton.textContent;
+              htmlButton.textContent = '✅ ¡Agregado!';
+              // ✅ CORRECCIÓN: Cast a HTMLElement para acceder a style
+              (htmlButton as HTMLElement).style.backgroundColor = '#22c55e';
+              
+              setTimeout(function() {
+                htmlButton.textContent = originalText;
+                // ✅ CORRECCIÓN: Cast a HTMLElement para acceder a style
+                (htmlButton as HTMLElement).style.backgroundColor = '';
+              }, 2000);
+            }
+          } else {
+            console.error('❌ window.addToCart no disponible');
+            alert('Error: Sistema de carrito no disponible. Recarga la página.');
+          }
+        });
       });
-    });
+    }
+    
+    // Inicializar
+    waitForCartSystem();
   });
 </script>
 

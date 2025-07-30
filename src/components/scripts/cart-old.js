@@ -64,18 +64,19 @@ window.Cart = {
         items[existingIndex].quantity += quantity;
         items[existingIndex].updated_at = new Date().toISOString();
       } else {
-        const newItem = {
-          id: `cart_${Date.now()}_${product.id}`,
-          product_id: product.id,
-          product_name: product.name,
-          product_price: product.price,
-          product_image: product.image_url || '',
-          product_category: product.category || '',
-          quantity: quantity,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        items.push(newItem);
+        const standardCartItem = {
+  id: `temp_${Date.now()}`,
+  product_id: productId,
+  user_id: null,
+  quantity: quantity,
+  product_name: productName,     // ✅ Usar product_name
+  product_price: productPrice,   // ✅ Usar product_price
+  product_image: productImage,
+  product_category: productCategory,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+        items.push(standardCartItem);
       }
       
       CartStorage.saveItems(items);

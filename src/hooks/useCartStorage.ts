@@ -1,8 +1,8 @@
-// src/hooks/useCartStorage.ts - HOOK CORREGIDO PARA CHECKOUT
+// src/hooks/useCartStorage.ts - VERSIÓN CORREGIDA COMPATIBLE CON SISTEMA UNIFICADO
 import { useState, useEffect, useCallback } from 'react';
 import type { Product, CartItem } from '../lib/types';
 
-// ✅ CLAVE CONSISTENTE CON TODOS LOS SCRIPTS DEL PROYECTO
+// ✅ MISMA CLAVE QUE EL SISTEMA UNIFICADO
 const CART_STORAGE_KEY = 'martek-cart';
 
 interface CartState {
@@ -12,7 +12,27 @@ interface CartState {
   isLoading: boolean;
 }
 
-// ✅ FUNCIONES DE LOCALSTORAGE ROBUSTAS
+interface UseCartStorageReturn {
+  // Estado
+  items: CartItem[];
+  total: number;
+  itemCount: number;
+  isLoading: boolean;
+  
+  // Acciones
+  addItem: (product: Product, quantity?: number) => Promise<boolean>;
+  removeItem: (productId: string) => Promise<boolean>;
+  updateQuantity: (productId: string, quantity: number) => Promise<boolean>;
+  clearCart: () => Promise<void>;
+  
+  // Utilidades
+  getItemByProductId: (productId: string) => CartItem | null;
+  isInCart: (productId: string) => boolean;
+  getProductQuantity: (productId: string) => number;
+  formatPrice: (price: number) => string;
+}
+
+// ✅ FUNCIONES DE UTILIDAD
 function getStoredCart(): CartItem[] {
   try {
     if (typeof window === 'undefined') return [];
@@ -22,7 +42,7 @@ function getStoredCart(): CartItem[] {
     const items = JSON.parse(stored);
     if (!Array.isArray(items)) return [];
     
-    // Validar y limpiar items corruptos
+    // Validar items
     return items.filter(item => {
       return item && 
              typeof item === 'object' && 
@@ -43,29 +63,14 @@ function saveCartToStorage(items: CartItem[]): void {
   try {
     if (typeof window === 'undefined') return;
     
-    // Validar items antes de guardar
-    const validItems = items.filter(item => {
-      return item && 
-             typeof item === 'object' && 
-             item.id && 
-             item.product_id && 
-             item.product_name && 
-             typeof item.product_price === 'number' && 
-             typeof item.quantity === 'number' && 
-             item.quantity > 0;
-    });
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
     
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(validItems));
-    
-    // Disparar evento personalizado para sincronizar con otros components
-    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: validItems }));
-    
-    // También disparar evento para compatibilidad con scripts de Astro
+    // Disparar eventos para sincronización
     window.dispatchEvent(new CustomEvent('cart-updated', { 
       detail: { 
-        items: validItems,
-        total: validItems.reduce((sum, item) => sum + (item.product_price * item.quantity), 0),
-        itemCount: validItems.reduce((sum, item) => sum + item.quantity, 0)
+        items,
+        totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
+        totalPrice: items.reduce((sum, item) => sum + (item.product_price * item.quantity), 0)
       } 
     }));
     
@@ -74,12 +79,27 @@ function saveCartToStorage(items: CartItem[]): void {
   }
 }
 
-function generateCartItemId(): string {
-  return `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+function generateCartItemId(productId: string): string {
+  return `cart_${Date.now()}_${productId}`;
 }
 
-// ✅ HOOK PRINCIPAL MEJORADO
-export function useCartStorage() {
+function formatPrice(price: number): string {
+  try {
+    const validPrice = typeof price === 'number' && !isNaN(price) ? price : 0;
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(validPrice);
+  } catch (error) {
+    console.error('Error formatting price:', error);
+    return `$${price || 0}`;
+  }
+}
+
+// ✅ HOOK PRINCIPAL
+export function useCartStorage(): UseCartStorageReturn {
   const [state, setState] = useState<CartState>({
     items: [],
     total: 0,
@@ -92,27 +112,24 @@ export function useCartStorage() {
     const total = items.reduce((sum, item) => sum + (item.product_price * item.quantity), 0);
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
     
-    setState(prev => ({
-      ...prev,
+    setState({
       items,
       total,
-      itemCount
-    }));
+      itemCount,
+      isLoading: false
+    });
   }, []);
 
   // ✅ CARGAR CARRITO INICIAL
   useEffect(() => {
     const items = getStoredCart();
     updateState(items);
-    setState(prev => ({ ...prev, isLoading: false }));
   }, [updateState]);
 
-  // ✅ ESCUCHAR CAMBIOS ENTRE COMPONENTS Y STORAGE
+  // ✅ ESCUCHAR CAMBIOS DEL SISTEMA UNIFICADO
   useEffect(() => {
     const handleCartUpdate = (event: CustomEvent) => {
-      if (Array.isArray(event.detail)) {
-        updateState(event.detail);
-      } else if (event.detail?.items && Array.isArray(event.detail.items)) {
+      if (event.detail?.items && Array.isArray(event.detail.items)) {
         updateState(event.detail.items);
       }
     };
@@ -124,136 +141,129 @@ export function useCartStorage() {
       }
     };
 
-    window.addEventListener('cartUpdated', handleCartUpdate as EventListener);
     window.addEventListener('cart-updated', handleCartUpdate as EventListener);
     window.addEventListener('storage', handleStorageChange);
-    
+
     return () => {
-      window.removeEventListener('cartUpdated', handleCartUpdate as EventListener);
       window.removeEventListener('cart-updated', handleCartUpdate as EventListener);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [updateState]);
 
-  // ✅ AGREGAR PRODUCTO AL CARRITO
-  const addItem = useCallback(async (product: Product, quantity: number = 1): Promise<void> => {
-    setState(prev => ({ ...prev, isLoading: true }));
-
+  // ✅ AGREGAR ITEM - Compatible con sistema unificado
+  const addItem = useCallback(async (product: Product, quantity: number = 1): Promise<boolean> => {
     try {
-      const currentItems = getStoredCart();
-      const existingItemIndex = currentItems.findIndex(item => item.product_id === product.id);
-
-      let updatedItems: CartItem[];
-
-      if (existingItemIndex >= 0) {
-        // Actualizar cantidad del producto existente
-        const existingItem = currentItems[existingItemIndex];
-        const newQuantity = existingItem.quantity + quantity;
-        
-        // Validar stock si está disponible
-        if (product.stock && newQuantity > product.stock) {
-          showNotification(`Solo hay ${product.stock} unidades disponibles`, 'error');
-          setState(prev => ({ ...prev, isLoading: false }));
-          return;
-        }
-
-        updatedItems = currentItems.map((item, index) =>
-          index === existingItemIndex
-            ? { ...item, quantity: newQuantity, updated_at: new Date().toISOString() }
-            : item
-        );
+      // Si el sistema unificado está disponible, usarlo
+      if (typeof window !== 'undefined' && window.cart) {
+        return window.cart.addItem(product, quantity);
+      }
+      
+      // Fallback: gestión manual
+      const items = getStoredCart();
+      const existingIndex = items.findIndex(item => item.product_id === product.id);
+      
+      if (existingIndex >= 0) {
+        items[existingIndex].quantity += quantity;
+        items[existingIndex].updated_at = new Date().toISOString();
       } else {
-        // Agregar nuevo producto
-        const newItem: CartItem = {
-          id: generateCartItemId(),
+        const standardCartItem: CartItem = {
+          id: generateCartItemId(product.id),
+          user_id: null,
           product_id: product.id,
-          product_name: product.name,
-          product_price: product.price,
-          product_image: product.image_url || '',
-          product_category: product.category || '',
           quantity: quantity,
           created_at: new Date().toISOString(),
+          product_name: product.name,
+          product_price: product.price,
+          product_image: product.image_url || null,
+          product_category: product.category,
           updated_at: new Date().toISOString()
         };
-
-        updatedItems = [...currentItems, newItem];
+        items.push(standardCartItem);
       }
-
-      saveCartToStorage(updatedItems);
-      updateState(updatedItems);
       
-      showNotification(`${product.name} agregado al carrito`, 'success');
+      saveCartToStorage(items);
+      updateState(items);
+      return true;
       
     } catch (error) {
       console.error('Error adding item to cart:', error);
-      showNotification('Error agregando producto al carrito', 'error');
-    } finally {
-      setState(prev => ({ ...prev, isLoading: false }));
+      return false;
     }
   }, [updateState]);
 
-  // ✅ REMOVER PRODUCTO DEL CARRITO
-  const removeItem = useCallback(async (productId: string): Promise<void> => {
+  // ✅ REMOVER ITEM
+  const removeItem = useCallback(async (productId: string): Promise<boolean> => {
     try {
-      const currentItems = getStoredCart();
-      const updatedItems = currentItems.filter(item => item.product_id !== productId);
+      // Si el sistema unificado está disponible, usarlo
+      if (typeof window !== 'undefined' && window.cart) {
+        return window.cart.removeItem(productId);
+      }
       
-      saveCartToStorage(updatedItems);
-      updateState(updatedItems);
+      // Fallback: gestión manual
+      const items = getStoredCart();
+      const filteredItems = items.filter(item => item.product_id !== productId);
       
-      showNotification('Producto removido del carrito', 'info');
+      saveCartToStorage(filteredItems);
+      updateState(filteredItems);
+      return true;
       
     } catch (error) {
       console.error('Error removing item from cart:', error);
-      showNotification('Error removiendo producto del carrito', 'error');
+      return false;
     }
   }, [updateState]);
 
   // ✅ ACTUALIZAR CANTIDAD
-  const updateQuantity = useCallback(async (productId: string, newQuantity: number): Promise<void> => {
+  const updateQuantity = useCallback(async (productId: string, quantity: number): Promise<boolean> => {
     try {
-      if (newQuantity <= 0) {
-        await removeItem(productId);
-        return;
+      if (quantity <= 0) {
+        return await removeItem(productId);
       }
-
-      const currentItems = getStoredCart();
-      const itemIndex = currentItems.findIndex(item => item.product_id === productId);
       
-      if (itemIndex >= 0) {
-        const updatedItems = currentItems.map((item, index) =>
-          index === itemIndex
-            ? { ...item, quantity: newQuantity, updated_at: new Date().toISOString() }
-            : item
-        );
-        
-        saveCartToStorage(updatedItems);
-        updateState(updatedItems);
+      // Si el sistema unificado está disponible, usarlo
+      if (typeof window !== 'undefined' && window.cart) {
+        return window.cart.updateQuantity(productId, quantity);
       }
+      
+      // Fallback: gestión manual
+      const items = getStoredCart();
+      const item = items.find(item => item.product_id === productId);
+      
+      if (item) {
+        item.quantity = quantity;
+        item.updated_at = new Date().toISOString();
+        saveCartToStorage(items);
+        updateState(items);
+        return true;
+      }
+      
+      return false;
       
     } catch (error) {
       console.error('Error updating item quantity:', error);
-      showNotification('Error actualizando cantidad', 'error');
+      return false;
     }
   }, [removeItem, updateState]);
 
   // ✅ LIMPIAR CARRITO
   const clearCart = useCallback(async (): Promise<void> => {
     try {
+      // Si el sistema unificado está disponible, usarlo
+      if (typeof window !== 'undefined' && window.cart) {
+        window.cart.clearCart();
+        return;
+      }
+      
+      // Fallback: gestión manual
       localStorage.removeItem(CART_STORAGE_KEY);
       updateState([]);
       
-      // Disparar eventos para sincronización
-      window.dispatchEvent(new CustomEvent('cartUpdated', { detail: [] }));
       window.dispatchEvent(new CustomEvent('cart-updated', { 
-        detail: { items: [], total: 0, itemCount: 0 } 
+        detail: { items: [], totalItems: 0, totalPrice: 0 } 
       }));
-      
-      showNotification('Carrito vaciado', 'info');
       
     } catch (error) {
       console.error('Error clearing cart:', error);
-      showNotification('Error vaciando carrito', 'error');
     }
   }, [updateState]);
 
@@ -271,58 +281,6 @@ export function useCartStorage() {
     return item ? item.quantity : 0;
   }, [getItemByProductId]);
 
-  // ✅ OBTENER RESUMEN DEL CARRITO (para checkout)
-  const getCartSummary = useCallback(() => {
-    return {
-      items: state.items,
-      subtotal: state.total,
-      itemCount: state.itemCount,
-      isEmpty: state.items.length === 0
-    };
-  }, [state]);
-
-  // ✅ MOSTRAR NOTIFICACIÓN
-  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    // Remover notificaciones existentes
-    const existing = document.querySelectorAll('.cart-notification');
-    existing.forEach(n => n.remove());
-    
-    const notification = document.createElement('div');
-    notification.className = `cart-notification fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg border max-w-sm transform transition-all duration-300`;
-    
-    switch (type) {
-      case 'success':
-        notification.className += ' bg-green-50 border-green-200 text-green-800';
-        break;
-      case 'error':
-        notification.className += ' bg-red-50 border-red-200 text-red-800';
-        break;
-      case 'info':
-        notification.className += ' bg-blue-50 border-blue-200 text-blue-800';
-        break;
-    }
-    
-    notification.innerHTML = `
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-medium">${message}</span>
-        <button onclick="this.parentElement.parentElement.remove()" class="ml-3 opacity-50 hover:opacity-100">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto-remover después de 3 segundos
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.remove();
-      }
-    }, 3000);
-  };
-
   return {
     // Estado
     items: state.items,
@@ -330,19 +288,29 @@ export function useCartStorage() {
     itemCount: state.itemCount,
     isLoading: state.isLoading,
     
-    // Acciones principales
+    // Acciones
     addItem,
     removeItem,
     updateQuantity,
     clearCart,
     
-    // Funciones de utilidad
+    // Utilidades
     getItemByProductId,
     isInCart,
     getProductQuantity,
-    getCartSummary,
-    
-    // Para compatibilidad con componentes existentes
-    showNotification
+    formatPrice
   };
+}
+
+// ✅ DECLARACIONES GLOBALES PARA TYPESCRIPT
+declare global {
+  interface Window {
+    cart?: {
+      addItem: (product: any, quantity?: number) => boolean;
+      removeItem: (productId: string) => boolean;
+      updateQuantity: (productId: string, quantity: number) => boolean;
+      clearCart: () => boolean;
+      items: any[];
+    };
+  }
 }

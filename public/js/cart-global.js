@@ -111,18 +111,20 @@
           console.log(`➕ Cantidad actualizada: ${productData.product_name} (${items[existingIndex].quantity})`);
         } else {
           // Agregar nuevo producto al carrito
-          const newItem = {
-            id: generateItemId(),
-            product_id: productData.product_id,
-            product_name: productData.product_name,
-            product_price: productData.product_price,
-            product_image: productData.product_image || '',
-            product_category: productData.product_category || '',
-            quantity: quantity,
-            created_at: new Date().toISOString()
-          };
+          const standardCartItem = {
+  id: `temp_${Date.now()}`,
+  product_id: productId,
+  user_id: null,
+  quantity: quantity,
+  product_name: productName,     // ✅ Usar product_name
+  product_price: productPrice,   // ✅ Usar product_price
+  product_image: productImage,
+  product_category: productCategory,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
           
-          items.push(newItem);
+          items.push(standardCartItem);
           console.log(`🆕 Nuevo producto agregado: ${productData.product_name}`);
         }
 

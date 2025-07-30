@@ -1,6 +1,5 @@
 ---
-// src/components/layout/Header.astro - MIGRADO A CLIENT-SIDE AUTH
-// ✅ CAMBIO: Sin server-side auth, todo client-side para output: 'static'
+// src/components/layout/Header.astro - RESPONSIVE CON AUTH EN MENÚ MÓVIL
 ---
 
 <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -16,7 +15,7 @@
         </a>
       </div>
 
-      <!-- ✅ NAVEGACIÓN PRINCIPAL (ESTÁTICA) -->
+      <!-- ✅ NAVEGACIÓN PRINCIPAL (Solo desktop) -->
       <nav class="hidden md:flex items-center space-x-8">
         <a 
           href="/" 
@@ -51,10 +50,10 @@
       <!-- ✅ ACCIONES DEL HEADER -->
       <div class="flex items-center space-x-4">
         
-        <!-- Búsqueda -->
+        <!-- Búsqueda (Solo desktop) -->
         <button 
           id="search-toggle"
-          class="p-2 text-gray-600 hover:text-red-600 transition-colors"
+          class="hidden md:block p-2 text-gray-600 hover:text-red-600 transition-colors"
           aria-label="Buscar"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +61,7 @@
           </svg>
         </button>
 
-        <!-- ✅ CARRITO -->
+        <!-- ✅ CARRITO (Siempre visible) -->
         <button 
           id="cart-toggle"
           class="relative p-2 text-gray-600 hover:text-red-600 transition-colors"
@@ -80,8 +79,8 @@
           </span>
         </button>
 
-        <!-- ✅ MENÚ DE USUARIO DINÁMICO -->
-        <div class="relative">
+        <!-- ✅ MENÚ DE USUARIO (Solo desktop) -->
+        <div class="hidden md:block relative">
           <!-- Estado de carga -->
           <div id="auth-loading" class="hidden">
             <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
@@ -148,7 +147,7 @@
           </div>
         </div>
 
-        <!-- Menu móvil button -->
+        <!-- ✅ BOTÓN MENÚ MÓVIL -->
         <button 
           id="mobile-menu-button"
           class="md:hidden p-2 text-gray-600 hover:text-red-600 transition-colors"
@@ -161,27 +160,40 @@
       </div>
     </div>
 
-    <!-- ✅ MENÚ MÓVIL -->
-    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-200">
+    <!-- ✅ MENÚ MÓVIL (Mejorado) -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-200 bg-white">
       <div class="px-2 pt-2 pb-3 space-y-1">
+        
+        <!-- Navegación principal -->
         <a href="/" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
-          Inicio
+          🏠 Inicio
         </a>
         <a href="/productos" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
-          Productos
+          🛏️ Productos
         </a>
        
         <a href="/contacto" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
-          Contacto
+          📞 Contacto
         </a>
 
-        <div id="mobile-auth-section" class="pt-4 border-t border-gray-200">
-          <!-- Contenido dinámico se inyecta aquí -->
+        <!-- Búsqueda móvil -->
+        <button 
+          id="mobile-search-toggle"
+          class="block w-full text-left px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors"
+        >
+          🔍 Buscar
+        </button>
+
+        <!-- ✅ SECCIÓN DE AUTENTICACIÓN MÓVIL -->
+        <div class="pt-4 mt-4 border-t border-gray-200">
+          <div id="mobile-auth-section">
+            <!-- Contenido dinámico se inyecta aquí -->
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ✅ BARRA DE BÚSQUEDA (oculta por defecto) -->
+    <!-- ✅ BARRA DE BÚSQUEDA (Funciona tanto en desktop como móvil) -->
     <div id="search-bar" class="hidden border-t border-gray-200 py-3">
       <div class="flex items-center space-x-2">
         <input 
@@ -197,7 +209,7 @@
   </div>
 </header>
 
-<!-- ✅ JAVASCRIPT CLIENT-SIDE PARA AUTENTICACIÓN Y CARRITO -->
+<!-- ✅ JAVASCRIPT CLIENT-SIDE MEJORADO -->
 <script>
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('🎯 Header: Inicializando autenticación client-side...');
@@ -216,14 +228,14 @@ document.addEventListener('DOMContentLoaded', async function() {
   const mobileMenuButton = document.getElementById('mobile-menu-button');
   const mobileMenu = document.getElementById('mobile-menu');
   const searchToggle = document.getElementById('search-toggle');
+  const mobileSearchToggle = document.getElementById('mobile-search-toggle');
   const searchBar = document.getElementById('search-bar');
 
-  // ✅ DETECTAR AUTENTICACIÓN (TIPOS CORREGIDOS)
-  let currentUser: { email: string | null; fullName: string } | null = null;
+  // ✅ DETECTAR AUTENTICACIÓN
+let currentUser: { email: string | null; fullName: string } | null = null;
   
   function checkAuthState() {
     try {
-      // Verificar token en localStorage (método simple)
       const token = localStorage.getItem('sb-access-token');
       const userEmail = localStorage.getItem('user-email');
       const userFullName = localStorage.getItem('user-full-name');
@@ -244,7 +256,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
+  // ✅ MOSTRAR ESTADO LOGUEADO
   function showLoggedInState() {
+    // Desktop
     if (authLoading) authLoading.classList.add('hidden');
     if (authLoggedOut) authLoggedOut.classList.add('hidden');
     if (authLoggedIn) authLoggedIn.classList.remove('hidden');
@@ -254,12 +268,12 @@ document.addEventListener('DOMContentLoaded', async function() {
       userName.textContent = currentUser.fullName;
     }
 
-    // Actualizar menú móvil
+    // ✅ MENÚ MÓVIL - USUARIO LOGUEADO
     if (mobileAuthSection) {
       mobileAuthSection.innerHTML = `
         <div class="space-y-2">
-          <div class="px-3 py-2">
-            <p class="text-sm font-medium text-gray-800">${currentUser?.fullName || 'Usuario'}</p>
+          <div class="px-3 py-2 bg-gray-50 rounded-md">
+            <p class="text-sm font-medium text-gray-800">👋 ${currentUser?.fullName || 'Usuario'}</p>
             <p class="text-xs text-gray-500">${currentUser?.email || ''}</p>
           </div>
           <a href="/perfil" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
@@ -268,7 +282,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           <a href="/mis-pedidos" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
             📦 Mis Pedidos
           </a>
-          <button id="mobile-logout" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
+          <button id="mobile-logout" class="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors">
             🚪 Cerrar Sesión
           </button>
         </div>
@@ -282,20 +296,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
 
+  // ✅ MOSTRAR ESTADO SIN LOGUEAR
   function showLoggedOutState() {
+    // Desktop
     if (authLoading) authLoading.classList.add('hidden');
     if (authLoggedOut) authLoggedOut.classList.remove('hidden');
     if (authLoggedIn) authLoggedIn.classList.add('hidden');
     if (navMisPedidos) navMisPedidos.classList.add('hidden');
 
-    // Actualizar menú móvil
+    // ✅ MENÚ MÓVIL - USUARIO NO LOGUEADO
     if (mobileAuthSection) {
       mobileAuthSection.innerHTML = `
         <div class="space-y-2">
-          <a href="/login" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 rounded-md transition-colors">
+          <a href="/login" class="block px-3 py-2 text-base font-medium text-white bg-gray-900 hover:bg-gray-700 rounded-md transition-colors text-center">
             🔐 Iniciar Sesión
           </a>
-          <a href="/registro" class="block px-3 py-2 bg-gray-900 text-white rounded-lg font-medium text-center mx-3 hover:bg-gray-800 transition-colors">
+          <a href="/registro" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gray-50 border border-gray-300 rounded-md transition-colors text-center">
             ✨ Crear Cuenta
           </a>
         </div>
@@ -313,6 +329,10 @@ document.addEventListener('DOMContentLoaded', async function() {
       localStorage.removeItem('user-full-name');
       localStorage.removeItem('martek-cart');
       
+      // Cerrar menús
+      if (mobileMenu) mobileMenu.classList.add('hidden');
+      if (userDropdown) userDropdown.classList.add('hidden');
+      
       // Redirigir a home
       window.location.href = '/';
     } catch (error) {
@@ -323,7 +343,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // ✅ EVENT LISTENERS
   
-  // Toggle dropdown usuario
+  // Toggle dropdown usuario desktop
   if (userMenuButton) {
     userMenuButton.addEventListener('click', function(e) {
       e.stopPropagation();
@@ -340,16 +360,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   });
 
-  // Logout desde header
+  // Logout desde desktop
   const headerLogout = document.getElementById('header-logout');
   if (headerLogout) {
     headerLogout.addEventListener('click', handleLogout);
   }
 
-  // Toggle carrito con eventos (sin funciones globales)
+  // Toggle carrito
   if (cartToggle) {
     cartToggle.addEventListener('click', function() {
-      // ✅ USAR EVENTOS en lugar de funciones globales
       window.dispatchEvent(new CustomEvent('cart-toggle'));
     });
   }
@@ -363,20 +382,28 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
   }
 
-  // Toggle búsqueda
+  // Toggle búsqueda (desktop y móvil)
+  function toggleSearch() {
+    if (searchBar) {
+      searchBar.classList.toggle('hidden');
+      // Cerrar menú móvil si está abierto
+      if (mobileMenu) mobileMenu.classList.add('hidden');
+    }
+  }
+
   if (searchToggle) {
-    searchToggle.addEventListener('click', function() {
-      if (searchBar) {
-        searchBar.classList.toggle('hidden');
-      }
-    });
+    searchToggle.addEventListener('click', toggleSearch);
+  }
+
+  if (mobileSearchToggle) {
+    mobileSearchToggle.addEventListener('click', toggleSearch);
   }
 
   // ✅ ACTUALIZAR BADGE DEL CARRITO
   function updateCartBadge() {
     try {
       const cartItems = JSON.parse(localStorage.getItem('martek-cart') || '[]');
-      const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+const itemCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0);
       
       if (cartBadge) {
         if (itemCount > 0) {
@@ -389,23 +416,28 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
       }
     } catch (error) {
-      console.error('Error updating cart badge:', error);
+      console.error('Error actualizando badge del carrito:', error);
     }
   }
 
-  // ✅ ESCUCHAR EVENTOS DE CARRITO
-  window.addEventListener('cart-updated', updateCartBadge);
-  window.addEventListener('cartUpdated', updateCartBadge);
+  // ✅ INICIALIZACIÓN
+  checkAuthState();
+  updateCartBadge();
+
+  // Escuchar cambios en localStorage
   window.addEventListener('storage', function(e) {
+    if (e.key === 'sb-access-token' || e.key === 'user-email' || e.key === 'user-full-name') {
+      checkAuthState();
+    }
     if (e.key === 'martek-cart') {
       updateCartBadge();
     }
   });
 
-  // ✅ INICIALIZACIÓN
-  checkAuthState();
-  updateCartBadge();
-  
+  // Escuchar eventos del carrito
+  window.addEventListener('cart:updated', updateCartBadge);
+  window.addEventListener('cart-updated', updateCartBadge);
+
   console.log('✅ Header: Client-side auth inicializado');
 });
 </script>

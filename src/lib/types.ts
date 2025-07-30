@@ -85,6 +85,7 @@ export interface OrderItem {
 
 export interface ShippingAddress {
   full_name: string;
+  email: string;                    // ✅ AGREGAR esta línea
   phone: string;
   address_line_1: string;
   address_line_2?: string;
