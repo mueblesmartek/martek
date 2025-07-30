@@ -1,25 +1,17 @@
+# netlify.toml - Para Node.js adapter
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "npm run build && npm run start"
 
 [build.environment]
   NODE_VERSION = "18"
 
-# ✅ Si usas adaptador Netlify, agregar estas funciones
-[functions]
-  # Configuración para funciones serverless si usas SSR
-  directory = "netlify/functions"
-
-# Headers básicos para seguridad
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
-    X-Adult-Content = "true"
 
-# Cache para assets estáticos
 [[headers]]
   for = "/images/*"
   [headers.values]

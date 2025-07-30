@@ -1,4 +1,4 @@
-// astro.config.mjs - CONFIGURACIÓN COMPATIBLE
+// astro.config.mjs - CONFIGURACIÓN QUE FUNCIONABA
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
@@ -10,10 +10,8 @@ export default defineConfig({
     react()
   ],
   
-  output: 'hybrid',  // ✅ CAMBIO CRÍTICO
-  adapter: node({
-    mode: 'standalone'
-  }),
+  output: 'hybrid',
+  adapter: node({ mode: 'standalone' }),
   
   site: 'https://mueblesmartek.com',
   vite: {
