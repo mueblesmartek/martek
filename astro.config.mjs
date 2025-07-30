@@ -1,8 +1,7 @@
-// astro.config.mjs - CONFIGURACIÓN QUE FUNCIONABA
+// astro.config.mjs - MODO ESTÁTICO PARA NETLIFY
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
-import node from '@astrojs/node';
 
 export default defineConfig({
   integrations: [
@@ -10,8 +9,8 @@ export default defineConfig({
     react()
   ],
   
-  output: 'hybrid',
-  adapter: node({ mode: 'standalone' }),
+  output: 'static',  // ✅ Estático para Netlify
+  // adapter: node(),  // ✅ Comentado
   
   site: 'https://mueblesmartek.com',
   vite: {
