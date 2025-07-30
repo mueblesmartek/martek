@@ -13,7 +13,7 @@ export interface Props {
 
 const { 
   title, 
-  description = "Martek - Bases para camas de alta calidad. Más de 45 años de experiencia en muebles.",
+  description = "Martek - Bases para camas de alta calidad. Más de 45 años de experiencia en muebles.", 
   image = "/images/og-default.jpg",
   noIndex = false 
 } = Astro.props;
@@ -53,56 +53,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" href="/favicon.png" />
   
-  <!-- ✅ HELPER PARA NETLIFY - AGREGADO ANTES DE cart.js -->
-  <script is:inline>
-    // 🔧 Helper para esperar que cart.js cargue completamente
-    window.waitForCartAPI = function(timeout = 15000) {
-      return new Promise((resolve) => {
-        // Si ya está disponible
-        if (typeof window.CartAPI !== 'undefined' && typeof window.addToCart === 'function') {
-          console.log('✅ CartAPI ya disponible');
-          resolve(true);
-          return;
-        }
-
-        console.log('⏳ Esperando CartAPI...');
-        const startTime = Date.now();
-        
-        const checkInterval = setInterval(() => {
-          // Verificar si CartAPI está disponible
-          if (typeof window.CartAPI !== 'undefined' && typeof window.addToCart === 'function') {
-            clearInterval(checkInterval);
-            console.log('✅ CartAPI cargado exitosamente');
-            resolve(true);
-            return;
-          }
-
-          // Timeout
-          if (Date.now() - startTime > timeout) {
-            clearInterval(checkInterval);
-            console.error('❌ Timeout: CartAPI no disponible después de', timeout, 'ms');
-            resolve(false);
-          }
-        }, 100);
-      });
-    };
-
-    // 🔧 Función segura para agregar al carrito
-    window.safeAddToCart = async function(productId, productName, productPrice, quantity = 1) {
-      const isReady = await window.waitForCartAPI();
-      if (isReady && typeof window.addToCart === 'function') {
-        window.addToCart(productId, productName, productPrice, quantity);
-        return true;
-      } else {
-        console.error('No se pudo agregar al carrito - CartAPI no disponible');
-        alert('Error: Sistema de carrito no disponible. Por favor, recarga la página.');
-        return false;
-      }
-    };
-
-    console.log('🔧 Cart Helper cargado');
-  </script>
-
   <!-- Estilos críticos inline -->
   <style>
     *,*::before,*::after{box-sizing:border-box;}
@@ -139,51 +89,140 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   <!-- ✅ CARRITO GLOBAL - MONTADO PARA ESCUCHAR EVENTOS -->
   <GlobalCart client:load />
 
-  <!-- ✅ SCRIPT DE CARRITO PRINCIPAL -->
-  <script src="/js/cart.js" is:inline></script>
-
-  <!-- ✅ SCRIPT MEJORADO - AHORA ESPERA A QUE CART.JS ESTÉ LISTO -->
-  <script>
-    document.addEventListener('DOMContentLoaded', async function() {
-      console.log('🛏️ Martek - Bases para camas cargado');
+  <!-- ✅ SCRIPT BULLETPROOF - EVITA CARGA DOBLE DE CART.JS -->
+  <script is:inline>
+    // 🔧 FLAG GLOBAL PARA EVITAR CARGA DOBLE
+    if (!window.MARTEK_CART_LOADING && !window.MARTEK_CART_LOADED) {
+      window.MARTEK_CART_LOADING = true;
       
-      // ✅ ESPERAR A QUE CARTAPI ESTÉ DISPONIBLE (ROBUSTO PARA NETLIFY)
-      try {
-        const cartReady = await window.waitForCartAPI(15000);
-        
-        if (cartReady) {
-          console.log('✅ Layout: CartAPI disponible');
+      console.log('🛏️ Martek - Iniciando carga de carrito...');
+      
+      // ✅ FUNCIÓN HELPER PARA ESPERAR CARRITO
+      function waitForCartReady(maxAttempts = 100) { // 10 segundos max
+        return new Promise((resolve) => {
+          let attempts = 0;
           
-          // ✅ Aquí puedes ejecutar código que dependa del carrito
-          // Por ejemplo, actualizar contador inicial
-          if (typeof window.updateCartCounter === 'function') {
-            window.updateCartCounter();
+          const checkCart = () => {
+            attempts++;
+            
+            // Verificar múltiples formas de detección
+            const hasCartAPI = typeof window.CartAPI !== 'undefined';
+            const hasAddToCart = typeof window.addToCart === 'function';
+            const hasCartLoaded = window.MARTEK_CART_LOADED === true;
+            
+            if ((hasCartAPI || hasAddToCart) || hasCartLoaded) {
+              console.log('✅ Sistema de carrito detectado');
+              window.MARTEK_CART_LOADED = true;
+              resolve(true);
+            } else if (attempts >= maxAttempts) {
+              console.warn('⚠️ Timeout esperando carrito después de', attempts * 100, 'ms');
+              resolve(false);
+            } else {
+              setTimeout(checkCart, 100);
+            }
+          };
+          
+          checkCart();
+        });
+      }
+      
+      // ✅ CARGAR CART.JS DE FORMA SEGURA
+      function loadCartScript() {
+        return new Promise((resolve, reject) => {
+          // Verificar si ya existe el script
+          const existingScript = document.querySelector('script[src="/js/cart.js"]');
+          if (existingScript) {
+            console.log('🔄 cart.js ya existe, esperando carga...');
+            resolve(true);
+            return;
           }
           
-        } else {
-          console.warn('⚠️ Layout: CartAPI no disponible después de 15 segundos');
-          
-          // ✅ FALLBACK: Intentar cargar cart.js manualmente
-          console.log('🔄 Intentando cargar cart.js manualmente...');
+          console.log('📦 Cargando cart.js...');
           const script = document.createElement('script');
           script.src = '/js/cart.js';
+          script.async = false; // Cargar síncronamente para evitar problemas
+          
           script.onload = () => {
-            console.log('✅ cart.js cargado manualmente');
-            setTimeout(() => {
-              if (typeof window.CartAPI !== 'undefined') {
-                console.log('✅ CartAPI ahora disponible');
-              }
-            }, 1000);
+            console.log('✅ cart.js cargado exitosamente');
+            window.MARTEK_CART_LOADED = true;
+            resolve(true);
           };
-          script.onerror = () => {
-            console.error('❌ Error cargando cart.js manualmente');
+          
+          script.onerror = (error) => {
+            console.error('❌ Error cargando cart.js:', error);
+            reject(error);
           };
+          
           document.head.appendChild(script);
-        }
-      } catch (error) {
-        console.error('❌ Error en verificación de CartAPI:', error);
+        });
       }
-    });
+      
+      // ✅ INICIALIZACIÓN PRINCIPAL
+      document.addEventListener('DOMContentLoaded', async function() {
+        try {
+          // Cargar cart.js
+          await loadCartScript();
+          
+          // Esperar a que se inicialice
+          const cartReady = await waitForCartReady();
+          
+          if (cartReady) {
+            console.log('✅ Layout: Sistema de carrito inicializado');
+            
+            // ✅ CREAR HELPERS GLOBALES
+            window.waitForCartAPI = () => waitForCartReady(50);
+            
+            window.safeAddToCart = async function(productId, productName, productPrice, quantity = 1) {
+              const ready = await waitForCartReady(30); // 3 segundos max para operaciones
+              
+              if (ready) {
+                // Intentar múltiples formas de agregar al carrito
+                if (typeof window.addToCart === 'function') {
+                  window.addToCart(productId, productName, productPrice, quantity);
+                  return true;
+                } else if (window.CartAPI && typeof window.CartAPI.addProduct === 'function') {
+                  return window.CartAPI.addProduct({
+                    product_id: productId,
+                    product_name: productName,
+                    product_price: productPrice,
+                    quantity: quantity
+                  });
+                }
+              }
+              
+              console.error('No se pudo agregar al carrito - sistema no disponible');
+              alert('Error: Sistema de carrito no disponible. Por favor, recarga la página.');
+              return false;
+            };
+            
+          } else {
+            console.error('❌ Sistema de carrito no se pudo inicializar');
+            
+            // ✅ FALLBACK: Crear funciones dummy para evitar errores
+            window.safeAddToCart = async function() {
+              alert('Sistema de carrito no disponible. Por favor, recarga la página.');
+              return false;
+            };
+            
+            window.waitForCartAPI = () => Promise.resolve(false);
+          }
+          
+        } catch (error) {
+          console.error('❌ Error en inicialización del carrito:', error);
+          
+          // ✅ FALLBACK: Funciones dummy
+          window.safeAddToCart = async function() {
+            alert('Error del sistema. Por favor, recarga la página.');
+            return false;
+          };
+          
+          window.waitForCartAPI = () => Promise.resolve(false);
+        }
+      });
+      
+    } else {
+      console.log('🔄 Sistema de carrito ya cargado o en proceso');
+    }
   </script>
 </body>
 </html>

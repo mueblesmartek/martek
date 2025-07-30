@@ -10,12 +10,16 @@ declare global {
     clearCart: () => void;
     getCartItems: () => any[];
     getCartTotal: () => number;
+    CartAPI?: any; // Tu sistema actual de carrito
     
-    // ✅ Funciones del cart loader helper
-    waitForCart: (timeout?: number) => Promise<boolean>;
-    whenCartReady: (callback: () => void, timeout?: number) => Promise<void>;
-    safeAddToCart: (productId: string, productName: string, productPrice: number, quantity?: number) => Promise<boolean>;
-    safeUpdateCartCounter: () => Promise<void>;
+    // ✅ Funciones del cart loader helper (versión original)
+    waitForCart?: (timeout?: number) => Promise<boolean>;
+    whenCartReady?: (callback: () => void, timeout?: number) => Promise<void>;
+    safeAddToCart?: (productId: string, productName: string, productPrice: number, quantity?: number) => Promise<boolean>;
+    safeUpdateCartCounter?: () => Promise<void>;
+    
+    // ✅ Funciones del helper integrado (para tu Layout actual)
+    waitForCartAPI: (timeout?: number) => Promise<boolean>;
     
     // ✅ Función auxiliar para cambiar imágenes (si la usas)
     selectImage?: (url: string, alt: string, index: number) => void;
