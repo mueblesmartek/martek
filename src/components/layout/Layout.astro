@@ -1,5 +1,5 @@
 ---
-// src/components/layout/Layout.astro - LAYOUT MARTEK CON CARRITO
+// src/components/layout/Layout.astro - LAYOUT ACTUALIZADO CON CART LOADER
 import Header from './Header.astro';
 import Footer from './Footer.astro';
 import { GlobalCart } from '../react/Cart';
@@ -13,8 +13,8 @@ export interface Props {
 
 const { 
   title, 
-  description = "Martek - Bases para camas de alta calidad. Más de 45 años de experiencia en muebles.", 
-  image = "/images/og-default.jpg",
+  description = "Martek - Bases para camas de alta calidad. Más de 45 años de experiencia en muebles.",
+  image = "/images/og-image.jpg",
   noIndex = false 
 } = Astro.props;
 
@@ -23,88 +23,104 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <!-- SEO Meta Tags -->
-  <title>{title}</title>
-  <meta name="description" content={description} />
-  <link rel="canonical" href={canonicalURL} />
-  
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content={canonicalURL} />
-  <meta property="og:title" content={title} />
-  <meta property="og:description" content={description} />
-  <meta property="og:image" content={new URL(image, Astro.url)} />
-  
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content={canonicalURL} />
-  <meta property="twitter:title" content={title} />
-  <meta property="twitter:description" content={description} />
-  <meta property="twitter:image" content={new URL(image, Astro.url)} />
-  
-  <!-- Robots -->
-  {noIndex && <meta name="robots" content="noindex, nofollow" />}
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
-  
-  <!-- Estilos críticos inline -->
-  <style>
-    *,*::before,*::after{box-sizing:border-box;}
-    html{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;line-height:1.5;}
-    body{margin:0;line-height:inherit;}
-    .loading{opacity:0.5;pointer-events:none;}
-    .fade-in{animation:fadeIn 0.3s ease-in-out;}
-    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="canonical" href={canonicalURL} />
     
-    /* Colores Martek: Gris, Rojo, Blanco */
-    :root {
-      --martek-red: #DC2626;
-      --martek-red-hover: #B91C1C;
-      --martek-gray: #6B7280;
-      --martek-dark-gray: #374151;
-      --martek-light-gray: #F3F4F6;
-    }
-  </style>
-</head>
+    <!-- SEO Meta Tags -->
+    <title>{title}</title>
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
-<body class="bg-white text-gray-800 antialiased">
+    <!-- ✅ CARGAR CART LOADER PRIMERO - CRÍTICO PARA PRODUCCIÓN -->
+    <script src="/js/cart-loader.js" is:inline></script>
+    
+    <!-- ✅ CARGAR SISTEMA DE CARRITO SEGUNDO -->
+    <script src="/js/cart.js" is:inline></script>
+
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Critical CSS inline for performance -->
+    <style>
+      /* Critical above-the-fold styles */
+      body { 
+        font-family: system-ui, -apple-system, sans-serif; 
+        margin: 0; 
+        line-height: 1.6; 
+      }
+      .loading { 
+        opacity: 0.5; 
+        pointer-events: none; 
+      }
+    </style>
+  </head>
   
-  <!-- Header -->
-  <Header />
-  
-  <!-- Main Content -->
-  <main id="main-content" class="min-h-screen">
-    <slot />
-  </main>
-  
-  <!-- Footer -->
-  <Footer />
+  <body>
+    <!-- Header -->
+    <Header />
+    
+    <!-- Main Content -->
+    <main>
+      <slot />
+    </main>
+    
+    <!-- Footer -->
+    <Footer />
+    
+    <!-- ✅ CARRITO GLOBAL - SE CARGA DESPUÉS DE QUE EL SISTEMA ESTÉ LISTO -->
+    <div id="global-cart-container"></div>
+    
+    <!-- ✅ SCRIPT PARA CARGAR CARRITO GLOBAL DE FORMA SEGURA -->
+    <script>
+      // Esperar a que React y el sistema de carrito estén disponibles
+      document.addEventListener('DOMContentLoaded', async () => {
+        try {
+          // ✅ ESPERAR A QUE EL CARRITO ESTÉ DISPONIBLE
+          const cartReady = await window.waitForCart(15000);
+          
+          if (!cartReady) {
+            console.error('❌ No se pudo cargar el sistema de carrito global');
+            return;
+          }
 
-  <!-- ✅ CARRITO GLOBAL - MONTADO PARA ESCUCHAR EVENTOS -->
-  <GlobalCart client:load />
+          // ✅ CARGAR COMPONENTE REACT DEL CARRITO
+          const [{ GlobalCart }, React, ReactDOM] = await Promise.all([
+            import('../react/Cart'),
+            import('react'),
+            import('react-dom/client')
+          ]);
 
-  <!-- ✅ SCRIPT DE CARRITO PRINCIPAL -->
-  <script src="/js/cart.js" is:inline></script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('🛏️ Martek - Bases para camas cargado');
-      
-      // ✅ VERIFICAR QUE TODO ESTÉ CONECTADO
-      setTimeout(() => {
-        if (typeof window.CartAPI !== 'undefined') {
-          console.log('✅ Layout: CartAPI disponible');
-        } else {
-          console.warn('⚠️ Layout: CartAPI no disponible');
+          const container = document.getElementById('global-cart-container');
+          if (container) {
+            const root = ReactDOM.createRoot(container);
+            root.render(React.createElement(GlobalCart));
+            console.log('✅ Carrito global cargado exitosamente');
+          }
+        } catch (error) {
+          console.error('❌ Error cargando carrito global:', error);
         }
-      }, 1000);
-    });
-  </script>
-</body>
+      });
+    </script>
+
+    <!-- Analytics y scripts no críticos al final -->
+    <script>
+      // Google Analytics u otros scripts de tracking aquí
+      console.log('📊 Layout cargado - Analytics ready');
+    </script>
+  </body>
 </html>
