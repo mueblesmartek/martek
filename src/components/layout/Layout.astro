@@ -86,10 +86,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   <!-- Footer -->
   <Footer />
 
-  <!-- ✅ CARRITO GLOBAL - MONTADO PARA ESCUCHAR EVENTOS -->
-  <GlobalCart client:load />
+  <!-- ✅ CARRITO GLOBAL CON HYDRATION FORZADA -->
+  <div id="global-cart-mount-point"></div>
 
-  <!-- ✅ SCRIPT BULLETPROOF - EVITA CARGA DOBLE DE CART.JS -->
+  <!-- ✅ SCRIPT PRINCIPAL - CART + HYDRATION FIX -->
   <script is:inline>
     // 🔧 FLAG GLOBAL PARA EVITAR CARGA DOBLE
     if (!window.MARTEK_CART_LOADING && !window.MARTEK_CART_LOADED) {
@@ -98,14 +98,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       console.log('🛏️ Martek - Iniciando carga de carrito...');
       
       // ✅ FUNCIÓN HELPER PARA ESPERAR CARRITO
-      function waitForCartReady(maxAttempts = 100) { // 10 segundos max
+      function waitForCartReady(maxAttempts = 100) {
         return new Promise((resolve) => {
           let attempts = 0;
           
           const checkCart = () => {
             attempts++;
             
-            // Verificar múltiples formas de detección
             const hasCartAPI = typeof window.CartAPI !== 'undefined';
             const hasAddToCart = typeof window.addToCart === 'function';
             const hasCartLoaded = window.MARTEK_CART_LOADED === true;
@@ -129,7 +128,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       // ✅ CARGAR CART.JS DE FORMA SEGURA
       function loadCartScript() {
         return new Promise((resolve, reject) => {
-          // Verificar si ya existe el script
           const existingScript = document.querySelector('script[src="/js/cart.js"]');
           if (existingScript) {
             console.log('🔄 cart.js ya existe, esperando carga...');
@@ -140,7 +138,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
           console.log('📦 Cargando cart.js...');
           const script = document.createElement('script');
           script.src = '/js/cart.js';
-          script.async = false; // Cargar síncronamente para evitar problemas
+          script.async = false;
           
           script.onload = () => {
             console.log('✅ cart.js cargado exitosamente');
@@ -157,26 +155,76 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         });
       }
       
+      // 🔧 FORZAR HIDRATACIÓN DE REACT COMPONENTS
+      async function forceReactHydration() {
+        console.log('🔄 Iniciando hidratación forzada de React...');
+        
+        try {
+          // Cargar React y ReactDOM
+          const [React, ReactDOM] = await Promise.all([
+            import('react'),
+            import('react-dom/client')
+          ]);
+          
+          console.log('✅ React y ReactDOM cargados');
+          
+          // Esperar un poco para que el DOM esté completamente listo
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Montar GlobalCart manualmente
+          const cartContainer = document.getElementById('global-cart-mount-point');
+          if (cartContainer) {
+            try {
+              const { GlobalCart } = await import('../components/react/Cart');
+              const root = ReactDOM.createRoot(cartContainer);
+              root.render(React.createElement(GlobalCart));
+              console.log('✅ GlobalCart hidratado manualmente');
+            } catch (error) {
+              console.error('❌ Error hidratando GlobalCart:', error);
+            }
+          }
+          
+          // Verificar y forzar hidratación de otros componentes React
+          const reactComponents = document.querySelectorAll('[data-astro-component]');
+          console.log(`🔄 Encontrados ${reactComponents.length} componentes Astro para hidratar`);
+          
+          // Disparar evento personalizado para despertar componentes
+          window.dispatchEvent(new CustomEvent('astro:hydration-force', {
+            detail: { timestamp: Date.now() }
+          }));
+          
+          // Trigger de eventos para componentes que podrían estar esperando
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('astro:page-load'));
+            window.dispatchEvent(new CustomEvent('DOMContentLoaded'));
+          }, 100);
+          
+        } catch (error) {
+          console.error('❌ Error en hidratación forzada:', error);
+        }
+      }
+      
       // ✅ INICIALIZACIÓN PRINCIPAL
       document.addEventListener('DOMContentLoaded', async function() {
         try {
-          // Cargar cart.js
+          console.log('🚀 Iniciando secuencia de carga...');
+          
+          // 1. Cargar cart.js
           await loadCartScript();
           
-          // Esperar a que se inicialice
+          // 2. Esperar a que se inicialice
           const cartReady = await waitForCartReady();
           
           if (cartReady) {
             console.log('✅ Layout: Sistema de carrito inicializado');
             
-            // ✅ CREAR HELPERS GLOBALES
+            // 3. Crear helpers globales
             window.waitForCartAPI = () => waitForCartReady(50);
             
             window.safeAddToCart = async function(productId, productName, productPrice, quantity = 1) {
-              const ready = await waitForCartReady(30); // 3 segundos max para operaciones
+              const ready = await waitForCartReady(30);
               
               if (ready) {
-                // Intentar múltiples formas de agregar al carrito
                 if (typeof window.addToCart === 'function') {
                   window.addToCart(productId, productName, productPrice, quantity);
                   return true;
@@ -195,10 +243,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
               return false;
             };
             
-            // 🐛 DEBUG: Disparar evento para notificar que el carrito está listo
-            console.log('🐛 DEBUG: Disparando eventos de carrito listo...');
-            
-            // Evento personalizado para componentes React
+            // 4. Disparar eventos de carrito listo
+            console.log('📡 Disparando eventos de carrito listo...');
             window.dispatchEvent(new CustomEvent('cart-system-ready', {
               detail: { 
                 timestamp: Date.now(),
@@ -207,21 +253,15 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
               }
             }));
             
-            // También usar el evento que esperan los componentes
-            if (window.CartAPI && typeof window.CartAPI.on === 'function') {
-              console.log('🐛 DEBUG: Disparando cart:updated...');
-              // Simular un evento de carrito actualizado para despertar componentes
-              setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('cart:updated', {
-                  detail: { items: window.CartAPI.getItems ? window.CartAPI.getItems() : [] }
-                }));
-              }, 100);
-            }
+            // 5. Forzar hidratación de React (FIX PRINCIPAL)
+            await forceReactHydration();
+            
+            console.log('🎉 Inicialización completa - cart + React hidratado');
             
           } else {
             console.error('❌ Sistema de carrito no se pudo inicializar');
             
-            // ✅ FALLBACK: Crear funciones dummy para evitar errores
+            // Fallback functions
             window.safeAddToCart = async function() {
               alert('Sistema de carrito no disponible. Por favor, recarga la página.');
               return false;
@@ -230,29 +270,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
             window.waitForCartAPI = () => Promise.resolve(false);
           }
           
-          // 🐛 DEBUG: Verificar qué componentes siguen cargando después de 5 segundos
-          setTimeout(() => {
-            console.log('🐛 DEBUG: Verificando componentes después de 5 segundos...');
-            
-            // Verificar elementos con clases de loading
-            const loadingElements = document.querySelectorAll('.loading, [data-loading="true"], .spinner');
-            if (loadingElements.length > 0) {
-              console.log('🐛 DEBUG: Elementos que siguen cargando:', loadingElements);
-              loadingElements.forEach((el, index) => {
-                console.log(`🐛 Elemento ${index + 1}:`, el.className, el.id, el.textContent?.substring(0, 50));
-              });
-            }
-            
-            // Verificar estado de React components
-            const reactContainers = document.querySelectorAll('[data-reactroot], [data-react-component]');
-            console.log('🐛 DEBUG: Contenedores React encontrados:', reactContainers.length);
-            
-          }, 5000);
-          
         } catch (error) {
-          console.error('❌ Error en inicialización del carrito:', error);
+          console.error('❌ Error en inicialización:', error);
           
-          // ✅ FALLBACK: Funciones dummy
+          // Fallback functions
           window.safeAddToCart = async function() {
             alert('Error del sistema. Por favor, recarga la página.');
             return false;
