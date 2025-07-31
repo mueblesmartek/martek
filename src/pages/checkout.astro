@@ -379,10 +379,10 @@ if (!wompiConfigured && isDevelopment) {
       }
 
       // ✅ MANEJAR ENVÍO DEL FORMULARIO
-        async function handleFormSubmit(e) {
+          async function handleFormSubmit(e: Event) {
           e.preventDefault();
           
-          const formData = new FormData(e.target);
+          const formData = new FormData(e.currentTarget as HTMLFormElement);
           const summary = cartManager.getCheckoutSummary();
           
           // ✅ DEBUG ESPECÍFICO ANTES DEL FETCH

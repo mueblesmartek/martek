@@ -1,5 +1,5 @@
 ---
-// src/pages/checkout/confirmacion.astro - PÁGINA DE CONFIRMACIÓN SÚPER COMPLETA
+// src/pages/checkout/confirmacion.astro - PÁGINA DE CONFIRMACIÓN CORREGIDA
 import Layout from '../../components/layout/Layout.astro';
 import { supabase } from '../../lib/supabase';
 import type { Order } from '../../lib/types';
@@ -25,11 +25,11 @@ const formatPrice = (price: number): string => {
       maximumFractionDigits: 0
     }).format(validPrice);
   } catch (error) {
-    return `$${price.toLocaleString('es-CO')}`;
+    return `$${price?.toLocaleString('es-CO') || '0'}`;
   }
 };
 
-// ✅ VALIDACIÓN Y CARGA DE ORDEN
+// ✅ VALIDACIÓN Y CARGA DE ORDEN (CORREGIDA)
 if (!orderId) {
   error = 'ID de orden requerido';
   pageType = 'error';
@@ -52,18 +52,26 @@ if (!orderId) {
       } else {
         order = data;
         
-        // Determinar tipo de página basado en estado de pago
-        if (order.payment_status === 'completed') {
-          pageType = 'success';
-        } else if (order.payment_status === 'pending') {
-          pageType = 'pending';
-        } else if (order.payment_status === 'failed') {
-          pageType = 'failed';
+        // ✅ CORRECCIÓN: Verificar que order existe antes de acceder a propiedades
+        if (order) {
+          const paymentStatus = order.payment_status;
+          
+          // Determinar tipo de página basado en estado de pago
+          if (paymentStatus === 'completed') {
+            pageType = 'success';
+          } else if (paymentStatus === 'pending') {
+            pageType = 'pending';
+          } else if (paymentStatus === 'failed') {
+            pageType = 'failed';
+          } else {
+            pageType = 'pending'; // Default para nuevas órdenes
+          }
+          
+          console.log('✅ Orden cargada para confirmación:', order.order_number || 'sin número', 'Estado:', paymentStatus || 'sin estado');
         } else {
-          pageType = 'pending'; // Default para nuevas órdenes
+          error = 'Orden no válida';
+          pageType = 'error';
         }
-        
-        console.log('✅ Orden cargada para confirmación:', order.order_number, 'Estado:', order.payment_status);
       }
     }
   } catch (err) {
@@ -101,7 +109,7 @@ const pageDescription = pageType === 'success' ? 'Tu pedido ha sido confirmado y
           </div>
           <h1 class="text-3xl font-bold text-gray-800 mb-2">¡Pago Exitoso!</h1>
           <p class="text-lg text-gray-600 mb-4">Tu pedido ha sido confirmado</p>
-          <p class="text-sm text-gray-500">Número de orden: <span class="font-medium text-gray-800">{order.order_number}</span></p>
+          <p class="text-sm text-gray-500">Número de orden: <span class="font-medium text-gray-800">{order.order_number || 'No disponible'}</span></p>
           {transactionId && (
             <p class="text-sm text-gray-500">ID de transacción: <span class="font-medium text-gray-800">{transactionId}</span></p>
           )}
@@ -119,7 +127,7 @@ const pageDescription = pageType === 'success' ? 'Tu pedido ha sido confirmado y
           <h1 class="text-3xl font-bold text-gray-800 mb-2">Pago en Proceso</h1>
           <p class="text-lg text-gray-600 mb-4">Tu pago está siendo procesado</p>
           <p class="text-sm text-gray-500">Te notificaremos cuando se confirme</p>
-          <p class="text-sm text-gray-500">Número de orden: <span class="font-medium text-gray-800">{order.order_number}</span></p>
+          <p class="text-sm text-gray-500">Número de orden: <span class="font-medium text-gray-800">{order.order_number || 'No disponible'}</span></p>
         </div>
       )}
 
@@ -133,7 +141,7 @@ const pageDescription = pageType === 'success' ? 'Tu pedido ha sido confirmado y
           </div>
           <h1 class="text-3xl font-bold text-gray-800 mb-2">Pago Fallido</h1>
           <p class="text-lg text-gray-600 mb-4">Hubo un problema procesando tu pago</p>
-          <p class="text-sm text-gray-500">Número de orden: <span class="font-medium text-gray-800">{order.order_number}</span></p>
+          <p class="text-sm text-gray-500">Número de orden: <span class="font-medium text-gray-800">{order.order_number || 'No disponible'}</span></p>
           
           <div class="mt-6">
             <a href={`/checkout/pagos?order=${order.id}`} 
@@ -167,98 +175,106 @@ const pageDescription = pageType === 'success' ? 'Tu pedido ha sido confirmado y
         </div>
       )}
 
-      <!-- ✅ DETALLES DE LA ORDEN (Solo si hay orden) -->
+      <!-- ✅ DETALLES DE LA ORDEN (CORREGIDO CON NULL SAFETY) -->
       {order && (
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 class="text-xl font-semibold text-gray-800 mb-6">Detalles del Pedido</h2>
-          
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-            <!-- Información de envío -->
-            <div>
-              <h3 class="font-medium text-gray-800 mb-4">Información de Envío</h3>
-              <div class="space-y-2 text-sm">
-                <p><span class="font-medium">Nombre:</span> {order.shipping_address?.full_name}</p>
-                <p><span class="font-medium">Email:</span> {order.shipping_address?.email}</p>
-                <p><span class="font-medium">Teléfono:</span> {order.shipping_address?.phone}</p>
-                <p><span class="font-medium">Dirección:</span> {order.shipping_address?.address_line_1}</p>
-                <p><span class="font-medium">Ciudad:</span> {order.shipping_address?.city}, {order.shipping_address?.state}</p>
-                <p><span class="font-medium">Código Postal:</span> {order.shipping_address?.postal_code}</p>
-              </div>
-            </div>
-
-            <!-- Resumen de pago -->
-            <div>
-              <h3 class="font-medium text-gray-800 mb-4">Resumen de Pago</h3>
-              <div class="space-y-2 text-sm">
-                <div class="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>{formatPrice(order.subtotal)}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>Envío:</span>
-                  <span>{order.shipping_cost > 0 ? formatPrice(order.shipping_cost) : 'Gratis'}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>IVA:</span>
-                  <span>{formatPrice(order.tax)}</span>
-                </div>
-                <div class="border-t pt-2 flex justify-between font-semibold">
-                  <span>Total:</span>
-                  <span>{formatPrice(order.total)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Lista de productos -->
-          {order.items && order.items.length > 0 && (
-            <div class="mt-8">
-              <h3 class="font-medium text-gray-800 mb-4">Productos</h3>
-              <div class="space-y-4">
-                {order.items.map((item: any) => (
-                  <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-md">
-                    <div class="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center">
-                      <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                      </svg>
-                    </div>
-                    <div class="flex-1">
-                      <h4 class="font-medium text-gray-800">{item.product_name}</h4>
-                      <p class="text-sm text-gray-600">Cantidad: {item.quantity}</p>
-                      <p class="text-sm text-gray-600">Precio unitario: {formatPrice(item.price)}</p>
-                    </div>
-                    <div class="text-right">
-                      <p class="font-medium text-gray-800">{formatPrice(item.total)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+    <h2 class="text-xl font-semibold text-gray-800 mb-6">Detalles del Pedido</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Información de envío -->
+      <div>
+        <h3 class="font-medium text-gray-800 mb-4">Información de Envío</h3>
+        <div class="space-y-2 text-sm">
+          <p><span class="font-medium">Nombre:</span> {order.shipping_address?.full_name || 'No disponible'}</p>
+          <p><span class="font-medium">Email:</span> {order.shipping_address?.email || 'No disponible'}</p>
+          <p><span class="font-medium">Teléfono:</span> {order.shipping_address?.phone || 'No disponible'}</p>
+          <p><span class="font-medium">Dirección:</span> {order.shipping_address?.address_line_1 || 'No disponible'}</p>
+          <p><span class="font-medium">Ciudad:</span> {order.shipping_address?.city || 'No disponible'}, {order.shipping_address?.state || 'No disponible'}</p>
+          <p><span class="font-medium">Código Postal:</span> {order.shipping_address?.postal_code || 'No disponible'}</p>
         </div>
-      )}
-
-      <!-- ✅ ACCIONES ADICIONALES -->
-      <div class="text-center space-x-4">
-        {(pageType === 'success' || pageType === 'pending') && (
-          <a href="/" 
-             class="inline-flex items-center px-6 py-3 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            Volver al Inicio
-          </a>
-        )}
-        
-        <a href="/productos" 
-           class="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-          </svg>
-          Seguir Comprando
-        </a>
       </div>
+
+      <!-- Resumen de pago -->
+      <div>
+        <h3 class="font-medium text-gray-800 mb-4">Resumen de Pago</h3>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span>Subtotal:</span>
+            <span>{formatPrice(order.subtotal || 0)}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Envío:</span>
+            <span>{(order.shipping_cost || 0) > 0 ? formatPrice(order.shipping_cost || 0) : 'Gratis'}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>IVA:</span>
+            <span>{formatPrice(order.tax || 0)}</span>
+          </div>
+          <div class="border-t pt-2 flex justify-between font-semibold">
+            <span>Total:</span>
+            <span>{formatPrice(order.total || 0)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de productos -->
+    {order.items && Array.isArray(order.items) && order.items.length > 0 && (
+      <div class="mt-8">
+        <h3 class="font-medium text-gray-800 mb-4">Productos</h3>
+        <div class="space-y-4">
+          {order.items.map((item: any, index: number) => (
+            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-md">
+              <div class="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center">
+                {item.product_image ? (
+                  <img 
+                    src={item.product_image} 
+                    alt={item.product_name || 'Producto'} 
+                    class="w-full h-full object-cover rounded-md"
+                  />
+                ) : (
+                  <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                )}
+              </div>
+              <div class="flex-1">
+                <h4 class="font-medium text-gray-800">{item.product_name || 'Producto sin nombre'}</h4>
+                <p class="text-sm text-gray-600">Cantidad: {item.quantity || 1}</p>
+                <p class="text-sm text-gray-600">Precio unitario: {formatPrice(item.price || 0)}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-medium text-gray-800">{formatPrice(item.total || (item.price || 0) * (item.quantity || 1))}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+)}
+<!-- ✅ AQUÍ ESTÁ EL CIERRE CORRECTO ☝️ -->
+
+<!-- ✅ ACCIONES ADICIONALES (FUERA DEL BLOQUE order) -->
+<div class="text-center space-x-4">
+  {(pageType === 'success' || pageType === 'pending') && (
+    <a href="/" 
+       class="inline-flex items-center px-6 py-3 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+      Volver al Inicio
+    </a>
+  )}
+  
+  <a href="/productos" 
+     class="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+    </svg>
+    Seguir Comprando
+  </a>
+</div>
 
       <!-- ✅ INFORMACIÓN ADICIONAL -->
       <div class="mt-12 bg-blue-50 border border-blue-200 rounded-md p-6">
@@ -300,12 +316,26 @@ const pageDescription = pageType === 'success' ? 'Tu pedido ha sido confirmado y
   </div>
 </Layout>
 
-<!-- ✅ SCRIPT PARA AUTO-ACTUALIZACIÓN EN PÁGINAS PENDIENTES -->
+<!-- ✅ SCRIPT MEJORADO PARA AUTO-ACTUALIZACIÓN -->
 {pageType === 'pending' && (
   <script>
-    // Auto-recargar cada 30 segundos para verificar actualizaciones de estado
-    setTimeout(() => {
-      window.location.reload();
-    }, 30000);
+    // Auto-recargar cada 60 segundos (no 30) para verificar actualizaciones de estado
+    let refreshCount = 0;
+    const maxRefreshes = 10; // Máximo 10 recargas (10 minutos)
+    
+    function scheduleRefresh() {
+      if (refreshCount < maxRefreshes) {
+        setTimeout(() => {
+          refreshCount++;
+          console.log(`🔄 Auto-refresh ${refreshCount}/${maxRefreshes}`);
+          window.location.reload();
+        }, 60000); // 60 segundos
+      } else {
+        console.log('🛑 Máximo de auto-refreshes alcanzado');
+      }
+    }
+    
+    // Iniciar el auto-refresh
+    scheduleRefresh();
   </script>
 )}
